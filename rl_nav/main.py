@@ -1,22 +1,18 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from rl_nav.config import open_field_env, obstacle_env, reward_structure, start_locations, total_num_timesteps, all_actions, initial_value_dist, initial_value_0
 
 class RL_nav:
-    def __init__(self):
-        self.arena=np.array([[0,0,0,0,0,0,0,0,0],
-                             [0,0,0,0,0,0,0,0,0],
-                             [0,0,0,0,0,0,0,0,0],
-                             [0,0,0,0,0,0,0,0,0],
-                             [0,0,0,0,0,0,0,0,0],
-                             [0,0,0,0,0,0,0,0,0],
-                             [0,0,0,0,0,0,0,0,0],
-                             [0,0,0,0,0,0,0,0,0],
-                             [0,0,0,0,1,0,0,0,0]])   # 1 ~ shelter/reward
-        self.threat_zone      = [(0,2), (0,3), (0,4)] # locations from which to test the agent's ability to get to shelter
-        self.actions          = ['N','S','W','E','NW','NE','SW','SE']
-        self.num_timesteps    = 500
-        self.value_funcs      = {key:[] for key in ['model-free', 'model-based', 'SR', 'FR', 'optimal']}
-        self.learning_curves  = {key:[] for key in ['model-free', 'model-based', 'SR', 'FR', 'timesteps']}
+    def __init__(self, env):
+        if env=='open field': self.env = open_field_env
+        if env=='obstacle':   self.env = obstacle_env
+        self.env_type        = env
+        self.rewards         = reward_structure
+        self.start           = start_locations
+        self.num_timesteps   = total_num_timesteps
+        self.actions         = all_actions
+        self.value_funcs     = {key:[] for key in ['model-free', 'model-based', 'SR', 'FR', 'optimal']}
+        self.learning_curves = {key:[] for key in ['model-free', 'model-based', 'SR', 'FR', 'timesteps']}
         self.learning_curves['timesteps'] = np.arange(0,self.num_timesteps,10)
 
     def select_hyperparameters(self):
@@ -27,7 +23,7 @@ class RL_nav:
         self.select_hyperparameters()
         self.initialize_exploration(initialization, strategy='model-free')
         for i in range(self.num_timesteps):
-            self.take_action('model-free',policy)
+            self.take_action(policy)
             self.take_reward()
             self.calculate_td_error()
             self.update_eligibility_trace()
@@ -36,33 +32,45 @@ class RL_nav:
                 self.test_performance()
 
     # -------- EPISODE MECHANICS ----------------------------------------------------------------      
-    def take_action(self, strategy='model-free', policy='random'):
+    def take_action(self, policy='random'):
         if policy=='random':
             action = np.random.choice(self.actions)
         elif policy=='epsilon-greedy':
-            pass # TODO: epsilon-greedy policy
-        elif policy=='greedy':
+            if np.random.random() < self.epsilon_:
+                self.take_action('random')
+            else:
+                self.take_action('greedy')
+            return
+        elif policy=='greedy': # in a tie, select randomly among highest-valued states
             neighboring_locs   = self.get_neighboring_locs()
             neighboring_values = self.get_neighboring_values(neighboring_locs)            
-            action = self.actions[np.random.choice(np.where(neighboring_values==np.max(neighboring_values))[0])] # in a tie, select randomly among winners
-        self.prev_loc = self.loc
+            action = self.actions[np.random.choice(np.where(neighboring_values==np.max(neighboring_values))[0])] 
+
+        self.prev_loc      = self.loc
+
         if 'N' in action:
             self.loc = max(0, self.loc[0]-1), self.loc[1]
         if 'S' in action:
-            self.loc = min(len(self.arena)-1, self.loc[0]+1), self.loc[1]
+            self.loc = min(len(self.env)-1, self.loc[0]+1), self.loc[1]
         if 'W' in action:
             self.loc = self.loc[0], max(0, self.loc[1]-1)
         if 'E' in action:
-            self.loc = self.loc[0], min(len(self.arena[0])-1, self.loc[1]+1)
+            self.loc = self.loc[0], min(len(self.env[0])-1, self.loc[1]+1)
+
+        if self.env[self.loc]=='X' or -1 in self.loc or len(self.env) in self.loc:
+            self.loc = self.prev_loc # if the agent runs into an obstacle, it remains in the same position
+
+        self.time_taken_by_action = max(1, ((self.loc[0]-self.prev_loc[0])**2+(self.loc[1]-self.prev_loc[1])**2)**.5)
+        self.discount_factor      = self.gamma_**self.time_taken_by_action
 
     def take_reward(self):
-        self.reward = self.arena[self.prev_loc]
+        self.reward = self.rewards[self.prev_loc]
 
     def calculate_td_error(self):
-        self.td_error = self.reward + self.gamma_ * self.value_funcs['model-free'][self.loc] -  self.value_funcs['model-free'][self.prev_loc]
+        self.td_error = self.reward + self.discount_factor * self.value_funcs['model-free'][self.loc] -  self.value_funcs['model-free'][self.prev_loc]
 
     def update_eligibility_trace(self):
-        self.eligibility_trace*=self.gamma_*self.lambda_
+        self.eligibility_trace*=self.discount_factor*self.lambda_
         self.eligibility_trace[self.prev_loc] += 1
 
     def update_value_func(self, strategy='model-free'):
@@ -76,47 +84,58 @@ class RL_nav:
             pass # TODO: FR value func updating
 
     def initialize_exploration(self, initialization, strategy):
-        self.loc               = tuple(np.random.randint(len(self.arena), size=2))
-        self.eligibility_trace = np.zeros_like(self.arena, dtype=float)
+        self.loc               = tuple(np.random.randint(len(self.env), size=2))
+        self.prev_loc          = None
+        self.eligibility_trace = np.zeros_like(self.env, dtype=float)
         self.learning_curves[strategy].append([])
         if initialization=='zero':
-            self.value_funcs[strategy] = np.zeros_like(self.arena, dtype=float)
+            self.value_funcs[strategy] = initial_value_0.copy()
         elif initialization=='euclidean':
-            pass # TODO: euclidean initialization
+            self.value_funcs[strategy] = initial_value_dist.copy()
 
     def get_neighboring_locs(self): # locations corresponding to actions N,S,W,E,NW,NE,SW,SE
         return [(max(0, self.loc[0]-1), self.loc[1]),
-                (min(len(self.arena)-1, self.loc[0]+1), self.loc[1]),
+                (min(len(self.env)-1, self.loc[0]+1), self.loc[1]),
                 (self.loc[0], max(0, self.loc[1]-1)),
-                (self.loc[0], min(len(self.arena[0])-1, self.loc[1]+1)),
+                (self.loc[0], min(len(self.env[0])-1, self.loc[1]+1)),
                 (max(0, self.loc[0]-1), max(0, self.loc[1]-1)), 
-                (max(0, self.loc[0]-1), min(len(self.arena[0])-1, self.loc[1]+1)), 
-                (min(len(self.arena[0])-1, self.loc[0]+1), max(0, self.loc[1]-1)),
-                (min(len(self.arena[0])-1, self.loc[0]+1), min(len(self.arena[0])-1, self.loc[1]+1))]
+                (max(0, self.loc[0]-1), min(len(self.env[0])-1, self.loc[1]+1)), 
+                (min(len(self.env[0])-1, self.loc[0]+1), max(0, self.loc[1]-1)),
+                (min(len(self.env[0])-1, self.loc[0]+1), min(len(self.env[0])-1, self.loc[1]+1))]
     
     def get_neighboring_values(self, neighboring_locs):
-        neighboring_values = np.array([self.value_funcs['model-free'][loc] for loc in neighboring_locs])
-        if self.loc[0] == 0: # don't allow agents to stay in the same position with greedy policy
-            neighboring_values[np.where(['N' in action for action in self.actions])[0]] = 0
-        if self.loc[0] == len(self.arena)-1: # don't allow agents to stay in the same position with greedy policy
-            neighboring_values[np.where(['S' in action for action in self.actions])[0]] = 0
-        if self.loc[1] == 0: # don't allow agents to stay in the same position with greedy policy
-            neighboring_values[np.where(['W' in action for action in self.actions])[0]] = 0
-        if self.loc[1] == len(self.arena)-1: # don't allow agents to stay in the same position with greedy policy
-            neighboring_values[np.where(['E' in action for action in self.actions])[0]] = 0
-        return neighboring_values
+       return np.array([self.value_funcs['model-free'][loc] for loc in neighboring_locs])
     
     # -------- PERFORMANCE TESTING ---------------------------------------------------------------- 
     def test_performance(self):
         exploration_locs = self.prev_loc, self.loc # store where the agent was located so this performance test doesn't disrupt exploration
-        timesteps_to_shelter = 0
-        for start_loc in self.threat_zone:
+        avg_timesteps_to_shelter = 0
+        start_zone = np.argwhere(self.start)
+        for start_loc in start_zone:
             self.reward = 0
-            self.loc = start_loc
+            timesteps_to_shelter = 0
+            self.loc, self.prev_loc = tuple(start_loc), None
+            # plt.figure()
+            # plt.imshow(self.value_funcs['model-free'])
             while not self.reward:
-                self.take_action('model-free','greedy')
+                # plt.scatter(self.loc[0], self.loc[1], color='red')
+                # plt.pause(.001)
+                self.prev_prev_loc = self.prev_loc
+                self.take_action('greedy')
                 self.take_reward()
-                timesteps_to_shelter += 1/len(self.threat_zone) # get the avg timesteps from each state in threat zone
+                timesteps_to_shelter += self.time_taken_by_action # get the avg timesteps from each state in threat zone
+                if self.loc == self.prev_loc or self.loc==self.prev_prev_loc: 
+                    self.take_action('random') # to avoid endless loops, don't allow agents to stay in the same position with greedy policy
+                if timesteps_to_shelter > self.env.size:
+                    break
+
+                # plt.plot([self.prev_loc[0], self.loc[0]],[self.prev_loc[1], self.loc[1]], color='red')
+
+            avg_timesteps_to_shelter += timesteps_to_shelter/len(start_zone)
+            # plt.scatter(self.loc[0], self.loc[1], color='green')
+            # plt.pause(.1)
+            # plt.close()    
+            # print(timesteps_to_shelter)
         self.learning_curves['model-free'][-1].append(np.round(timesteps_to_shelter, 1))
         self.prev_loc, self.loc = exploration_locs[0], exploration_locs[1] # reset the agent to where it was during exploration
 
@@ -128,11 +147,13 @@ class RL_nav:
     def display_learning_curve(self):
         x = self.learning_curves['timesteps']
         y = np.mean(self.learning_curves['model-free'], axis=0)
-        y_err = np.std(self.learning_curves['model-free'], axis=0)
+        y_err = np.std(self.learning_curves['model-free'], axis=0) / len(self.learning_curves['timesteps'])**.5
         plt.figure()
         plt.fill_between(x, y+y_err, y-y_err, alpha = 0.5)
         plt.plot(x, y)
+        # plt.plot(x, np.array(self.learning_curves['model-free']).T)
+        plt.ylim([0,self.env.size])
         plt.xlabel('timesteps of random exploration')
         plt.ylabel('num steps, threat zone to shelter')
-        plt.title('model free learning, open field environment')
+        plt.title(f'model-free learning, {self.env_type}')
         plt.show()
