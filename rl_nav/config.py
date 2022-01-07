@@ -1,55 +1,61 @@
 import numpy as np
+'''
+    policy:              str, 'random' or 'epsilon-greedy' policy during learning
+
+    alpha_:              float, learning rate
+    gamma_:              float, temporal discount factor
+    epsilon_:            float, probability of random choice in an epsilon-greedy policy
+    lambda_:             float, credit assigment factor, used in the eligibility trace
+
+    total_num_timesteps: int, how many timesteps does the agent have to learn (for learning curve)
+    test_every_N_trials: int, how often should we test the agents performance (for learning curve)
+    num_experiments:     int, how many runs of the experiment should we use   (for learning curve)
+
+    timestep_to_display: int, how many steps of learning before displaying an episode (for demonstration)
+
+    environment:         np.ndarray, str '' for attainable location, 'X' for impassible obstacle
+    rewards:             np.ndarray, the amount of scalar reward in each location
+    test_loc:            np.ndarray, '!' for locations to measure how many steps does it take to get reward 
+'''
+policy   = 'random'
+
+alpha_   = 0.01
+gamma_   = 0.8
+epsilon_ = 0.1
+lambda_  = 0.8
 
 total_num_timesteps = 1000
+test_every_N_trials = 50
+num_experiments     = 2
 
-all_actions = ['N','S','W','E','NW','NE','SW','SE']
+timestep_to_display = 100
 
-open_field_env =  np.array([['', '', '', '', '', '', '', '', ''], # ENVIRONMENT 1: str indicates obstacles
-                            ['', '', '', '', '', '', '', '', ''], # here, there is no obstacle (open field)
-                            ['', '', '', '', '', '', '', '', ''],
-                            ['', '', '', '', '', '', '', '', ''],
-                            ['', '', '', '', '', '', '', '', ''],
-                            ['', '', '', '', '', '', '', '', ''],
-                            ['', '', '', '', '', '', '', '', ''],
-                            ['', '', '', '', '', '', '', '', ''],
-                            ['', '', '', '', '', '', '', '', '']]) 
+environment = np.array([['', '', '', '', '', '', '', '', ''], 
+                        ['', '', '', '', '', '', '', '', ''], 
+                        ['', '', '', '', '', '', '', '', ''],
+                        ['', '', '', '', '', '', '', '', ''],
+                        ['','X','X','X','X','X','X','X', ''],
+                        ['', '', '', '', '', '', '', '', ''],
+                        ['', '', '', '', '', '', '', '', ''],
+                        ['', '', '', '', '', '', '', '', ''],
+                        ['', '', '', '', '', '', '', '', '']])   
 
-obstacle_env =    np.array([['', '',  '',  '',  '', '', '', '', ''], # ENVIRONMENT 2: str indicates obstacles
-                            ['', '',  '',  '',  '', '', '', '', ''], # here, there is an obstacle in the middle
-                            ['', '',  '',  '',  '', '', '', '', ''],
-                            ['', '',  '',  '',  '', '', '', '', ''],
-                            ['','X', 'X', 'X', 'X','X','X','X', ''],
-                            ['', '',  '',  '',  '', '', '', '', ''],
-                            ['', '',  '',  '',  '', '', '', '', ''],
-                            ['', '',  '',  '',  '', '', '', '', ''],
-                            ['', '',  '',  '',  '', '', '', '', '']])                             
+rewards   =   np.array([[0,   0,  0,  0,  0,  0,  0,  0,  0], 
+                        [0,   0,  0,  0,  0,  0,  0,  0,  0], 
+                        [0,   0,  0,  0,  0,  0,  0,  0,  0],
+                        [0,   0,  0,  0,  0,  0,  0,  0,  0],
+                        [0,   0,  0,  0,  0,  0,  0,  0,  0],
+                        [0,   0,  0,  0,  0,  0,  0,  0,  0],
+                        [0,   0,  0,  0,  0,  0,  0,  0,  0],
+                        [0,   0,  0,  0,  0,  0,  0,  0,  0],
+                        [0,   0,  0,  0,  1,  0,  0,  0,  0]])                               
 
-reward_structure =np.array([[0,   0,  0,  0,  0,  0,  0,  0,   0], # REWARD STRUCTURE: 0 ~ no reward; 1 ~ shelter/reward
-                            [0,   0,  0,  0,  0,  0,  0,  0,   0],
-                            [0,   0,  0,  0,  0,  0,  0,  0,   0],
-                            [0,   0,  0,  0,  0,  0,  0,  0,   0],
-                            [0,   0,  0,  0,  0,  0,  0,  0,   0],
-                            [0,   0,  0,  0,  0,  0,  0,  0,   0],
-                            [0,   0,  0,  0,  0,  0,  0,  0,   0],
-                            [0,   0,  0,  0,  0,  0,  0,  0,   0],
-                            [0,   0,  0,  0,  1,  0,  0,  0,   0]])                               
-
-start_locations =  np.array([['', '', '', '', '!','', '', '', ''], # START ZONE: str '!' ~ locations used in test-time
-                             ['', '', '', '', '', '', '', '', ''], # to see how many steps it takes to get a reward 
-                             ['', '', '', '', '', '', '', '', ''],
-                             ['', '', '', '', '', '', '', '', ''],
-                             ['', '', '', '', '', '', '', '', ''],
-                             ['', '', '', '', '', '', '', '', ''],
-                             ['', '', '', '', '', '', '', '', ''],
-                             ['', '', '', '', '', '', '', '', ''],
-                             ['', '', '', '', '', '', '', '', '']]) 
-                            
-                            
-initial_value_0  =np.zeros_like(reward_structure, dtype=float)                               
-
-                                                      
-x_idx1 = np.array([[i for i in range(len(reward_structure))] for _ in range(len(reward_structure))])
-x_idx2 = np.array([[i for i in range(len(reward_structure)-1,-1,-1)] for _ in range(len(reward_structure))])
-x_dist = abs(x_idx1 - x_idx2)/2
-y_dist = np.array([[i for _ in range(len(reward_structure))] for i in range(len(reward_structure)-1,-1,-1)])   
-initial_value_dist = -(x_dist**2 + y_dist**2)**.5 * 10**-17
+test_loc   =  np.array([['', '', '', '', '!','', '', '', ''], 
+                        ['', '', '', '', '', '', '', '', ''], 
+                        ['', '', '', '', '', '', '', '', ''], 
+                        ['', '', '', '', '', '', '', '', ''],
+                        ['', '', '', '', '', '', '', '', ''],
+                        ['', '', '', '', '', '', '', '', ''],
+                        ['', '', '', '', '', '', '', '', ''],
+                        ['', '', '', '', '', '', '', '', ''],
+                        ['', '', '', '', '', '', '', '', '']]) 
