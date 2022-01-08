@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 from tqdm import tqdm
 from rl_nav.config import environment, rewards, test_loc
 from rl_nav.config import alpha_, gamma_, epsilon_, lambda_
@@ -20,7 +21,7 @@ class Euclidean_Gridworld_RL:
         self.gamma_   = gamma_
         self.epsilon_ = epsilon_
         self.lambda_  = lambda_
-        print( " - Generated the Euclidean Gridworld Semi-Markov Decision Process")
+        print( "Euclidean Gridworld Semi-Markov Decision Process...with an obstacle!")
         print(f" - Ready for model-free learning using random exploration")      
 
     # -------- HIGH-LEVEL FUNCS ----------------------------------------------------------------  
@@ -40,29 +41,24 @@ class Euclidean_Gridworld_RL:
             self.update_eligibility_trace()
             self.update_value_func()
             if generate_learning_curve and i in self.trials_to_test:
-                self.update_learning_curve()
+                self.test_agent_performance('update learning curve')
             if display_an_episode and i == self.step_to_display:
-                self.display_episode()
+                self.test_agent_performance('display an episode')
+                break
 
-    def successor_representation(self):
+    def successor_representation_experiment(self):
         # TODO: implement a successor representation agent as an alternative to model-free learning
         pass
 
     # -------- EPISODE MECHANICS ----------------------------------------------------------------      
-    def take_action(self, policy='random'):
+    def take_action(self, policy='random') -> tuple:
         self.prev_loc = self.loc
         self.select_action(policy)
-        if 'N' in self.action: 
-            self.loc = self.go_north(self.loc)
-        if 'S' in self.action: 
-            self.loc = self.go_south(self.loc)
-        if 'W' in self.action: 
-            self.loc = self.go_west(self.loc)
-        if 'E' in self.action: 
-            self.loc = self.go_east(self.loc)
-        # if the agent runs into an obstacle ('X'), don't change location
-        if self.env[self.loc]=='X': 
-            self.loc = self.prev_loc
+        if 'N' in self.action: self.go_north()
+        if 'S' in self.action: self.go_south()
+        if 'W' in self.action: self.go_west()
+        if 'E' in self.action: self.go_east()
+        self.check_for_boundaries()
 
     def select_action(self, policy='random'):
         if policy=='random':
@@ -70,21 +66,38 @@ class Euclidean_Gridworld_RL:
         elif policy=='greedy': 
             neighboring_locs   = self.get_neighboring_locs()
             neighboring_values = self.get_neighboring_values(neighboring_locs)     
-            # in a tie, select randomly among highest-valued states       
+            # in a tie, select randomly among highest-valued states:       
             self.action = self.actions[np.random.choice(np.where(neighboring_values==np.max(neighboring_values))[0])] 
 
-    def go_north(self, loc) -> tuple:
-        return max(0, loc[0]-1), loc[1]
+    def go_north(self, *args) -> tuple:
+        self.loc = self.loc[0]-1, self.loc[1]
+        return self.loc
+  
+    def go_south(self, *args) -> tuple:
+        self.loc = self.loc[0]+1, self.loc[1]
+        return self.loc
 
-    def go_south(self, loc) -> tuple:
-        return min(len(self.env)-1, loc[0]+1), loc[1]
+    def go_west(self, *args) -> tuple:
+        self.loc =  self.loc[0],self.loc[1]-1
+        return self.loc
 
-    def go_west(self, loc) -> tuple:
-        return loc[0], max(0, loc[1]-1)
+    def go_east(self, *args) -> tuple:
+        self.loc =  self.loc[0], self.loc[1]+1
+        return self.loc
 
-    def go_east(self, loc) -> tuple:
-        return loc[0], min(len(self.env[0])-1, loc[1]+1)
-        
+    def query_loc(self, *args):
+        self.check_for_boundaries()
+        query_loc, self.loc = self.loc, self.prev_loc
+        return query_loc
+
+    def check_for_boundaries(self):
+        # if action took self.loc out of bounds of the environment, bring it back in bounds
+        self.loc = tuple(min(max(0,x),len(self.env)-1) for x in self.loc)
+
+        # if action hit an obsatcle (indicated by 'X' in self.env), undo that action
+        if self.env[self.loc]=='X': 
+            self.loc = self.prev_loc
+
     def compute_dwell_time(self) -> float:
         ''' 
         Dwell time makes this a *semi* Markov Decision process
@@ -118,61 +131,63 @@ class Euclidean_Gridworld_RL:
         self.learning_curves.append([])
 
     def get_neighboring_locs(self): # locations corresponding to actions N,S,W,E,NW,NE,SW,SE
-        return [self.go_north(self.loc), 
-                self.go_south(self.loc), 
-                self.go_west(self.loc), 
-                self.go_east(self.loc),
-                self.go_north(self.go_west(self.loc)),
-                self.go_north(self.go_east(self.loc)),  
-                self.go_south(self.go_west(self.loc)),
-                self.go_south(self.go_east(self.loc))]
+        return [self.query_loc(self.go_north()), 
+                self.query_loc(self.go_south()), 
+                self.query_loc(self.go_west()), 
+                self.query_loc(self.go_east()),
+                self.query_loc(self.go_north(self.go_west())),
+                self.query_loc(self.go_north(self.go_east())),  
+                self.query_loc(self.go_south(self.go_west())),
+                self.query_loc(self.go_south(self.go_east()))]
     
     def get_neighboring_values(self, neighboring_locs) -> np.ndarray:
         # Do not consider actions that do not change the agent's location, during the greedy policy
         return np.array([self.value_func[loc] if loc!=self.loc else -np.inf for loc in neighboring_locs])
     
     # -------- LEARNING CURVE AND EPISODE DEMONSTRATION -------------------------------------------- 
-    def update_learning_curve(self):
+    def test_agent_performance(self, purpose = 'update learning curve'):
         self.reset_agent_location_for_testing()
+        self.initialize_episode_figure(purpose)
         for _ in range(self.env.size):
             self.take_action('greedy')
+            if self.loc==self.prev_loc:
+                print('waerawefj')
             self.time_to_reward += self.compute_dwell_time()
             if self.take_reward(): break
-        self.learning_curves[-1].append(self.time_to_reward)
+            self.plot_action(purpose)
+        self.plot_final_location(purpose)
+        self.update_learning_curve(purpose)
         self.reset_agent_location_for_training()
 
-    def display_episode(self):
-        exploration_locs = self.prev_loc, self.loc # store where the agent was located so this performance test doesn't disrupt exploration
-        avg_timesteps_to_shelter = 0
-        start_zone = np.argwhere(self.start)
-        for start_loc in start_zone:
-            self.reward = 0
-            timesteps_to_shelter = 0
-            self.loc, self.prev_loc = tuple(start_loc), None
+    def update_learning_curve(self, purpose):
+        if purpose=='update learning curve':
+            self.learning_curves[-1].append(self.time_to_reward)
+
+    def initialize_episode_figure(self, purpose):
+        if purpose=='display an episode': 
             plt.figure()
             plt.axis('off')
-            plt.imshow(self.value_func, zorder=0)
-            plt.scatter(self.loc[1], self.loc[0], color='white', zorder=2)
+            plt.imshow(self.value_func, zorder=0) # plot the current value func as background
+            plt.scatter(self.loc[1], self.loc[0], color='white', zorder=2) # plot start loc in white
+            # show the obstacle in white
+            for obstacle_loc in np.argwhere(self.env=='X'):
+                white_square = patches.Rectangle(obstacle_loc[::-1]-.5, 1, 1, facecolor='white')
+                plt.gca().add_patch(white_square)             
 
-            for _ in range(self.env.size):
-                self.take_action('greedy')
-                self.take_reward()
-                if self.reward: break
-                timesteps_to_shelter += self.dwell_time
+    def plot_action(self, purpose):
+        if purpose=='display an episode': 
+            plt.scatter(self.loc[1], self.loc[0], color='red')
+            plt.plot([self.prev_loc[1], self.loc[1]],[self.prev_loc[0], self.loc[0]], color='red', alpha=0.6, zorder=1)
+            plt.pause(.05)
 
-                plt.plot([self.prev_loc[1], self.loc[1]],[self.prev_loc[0], self.loc[0]], color='red', alpha=0.6, zorder=1)
-                plt.scatter(self.loc[1], self.loc[0], color='red')
-                plt.pause(.001)
-
-            avg_timesteps_to_shelter += timesteps_to_shelter/len(start_zone)
-            if self.reward:
-                plt.scatter(self.prev_loc[1], self.prev_loc[0], color='green',zorder=99)
-                plt.pause(.5)
-            plt.close()    
-            print(timesteps_to_shelter)
-        self.learning_curves[-1].append(np.round(timesteps_to_shelter, 1))
-        self.prev_loc, self.loc = exploration_locs[0], exploration_locs[1] # reset the agent to where it was during exploration
-
+    def plot_final_location(self, purpose):
+        if purpose=='display an episode': 
+            if self.reward: 
+                color = 'green'
+            else:
+                color = 'gray'
+            plt.scatter(self.prev_loc[1], self.prev_loc[0], s=75, color=color,zorder=99)
+            plt.show()
     
     def reset_agent_location_for_testing(self):
         self.loc_cached, self.prev_loc_cached = self.loc, self.prev_loc 
@@ -182,15 +197,21 @@ class Euclidean_Gridworld_RL:
     def reset_agent_location_for_training(self):
         self.loc, self.prev_loc = self.loc_cached, self.prev_loc_cached
 
-
     def display_learning_curve(self):
-        x = self.trials_to_test
-        y = np.mean(self.learning_curves, axis=0)
+        x_data, y_data, y_err = self.get_data_for_learning_curve_plot()
+        self.initialize_learning_curve_figure()
+        plt.plot(x_data, y_data)
+        plt.fill_between(x_data, y_data+y_err, y_data-y_err, alpha = 0.5)
+        plt.show()
+
+    def get_data_for_learning_curve_plot(self):        
+        x_data = self.trials_to_test
+        y_data = np.mean(self.learning_curves, axis=0)
         y_err = np.std(self.learning_curves, axis=0) / len(self.trials_to_test)**.5
+        return x_data, y_data, y_err
+
+    def initialize_learning_curve_figure(self):
         plt.figure()
-        plt.fill_between(x, y+y_err, y-y_err, alpha = 0.5)
-        plt.plot(x, y)
         plt.xlabel('Timesteps of random exploration')
         plt.ylabel('Total path length from test zone to reward')
         plt.title(f'Learning curve, model-free agent with an obstacle')
-        plt.show()
