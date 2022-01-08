@@ -50,6 +50,17 @@ class Euclidean_Gridworld_RL:
         pass
 
     # -------- EPISODE MECHANICS ----------------------------------------------------------------      
+    def compute_dwell_time(self) -> float:
+        ''' 
+        Dwell time makes this a *semi* Markov Decision process
+        Dwell time here is proportional to the Euclidean distance bewteen state(t) and state (t+1)
+        (Unless state(t)==state(t+1), in which case Dwell time is set to 1.0 (same as a N,E,S,or W action))
+        Thus the agent maximizes time-discounted expected reward by minimizing integrated Euclidean path length
+        '''
+        self.dwell_time      = max(1, ((self.loc[0]-self.prev_loc[0])**2+(self.loc[1]-self.prev_loc[1])**2)**.5)
+        self.discount_factor = self.gamma_**self.dwell_time
+        return self.dwell_time
+
     def take_action(self, policy='random') -> tuple:
         self.prev_loc = self.loc
         self.select_action(policy)
@@ -96,17 +107,6 @@ class Euclidean_Gridworld_RL:
         # if action hit an obsatcle (indicated by 'X' in self.env), undo that action
         if self.env[self.loc]=='X': 
             self.loc = self.prev_loc
-
-    def compute_dwell_time(self) -> float:
-        ''' 
-        Dwell time makes this a *semi* Markov Decision process
-        Dwell time here is proportional to the Euclidean distance bewteen state(t) and state (t+1)
-        (Unless state(t)==state(t+1), in which case Dwell time is set to 1.0 (same as a N,E,S,or W action))
-        Thus the agent maximizes time-discounted expected reward by minimizing integrated Euclidean path length
-        '''
-        self.dwell_time      = max(1, ((self.loc[0]-self.prev_loc[0])**2+(self.loc[1]-self.prev_loc[1])**2)**.5)
-        self.discount_factor = self.gamma_**self.dwell_time
-        return self.dwell_time
 
     def take_reward(self) -> float:
         self.reward = self.rewards[self.prev_loc]

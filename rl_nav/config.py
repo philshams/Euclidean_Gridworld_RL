@@ -22,9 +22,9 @@ lambda_  = 0.8
 
 total_num_timesteps = 1000
 test_every_N_trials = 20
-num_experiments     = 10
+num_experiments     = 30
 
-timestep_to_display = 999
+timestep_to_display = 500
 
 environment = np.array([['', '', '', '', '', '', '', '', '', ''], 
                         ['', '', '', '', '', '', '', '', '', ''], 
