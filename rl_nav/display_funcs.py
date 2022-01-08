@@ -1,59 +1,30 @@
-from rl_nav.model import Euclidean_Gridworld_RL
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+import numpy as np
 
-class Performance_Test(Euclidean_Gridworld_RL):
-    # -------- HIGH-LEVEL FUNC ----------------------------------------------------------------  
-    def test_agent_performance(self, purpose = 'update learning curve'):
+class Performance:
+    def __init__(self, Euclidean_Gridworld_RL):
+        self.model = Euclidean_Gridworld_RL
+
+    # --------HIGH-LEVEL FUNCS--------------------------------------------------------------------    
+    def test(self, purpose = 'update learning curve'):
+        '''
+        If the purpose is 'update learning curve', just return the path length from start_loc to a reward
+        If the purpose is 'display', display each state and action in a plot until the episode terminates
+        '''
         self.reset_agent_location_for_testing()
-        self.initialize_episode_figure(purpose)
-        for _ in range(self.env.size):
-            self.take_action('greedy')
-            if self.loc==self.prev_loc:
-                print('waerawefj')
-            self.time_to_reward += self.compute_dwell_time()
-            if self.take_reward(): break
-            self.plot_action(purpose)
-        self.plot_final_location(purpose)
-        self.update_learning_curve(purpose)
+        if purpose=='display': 
+            self.initialize_episode_figure()
+        for _ in range(self.model.env.size):
+            self.model.take_action('greedy')
+            self.model.time_to_reward += self.model.compute_dwell_time()
+            if self.model.take_reward(): break
+            if purpose=='display': 
+                self.plot_action()
+        if purpose=='display': 
+            self.plot_final_location()
         self.reset_agent_location_for_training()
-
-    # -------- PERFORMANCE TESTING MECHANICS-------------------------------------------------------          
-    def update_learning_curve(self, purpose):
-        if purpose=='update learning curve':
-            self.learning_curves[-1].append(self.time_to_reward)
-
-    def initialize_episode_figure(self, purpose):
-        if purpose=='display an episode': 
-            plt.figure()
-            plt.axis('off')
-            plt.imshow(self.value_func, zorder=0) # plot the current value func as background
-            plt.scatter(self.loc[1], self.loc[0], color='white', zorder=2) # plot start loc in white
-            # show the obstacle in white
-            for obstacle_loc in np.argwhere(self.env=='X'):
-                white_square = patches.Rectangle(obstacle_loc[::-1]-.5, 1, 1, facecolor='white')
-                plt.gca().add_patch(white_square)             
-
-    def plot_action(self, purpose):
-        if purpose=='display an episode': 
-            plt.scatter(self.loc[1], self.loc[0], color='red')
-            plt.plot([self.prev_loc[1], self.loc[1]],[self.prev_loc[0], self.loc[0]], color='red', alpha=0.6, zorder=1)
-            plt.pause(.05)
-
-    def plot_final_location(self, purpose):
-        if purpose=='display an episode': 
-            if self.reward: 
-                color = 'green'
-            else:
-                color = 'gray'
-            plt.scatter(self.prev_loc[1], self.prev_loc[0], s=75, color=color,zorder=99)
-            plt.show()
-    
-    def reset_agent_location_for_testing(self):
-        self.loc_cached, self.prev_loc_cached = self.loc, self.prev_loc 
-        self.loc, self.prev_loc = tuple(np.argwhere(self.start)[0]), None
-        self.time_to_reward = 0
-
-    def reset_agent_location_for_training(self):
-        self.loc, self.prev_loc = self.loc_cached, self.prev_loc_cached
+        return self.model.time_to_reward
 
     def display_learning_curve(self):
         x_data, y_data, y_err = self.get_data_for_learning_curve_plot()
@@ -62,14 +33,54 @@ class Performance_Test(Euclidean_Gridworld_RL):
         plt.fill_between(x_data, y_data+y_err, y_data-y_err, alpha = 0.5)
         plt.show()
 
+    # -------- PERFORMANCE TESTING MECHANICS-------------------------------------------------------          
+    def reset_agent_location_for_testing(self):
+        '''
+        Cache the original agent location and previous location, so that performance testing does not disrupt training
+        Set the agent's location to the test location '!'
+        Initialize the time-to-reward
+        '''
+        self.model.loc_cached, self.model.prev_loc_cached = self.model.loc, self.model.prev_loc 
+        self.model.loc, self.model.prev_loc = tuple(np.argwhere(self.model.start)[0]), None
+        self.model.time_to_reward = 0
+
+    def reset_agent_location_for_training(self):
+        '''
+        Reset the original agent location and previous location, so that performance testing does not disrupt training
+        '''
+        self.model.loc, self.model.prev_loc = self.model.loc_cached, self.model.prev_loc_cached
+
+    def plot_action(self):
+        plt.scatter(self.model.loc[1], self.model.loc[0], color='red')
+        plt.plot([self.model.prev_loc[1], self.model.loc[1]],[self.model.prev_loc[0], self.model.loc[0]], color='red', alpha=0.6, zorder=1)
+        plt.pause(.05)
+
+    def plot_final_location(self):
+        if self.model.reward: 
+            color = 'green'
+        else:
+            color = 'gray'
+        plt.scatter(self.model.prev_loc[1], self.model.prev_loc[0], s=75, color=color,zorder=99)
+        plt.show()
+    
     def get_data_for_learning_curve_plot(self):        
-        x_data = self.trials_to_test
-        y_data = np.mean(self.learning_curves, axis=0)
-        y_err = np.std(self.learning_curves, axis=0) / len(self.trials_to_test)**.5
-        return x_data, y_data, y_err
+        x_data = self.model.trials_to_test
+        y_data = np.mean(self.model.learning_curves, axis=0)
+        y_err = np.std(self.model.learning_curves, axis=0) / len(self.model.trials_to_test)**.5
+        return x_data, y_data, y_err       
 
     def initialize_learning_curve_figure(self):
         plt.figure()
         plt.xlabel('Timesteps of random exploration')
         plt.ylabel('Total path length from test zone to reward')
         plt.title(f'Learning curve, model-free agent with an obstacle')
+
+    def initialize_episode_figure(self):
+        plt.figure()
+        plt.axis('off')
+        plt.imshow(self.model.value_func, zorder=0) # plot the current value func as background
+        plt.scatter(self.model.loc[1], self.model.loc[0], color='white', s=75, zorder=2) # plot start loc in white
+        # show the obstacle in white
+        for obstacle_loc in np.argwhere(self.model.env=='X'):
+            white_square = patches.Rectangle(obstacle_loc[::-1]-.5, 1, 1, facecolor='white')
+            plt.gca().add_patch(white_square)           
