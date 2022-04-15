@@ -80,7 +80,7 @@ if __name__ == "__main__":
         if constants.SINGLE in args.mode:
             config_changes_path = None
         else:
-            config_changes_path = args.config_changes_path
+            config_changes_path = args.config_changes
 
         seeds = utils.process_seed_arguments(args.seeds)
 
