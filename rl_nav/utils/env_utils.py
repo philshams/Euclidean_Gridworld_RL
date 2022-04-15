@@ -98,13 +98,17 @@ def setup_rewards(reward_positions, reward_attributes) -> Dict[Tuple, Callable]:
             self._reset_availability()
 
         def _reset_availability(self):
-            if self._original_availability == constants.INFINITY:
+            if self._original_availability == constants.INFINITE:
                 self._availability = np.inf
             else:
                 self._availability = self._original_availability
 
         def reset(self):
             self._reset_availability()
+
+        @property
+        def availability(self):
+            return self._availability
 
     class GaussianRewardFunction(RewardFunction):
         def __init__(self, availability: Union[str, int], reward_parameters: Dict):
