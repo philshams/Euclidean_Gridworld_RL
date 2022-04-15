@@ -75,7 +75,7 @@ class EpisodicRunner(base_runner.BaseRunner):
             heatmap=averaged_max_values,
             save_name=os.path.join(
                 self._visualisations_folder_path,
-                f"{self._episode_count}_{constants.VALUES_PDF}",
+                f"{self._step_count}_{constants.VALUES_PDF}",
             ),
         )
     
@@ -83,7 +83,7 @@ class EpisodicRunner(base_runner.BaseRunner):
             heatmap=averaged_visitation_counts,
             save_name=os.path.join(
                 self._visualisations_folder_path,
-                f"{self._episode_count}_{constants.VISITATION_COUNTS_PDF}",
+                f"{self._step_count}_{constants.VISITATION_COUNTS_PDF}",
             ),
         )
         while self._next_visualisation_step <= self._step_count:
@@ -93,7 +93,7 @@ class EpisodicRunner(base_runner.BaseRunner):
         self._environment.visualise_episode_history(
             save_path=os.path.join(
                 self._rollout_folder_path,
-                f"{constants.INDIVIDUAL_TRAIN_RUN}_{self._episode_count}.mp4",
+                f"{constants.INDIVIDUAL_TRAIN_RUN}_{self._step_count}.mp4",
             )
         )
         while self._next_rollout_step <= self._step_count:
