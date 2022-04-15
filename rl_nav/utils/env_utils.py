@@ -132,8 +132,8 @@ def setup_rewards(reward_positions, reward_attributes) -> Dict[Tuple, Callable]:
             )
 
     reward_availability = reward_attributes[constants.AVAILABILITY]
-    reward_type = list(reward_attributes[constants.STATISTICS].keys())[0]
-    reward_parameters = list(reward_attributes[constants.STATISTICS].values())[0]
+    reward_type = reward_attributes[constants.TYPE]
+    reward_parameters = reward_attributes[constants.PARAMETERS]
 
     rewards = {
         reward_position: _get_reward_function(
