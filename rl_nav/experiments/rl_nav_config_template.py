@@ -27,7 +27,7 @@ class RLNavConfigTemplate:
                 name=constants.AVAILABILITY,
                 types=[int, str],
                 requirements=[
-                    lambda x: x is constants.INFINITY or (isinstance(x, int) and x > 0)
+                    lambda x: x == constants.INFINITE or (isinstance(x, int) and x > 0)
                 ],
             ),
             config_field.Field(
