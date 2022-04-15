@@ -1,0 +1,50 @@
+seed: 0
+
+model: q_learning
+environment: escape_env
+
+map_path: ../maps/square_escape_map.txt
+representation: agent_position
+start_position:
+reward_positions:
+    - [4, 1]
+    - [5, 1]
+    - [6, 1]
+# provide either one set of attributes (used for all rewards)
+# or one set for each reward
+reward_attributes:
+    availability: 1 # integer specifying number available or "infinite"
+    statistics: gaussian
+    gaussian:
+        mean: 1
+        variance: 0
+
+initialisation:
+    type: random_normal
+
+    random_uniform:
+        lower_bound: 0
+        upper_bound: 1
+
+    random_normal:
+        mean: 0
+        variance: 0.1
+
+behaviour: epsilon_greedy
+target: greedy
+
+learning_rate: 0.01
+discount_factor: 0.8
+epsilon: 0.1
+
+num_steps: 100000
+episode_timeout: 100
+visualisation_frequency: 1000
+rollout_frequency: 1000
+test_frequency: 1000
+
+# total_num_timesteps: 1000
+# test_every_N_trials: 20
+# num_experiments: 30
+
+# timestep_to_display: 500  
