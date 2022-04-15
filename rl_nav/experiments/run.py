@@ -28,6 +28,9 @@ parser.add_argument("--mem", type=int, default=16)
 parser.add_argument("--timeout", type=str, default="")
 parser.add_argument("--cluster_debug", action="store_true")
 
+STOCHASTIC_PACKAGES = ["numpy", "random"]
+RUN_METHODS = ["train"]
+
 
 if __name__ == "__main__":
 
@@ -51,7 +54,9 @@ if __name__ == "__main__":
     if args.mode == constants.SINGLE:
 
         _, single_checkpoint_path = utils.setup_experiment(
-            mode="single", results_folder=results_folder, config_path=args.config_path
+            mode="single",
+            results_folder=results_folder,
+            config_path=args.config_path,
         )
 
         single_run.single_run(
@@ -59,10 +64,23 @@ if __name__ == "__main__":
             config_class=config_class,
             config_path=args.config_path,
             checkpoint_path=single_checkpoint_path,
-            run_methods=["train"],
+            run_methods=RUN_METHODS,
+            stochastic_packages=STOCHASTIC_PACKAGES,
         )
 
-    elif args.mode in [constants.PARALLEL, constants.SERIAL, constants.CLUSTER]:
+    elif args.mode in [
+        constants.SINGLE_PARALLEL,
+        constants.SINGLE_SERIAL,
+        constants.SINGLE_CLUSTER,
+        constants.PARALLEL,
+        constants.SERIAL,
+        constants.CLUSTER,
+    ]:
+
+        if constants.SINGLE in args.mode:
+            config_changes_path = None
+        else:
+            config_changes_path = args.config_changes_path
 
         seeds = utils.process_seed_arguments(args.seeds)
 
@@ -70,33 +88,33 @@ if __name__ == "__main__":
             mode="multi",
             results_folder=results_folder,
             config_path=args.config_path,
-            config_changes_path=args.config_changes,
+            config_changes_path=config_changes_path,
             seeds=seeds,
         )
 
-        if args.mode == constants.PARALLEL:
+        if constants.PARALLEL in args.mode:
 
             parallel_run.parallel_run(
                 runner_class=runner_class,
                 config_class=config_class,
                 config_path=os.path.join(experiment_path, "config.yaml"),
                 checkpoint_paths=checkpoint_paths,
-                run_methods=["train"],
-                stochastic_packages=["numpy", "random"],
+                run_methods=RUN_METHODS,
+                stochastic_packages=STOCHASTIC_PACKAGES,
             )
 
-        elif args.mode == constants.SERIAL:
+        elif constants.SERIAL in args.mode:
 
             serial_run.serial_run(
                 runner_class=runner_class,
                 config_class=config_class,
                 config_path=os.path.join(experiment_path, "config.yaml"),
                 checkpoint_paths=checkpoint_paths,
-                run_methods=["train"],
-                stochastic_packages=["numpy", "torch", "random"],
+                run_methods=RUN_METHODS,
+                stochastic_packages=STOCHASTIC_PACKAGES,
             )
 
-        elif args.mode == constants.CLUSTER:
+        elif constants.CLUSTER in args.mode:
 
             cluster_run.cluster_run(
                 runner_class_name=runner_class_name,
@@ -107,8 +125,8 @@ if __name__ == "__main__":
                 config_module_path=config_module_path,
                 config_path=os.path.join(experiment_path, "config.yaml"),
                 checkpoint_paths=checkpoint_paths,
-                run_methods=["train"],
-                stochastic_packages=["numpy", "torch", "random"],
+                run_methods=RUN_METHODS,
+                stochastic_packages=STOCHASTIC_PACKAGES,
                 env_name="rl_nav",
                 scheduler=args.scheduler,
                 num_cpus=args.num_cpus,
