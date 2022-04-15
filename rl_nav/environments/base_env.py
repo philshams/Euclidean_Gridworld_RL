@@ -36,7 +36,12 @@ class BaseEnvironment(abc.ABC):
         self._rewards = env_utils.setup_rewards(
             self._reward_positions, self._reward_attributes
         )
-        self._total_rewards = len(self._rewards)
+
+        availability = self._reward_attributes[constants.AVAILABILITY]
+        if availability == constants.INFINITE:
+            self._total_rewards = np.inf
+        else:
+            self._total_rewards = availability * len(self._rewards)
 
         (
             self._positional_state_space,
