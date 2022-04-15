@@ -322,14 +322,17 @@ class EscapeEnv(base_env.BaseEnvironment):
         """Check for reward, i.e. whether agent position is equal to a reward position.
         If reward is found, add to rewards received log.
         """
-        if (
-            tuple(self._agent_position) in self._rewards
-            and tuple(self._agent_position) not in self._rewards_received
-        ):
-            reward = self._rewards.get(tuple(self._agent_position))()
-            reward_index = list(self._rewards.keys()).index(tuple(self._agent_position))
-            self._rewards_state[reward_index] = 1
-            self._rewards_received.append(tuple(self._agent_position))
+        if tuple(self._agent_position) in self._rewards:
+            reward_availability = self._rewards[
+                tuple(self._agent_position)
+            ].availability
+            if reward_availability > 0:
+                reward = self._rewards.get(tuple(self._agent_position))()
+                if reward_availability == 1:
+                    reward_index = list(self._rewards.keys()).index(
+                        tuple(self._agent_position)
+                    )
+                    self._rewards_state[reward_index] = 1
         else:
             reward = 0.0
 
@@ -346,7 +349,7 @@ class EscapeEnv(base_env.BaseEnvironment):
         """
         conditions = [
             self._episode_step_count + 1 == self._episode_timeout,
-            len(self._rewards_received) == self._total_rewards,
+            self._reward_received == self._total_rewards,
         ]
         return not any(conditions)
 
@@ -377,7 +380,7 @@ class EscapeEnv(base_env.BaseEnvironment):
         for reward in self._rewards.values():
             reward.reset()
 
-        self._rewards_received = []
+        self._reward_received = 0
         self._rewards_state = np.zeros(len(self._rewards), dtype=int)
 
         initial_state = self.get_state_representation()
