@@ -1,13 +1,9 @@
 import copy
-import itertools
-import re
-from typing import Callable, Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
-import yaml
-from environments import base_env
 from rl_nav import constants
-from rl_nav.utils import env_utils
+from rl_nav.environments import base_env
 
 
 class EscapeEnv(base_env.BaseEnvironment):
@@ -30,7 +26,7 @@ class EscapeEnv(base_env.BaseEnvironment):
 
     def __init__(
         self,
-        map_ascii_path: str,
+        map_path: str,
         representation: str,
         reward_positions: List[Tuple[int]],
         reward_attributes: List[Dict],
@@ -46,7 +42,7 @@ class EscapeEnv(base_env.BaseEnvironment):
         """Class constructor.
 
         Args:
-            map_ascii_path: path to txt or other ascii file with map specifications.
+            map_path: path to txt or other ascii file with map specifications.
             representation: agent_position (for tabular) or pixel
                 (for function approximation).
             episode_timeout: number of steps before episode automatically terminates.
@@ -90,41 +86,14 @@ class EscapeEnv(base_env.BaseEnvironment):
         self._batch_dimension = batch_dimension
         self._torch_axes = torch_axes
 
-        self._setup_environment(
-            map_ascii_path=map_ascii_path
-        )
+        self._setup_environment(map_ascii_path=map_path)
 
         # states are zero, -1 removes walls from counts.
         self._visitation_counts = -1 * copy.deepcopy(self._map)
 
-    def _setup_environment(
-        self, map_ascii_path: Optional[str] = None
-    ):
-
-        if map_ascii_path is not None:
-            self._map = env_utils.parse_map_outline(
-                map_file_path=map_ascii_path, mapping=self.MAPPING
-            )
-
-        self._rewards = env_utils.setup_rewards(
-            self._reward_positions, self._reward_attributes
-        )
-        self._total_rewards = len(self._rewards)
-
-        (
-            self._positional_state_space,
-            self._rewards_received_state_space,
-            self._state_space,
-            self._wall_state_space,
-        ) = env_utils.configure_state_space(
-            map_outline=self._map,
-            reward_positions=self._reward_positions,
-        )
-
     def _env_skeleton(
         self,
         rewards: Union[None, str, Tuple[int]] = "state",
-        doors: Union[None, str] = "state",
         agent: Union[None, str, np.ndarray] = "state",
         cue: Union[None, str, np.ndarray] = None,
     ) -> np.ndarray:
@@ -132,7 +101,6 @@ class EscapeEnv(base_env.BaseEnvironment):
 
         Args:
             rewards: # TODO whether or not to mark out rewards (ignores magnitudes).
-            show_doors: whether or not to mark out doors.
             show_agent: whether or not to mark out agent position
 
         Returns:
@@ -377,7 +345,7 @@ class EscapeEnv(base_env.BaseEnvironment):
             remain_active: whether to keep episode active.
         """
         conditions = [
-            self._episode_step_count == self._episode_timeout,
+            self._episode_step_count + 1 == self._episode_timeout,
             len(self._rewards_received) == self._total_rewards,
         ]
         return not any(conditions)
@@ -401,10 +369,10 @@ class EscapeEnv(base_env.BaseEnvironment):
         if self._starting_xy is not None:
             self._agent_position = np.array(self._starting_xy)
         else:
-            x_lim, y_lim = self._map.shape
-            x_pos = np.random.randint(1, x_lim - 1)
-            y_pos = np.random.randint(1, y_lim - 1)
-            self._agent_position = np.array([x_pos, y_pos])
+            random_position_index = np.random.choice(len(self._positional_state_space))
+            self._agent_position = np.array(
+                self._positional_state_space[random_position_index]
+            )
 
         for reward in self._rewards.values():
             reward.reset()
