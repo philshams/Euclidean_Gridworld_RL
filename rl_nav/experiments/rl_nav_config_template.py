@@ -142,8 +142,8 @@ class RLNavConfigTemplate:
             ),
             config_field.Field(
                 name=constants.EPISODE_TIMEOUT,
-                types=[int],
-                requirements=[lambda x: x > 0],
+                types=[int, type(None)],
+                requirements=[lambda x: x is None or x > 0],
             ),
             config_field.Field(
                 name=constants.VISUALISATION_FREQUENCY,
