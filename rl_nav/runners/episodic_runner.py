@@ -20,14 +20,17 @@ class EpisodicRunner(base_runner.BaseRunner):
             constants.TRAIN_EPISODE_REWARD,
             constants.TRAIN_EPISODE_LENGTH,
         ]
+        for i in range(len(self._test_environments)):
+            columns.append(f"{constants.TEST_EPISODE_REWARD}_{i}")
+            columns.append(f"{constants.TEST_EPISODE_LENGTH}_{i}")
         return columns
 
     def _setup_model(self, config):
         """Instantiate model specified in configuration."""
         initialisation_strategy = model_utils.get_initialisation_strategy(config)
         model = q_learning.QLearner(
-            action_space=self._environment.action_space,
-            state_space=self._environment.state_space,
+            action_space=self._train_environment.action_space,
+            state_space=self._train_environment.state_space,
             behaviour=config.behaviour,
             target=config.target,
             initialisation_strategy=initialisation_strategy,
@@ -58,28 +61,26 @@ class EpisodicRunner(base_runner.BaseRunner):
             self._write_scalar(tag=tag, step=step, scalar=scalar)
 
     def _generate_visualisations(self):
-        averaged_values = (
-            self._environment.average_values_over_positional_states(
-                self._model.state_action_values
-            )
+        averaged_values = self._train_environment.average_values_over_positional_states(
+            self._model.state_action_values
         )
         averaged_visitation_counts = (
-            self._environment.average_values_over_positional_states(
+            self._train_environment.average_values_over_positional_states(
                 self._model.state_visitation_counts
             )
         )
 
         averaged_max_values = {p: max(v) for p, v in averaged_values.items()}
-        
-        self._environment.plot_heatmap_over_env(
+
+        self._train_environment.plot_heatmap_over_env(
             heatmap=averaged_max_values,
             save_name=os.path.join(
                 self._visualisations_folder_path,
                 f"{self._step_count}_{constants.VALUES_PDF}",
             ),
         )
-    
-        self._environment.plot_heatmap_over_env(
+
+        self._train_environment.plot_heatmap_over_env(
             heatmap=averaged_visitation_counts,
             save_name=os.path.join(
                 self._visualisations_folder_path,
@@ -90,7 +91,7 @@ class EpisodicRunner(base_runner.BaseRunner):
             self._next_visualisation_step += self._visualisation_frequency
 
     def _generate_rollout(self):
-        self._environment.visualise_episode_history(
+        self._train_environment.visualise_episode_history(
             save_path=os.path.join(
                 self._rollout_folder_path,
                 f"{constants.INDIVIDUAL_TRAIN_RUN}_{self._step_count}.mp4",
@@ -101,15 +102,16 @@ class EpisodicRunner(base_runner.BaseRunner):
 
     def train(self):
         while self._step_count < self._num_steps:
-            if self._step_count > self._next_rollout_step:
+            if self._step_count >= self._next_rollout_step:
                 self._generate_rollout()
-            if self._step_count > self._next_visualisation_step:
+            if self._step_count >= self._next_visualisation_step:
                 self._generate_visualisations()
-            episode_logging_dict = self._train_episode()
-            self._log_episode(
-                step=self._step_count, logging_dict=episode_logging_dict
-            )
-            # import pdb; pdb.set_trace()
+            if self._step_count >= self._next_test_step:
+                test_logging_dict = self._test()
+            else:
+                test_logging_dict = {}
+            episode_logging_dict = {**test_logging_dict, **self._train_episode()}
+            self._log_episode(step=self._step_count, logging_dict=episode_logging_dict)
             self._data_logger.checkpoint()
 
     def _train_episode(self) -> Dict[str, Any]:
@@ -125,19 +127,19 @@ class EpisodicRunner(base_runner.BaseRunner):
 
         episode_reward = 0
 
-        state = self._environment.reset_environment(train=True)
+        state = self._train_environment.reset_environment()
 
-        while self._environment.active and self._step_count < self._num_steps:
+        while self._train_environment.active and self._step_count < self._num_steps:
 
             action = self._model.select_behaviour_action(state, epsilon=self._epsilon)
-            reward, new_state = self._environment.step(action)
+            reward, new_state = self._train_environment.step(action)
 
             self._model.step(
                 state=state,
                 action=action,
                 reward=reward,
                 new_state=new_state,
-                active=self._environment.active,
+                active=self._train_environment.active,
             )
             state = new_state
             episode_reward += reward
@@ -147,7 +149,7 @@ class EpisodicRunner(base_runner.BaseRunner):
         logging_dict = {
             constants.STEP: self._step_count,
             constants.TRAIN_EPISODE_REWARD: episode_reward,
-            constants.TRAIN_EPISODE_LENGTH: self._environment.episode_step_count,
+            constants.TRAIN_EPISODE_LENGTH: self._train_environment.episode_step_count,
         }
 
         return logging_dict
