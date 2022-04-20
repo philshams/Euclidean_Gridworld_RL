@@ -36,6 +36,13 @@ class RLNavConfigTemplate:
                 types=[float, int],
                 requirements=[lambda x: x >= 0 and x <= 1],
             ),
+            config_field.Field(
+                name=constants.IMPUTATION_METHOD,
+                types=[str],
+                requirements=[
+                    lambda x: x in [constants.NEAR_NEIGHBOURS, constants.RANDOM]
+                ],
+            ),
         ],
         level=[constants.LEARNING],
     )
