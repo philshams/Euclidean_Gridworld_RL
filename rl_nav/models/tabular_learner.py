@@ -180,7 +180,7 @@ class TabularLearner(base_learner.BaseLearner):
 
         return np.argmax(state_action_values)
 
-    def non_repeat_greedy_action(
+    def _non_repeat_greedy_action(
         self, state: Tuple[int, int], excluded_actions: List[int]
     ) -> int:
         """Find action with highest value in given state not included set of excluded actions.
@@ -198,6 +198,22 @@ class TabularLearner(base_learner.BaseLearner):
             for (i, action) in enumerate(self._state_action_values[state_id])
         ]
         return np.argmax(actions_available)
+
+    def _greedy_sample_action(
+        self, state: Tuple[int, int], excess_state_mapping: Optional[Dict] = None
+    ):
+        state_id = self._state_id_mapping.get(state)
+        if state_id is not None:
+            state_action_values = copy.deepcopy(self._state_action_values[state_id])
+        else:
+            state_action_values = self._impute_values(
+                state=state, excess_state_mapping=excess_state_mapping
+            )
+
+        exp_values = np.exp(state_action_values)
+        softmax_values = exp_values / np.sum(exp_values)
+
+        return np.random.choice(self._action_space, p=softmax_values)
 
     def _epsilon_greedy_action(self, state: Tuple[int, int], epsilon: float) -> int:
         """Choose greedy policy with probability
@@ -228,6 +244,10 @@ class TabularLearner(base_learner.BaseLearner):
         """
         if self._target == constants.GREEDY:
             action = self._greedy_action(
+                state=state, excess_state_mapping=excess_state_mapping
+            )
+        elif self._target == constants.GREEDY_SAMPLE:
+            action = self._greedy_sample_action(
                 state=state, excess_state_mapping=excess_state_mapping
             )
         return action
