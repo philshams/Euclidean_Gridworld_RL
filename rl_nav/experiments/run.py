@@ -1,9 +1,10 @@
 import argparse
+import copy
 import os
 
 from rl_nav import constants, runners
 from rl_nav.experiments import rl_nav_config
-from rl_nav.runners import episodic_runner
+from rl_nav.runners import episodic_runner, lifelong_runner
 from run_modes import cluster_run, parallel_run, serial_run, single_run, utils
 
 MAIN_FILE_PATH = os.path.dirname(os.path.realpath(__file__))
@@ -42,14 +43,20 @@ if __name__ == "__main__":
     config_module_name = "rl_nav_config"
     config_module_path = os.path.join(MAIN_FILE_PATH, "rl_nav_config.py")
     config_class = rl_nav_config.RLNavConfig
-    # config = config_class(args.config_path)
+    config = config_class(args.config_path)
 
     runners_module_path = os.path.dirname(os.path.abspath(runners.__file__))
 
-    runner_class = episodic_runner.EpisodicRunner
-    runner_class_name = "EpisodicRunner"
-    runner_module_name = "episodic_runner"
-    runner_module_path = os.path.join(runners_module_path, "episodic_runner.py")
+    if config.train_episode_timeout is None:
+        runner_class = lifelong_runner.LifelongRunner
+        runner_class_name = "LifelongRunner"
+        runner_module_name = "lifelong_runner"
+        runner_module_path = os.path.join(runners_module_path, "lifelong_runner.py")
+    else:
+        runner_class = episodic_runner.EpisodicRunner
+        runner_class_name = "EpisodicRunner"
+        runner_module_name = "episodic_runner"
+        runner_module_path = os.path.join(runners_module_path, "episodic_runner.py")
 
     if args.mode == constants.SINGLE:
 
