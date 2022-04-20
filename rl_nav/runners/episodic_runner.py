@@ -2,9 +2,7 @@ import os
 from typing import Any, Dict, Optional, Union
 
 from rl_nav import constants
-from rl_nav.models import q_learning
 from rl_nav.runners import base_runner
-from rl_nav.utils import model_utils
 
 
 class EpisodicRunner(base_runner.BaseRunner):
@@ -24,20 +22,6 @@ class EpisodicRunner(base_runner.BaseRunner):
             columns.append(f"{constants.TEST_EPISODE_REWARD}_{i}")
             columns.append(f"{constants.TEST_EPISODE_LENGTH}_{i}")
         return columns
-
-    def _setup_model(self, config):
-        """Instantiate model specified in configuration."""
-        initialisation_strategy = model_utils.get_initialisation_strategy(config)
-        model = q_learning.QLearner(
-            action_space=self._train_environment.action_space,
-            state_space=self._train_environment.state_space,
-            behaviour=config.behaviour,
-            target=config.target,
-            initialisation_strategy=initialisation_strategy,
-            learning_rate=config.learning_rate,
-            gamma=config.discount_factor,
-        )
-        return model
 
     def _write_scalar(
         self,
@@ -97,6 +81,14 @@ class EpisodicRunner(base_runner.BaseRunner):
                 f"{constants.INDIVIDUAL_TRAIN_RUN}_{self._step_count}.mp4",
             )
         )
+        for i, test_env in enumerate(self._test_environments):
+            test_env.visualise_episode_history(
+                save_path=os.path.join(
+                    self._rollout_folder_path,
+                    f"{constants.INDIVIDUAL_TEST_RUN}_{i}_{self._step_count}.mp4",
+                ),
+                history=constants.TEST,
+            )
         while self._next_rollout_step <= self._step_count:
             self._next_rollout_step += self._rollout_frequency
 
