@@ -9,7 +9,9 @@ from run_modes import base_runner
 
 class BaseRunner(base_runner.BaseRunner):
     def __init__(self, config, unique_id: str):
-        self._environment = self._setup_environment(config=config)
+        self._train_environment = self._setup_train_environment(config=config)
+        self._test_environments = self._setup_test_environments(config=config)
+
         self._model = self._setup_model(config=config)
 
         self._epsilon = config.epsilon
@@ -19,6 +21,8 @@ class BaseRunner(base_runner.BaseRunner):
         self._next_rollout_step = config.rollout_frequency
         self._visualisation_frequency = config.visualisation_frequency
         self._next_visualisation_step = config.visualisation_frequency
+        self._test_frequency = config.test_frequency
+        self._next_test_step = 0
 
         super().__init__(config=config, unique_id=unique_id)
 
@@ -36,37 +40,84 @@ class BaseRunner(base_runner.BaseRunner):
     def train(self):
         pass
 
-    def _setup_environment(self, config):
+    def _setup_train_environment(self, config):
         """Initialise environment specified in configuration."""
-        environment_args = self._get_environment_args(config=config)
 
-        if config.environment == constants.ESCAPE_ENV:
+        environment_args = self._get_environment_args(config=config, train=True)
+
+        if config.train_env_name == constants.ESCAPE_ENV:
             environment = escape_env.EscapeEnv(**environment_args)
 
         environment = visualisation_env.VisualisationEnv(environment)
 
         return environment
 
-    def _get_environment_args(self, config) -> Dict[str, Any]:
+    def _setup_test_environments(self, config):
+        """Initialise environment specified in configuration."""
+
+        environment_args = self._get_environment_args(config=config, train=False)
+
+        environments = []
+
+        if config.test_env_name == constants.ESCAPE_ENV:
+            for map_path in config.test_map_paths:
+                environment_args[constants.MAP_PATH] = map_path
+                environment = escape_env.EscapeEnv(**environment_args)
+                environments.append(environment)
+
+        environments = [visualisation_env.VisualisationEnv(env) for env in environments]
+
+        return environments
+
+    def _get_environment_args(self, config, train: bool) -> Dict[str, Any]:
         """Get arguments needed to pass to environment."""
-        if config.environment == constants.ESCAPE_ENV:
+        if train:
+            env_name = config.train_env_name
+            config_key_prefix = constants.TRAIN
+        else:
+            env_name = config.test_env_name
+            config_key_prefix = constants.TEST
+
+        if env_name == constants.ESCAPE_ENV:
             env_args = {
-                constants.MAP_PATH: config.map_path,
-                constants.REPRESENTATION: config.representation,
-                constants.REWARD_POSITIONS: config.reward_positions,
-                constants.START_POSITION: config.start_position,
-                constants.EPISODE_TIMEOUT: config.episode_timeout
+                constants.TRAINING: train,
+                constants.REPRESENTATION: getattr(
+                    config, f"{config_key_prefix}_{constants.REPRESENTATION}"
+                ),
+                constants.REWARD_POSITIONS: getattr(
+                    config, f"{config_key_prefix}_{constants.REWARD_POSITIONS}"
+                ),
+                constants.START_POSITION: getattr(
+                    config, f"{config_key_prefix}_{constants.START_POSITION}"
+                ),
+                constants.EPISODE_TIMEOUT: getattr(
+                    config, f"{config_key_prefix}_{constants.EPISODE_TIMEOUT}"
+                ),
             }
 
-            reward_attr_dict = {constants.AVAILABILITY: config.availability}
-            if config.statistics == constants.GAUSSIAN:
+            reward_attr_dict = {
+                constants.AVAILABILITY: getattr(
+                    config, f"{config_key_prefix}_{constants.AVAILABILITY}"
+                )
+            }
+            if (
+                getattr(config, f"{config_key_prefix}_{constants.STATISTICS}")
+                == constants.GAUSSIAN
+            ):
                 reward_attr_dict[constants.TYPE] = constants.GAUSSIAN
                 reward_attr_parameter_dict = {
-                    constants.MEAN: config.gaussian_mean,
-                    constants.VARIANCE: config.gaussian_variance,
+                    constants.MEAN: getattr(
+                        config, f"{config_key_prefix}_{constants.GAUSSIAN_MEAN}"
+                    ),
+                    constants.VARIANCE: getattr(
+                        config, f"{config_key_prefix}_{constants.GAUSSIAN_VARIANCE}"
+                    ),
                 }
             reward_attr_dict[constants.PARAMETERS] = reward_attr_parameter_dict
             env_args[constants.REWARD_ATTRIBUTES] = reward_attr_dict
+
+        if train:
+            env_args[constants.MAP_PATH] = config.train_map_path
 
         return env_args
 
@@ -74,3 +125,30 @@ class BaseRunner(base_runner.BaseRunner):
     def _setup_model(self, config):
         """Instantiate model specified in configuration."""
         pass
+
+    def _test(self):
+        """Test rollout."""
+        self._model.eval()
+
+        test_logging_dict = {}
+
+        for i, test_env in enumerate(self._test_environments):
+            episode_reward = 0
+
+            state = test_env.reset_environment()
+
+            while test_env.active:
+
+                action = self._model.select_target_action(state)
+                reward, state = test_env.step(action)
+
+                episode_reward += reward
+
+            test_logging_dict[f"{constants.TEST_EPISODE_REWARD}_{i}"] = episode_reward
+            test_logging_dict[
+                f"{constants.TEST_EPISODE_LENGTH}_{i}"
+            ] = test_env.episode_step_count
+
+        self._model.train()
+
+        return test_logging_dict
