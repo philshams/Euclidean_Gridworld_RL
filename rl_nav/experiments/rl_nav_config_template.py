@@ -27,7 +27,9 @@ class RLNavConfigTemplate:
                 config_field.Field(
                     name=constants.TARGET,
                     types=[str],
-                    requirements=[lambda x: x in [constants.GREEDY]],
+                    requirements=[
+                        lambda x: x in [constants.GREEDY, constants.GREEDY_SAMPLE]
+                    ],
                 ),
                 config_field.Field(
                     name=constants.LEARNING_RATE,
