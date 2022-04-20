@@ -2,8 +2,11 @@ import abc
 import os
 from typing import Any, Dict
 
+import numpy as np
 from rl_nav import constants
 from rl_nav.environments import escape_env, visualisation_env
+from rl_nav.models import q_learning
+from rl_nav.utils import model_utils
 from run_modes import base_runner
 
 
@@ -11,6 +14,22 @@ class BaseRunner(base_runner.BaseRunner):
     def __init__(self, config, unique_id: str):
         self._train_environment = self._setup_train_environment(config=config)
         self._test_environments = self._setup_test_environments(config=config)
+
+        test_env_excess_states = [
+            set(test_env.state_space) - set(self._train_environment.state_space)
+            for test_env in self._test_environments
+        ]
+        self._excess_state_mapping = [
+            {
+                state: [
+                    s
+                    for s in self._train_environment.state_space
+                    if max(np.array(s) - np.array(state)) <= 1
+                ]
+                for state in excess_states
+            }
+            for excess_states in test_env_excess_states
+        ]
 
         self._model = self._setup_model(config=config)
 
@@ -121,10 +140,20 @@ class BaseRunner(base_runner.BaseRunner):
 
         return env_args
 
-    @abc.abstractmethod
     def _setup_model(self, config):
         """Instantiate model specified in configuration."""
-        pass
+        initialisation_strategy = model_utils.get_initialisation_strategy(config)
+        model = q_learning.QLearner(
+            action_space=self._train_environment.action_space,
+            state_space=self._train_environment.state_space,
+            behaviour=config.behaviour,
+            target=config.target,
+            initialisation_strategy=initialisation_strategy,
+            learning_rate=config.learning_rate,
+            gamma=config.discount_factor,
+            imputation_method=config.imputation_method,
+        )
+        return model
 
     def _test(self):
         """Test rollout."""
@@ -139,7 +168,9 @@ class BaseRunner(base_runner.BaseRunner):
 
             while test_env.active:
 
-                action = self._model.select_target_action(state)
+                action = self._model.select_target_action(
+                    state, excess_state_mapping=self._excess_state_mapping[i]
+                )
                 reward, state = test_env.step(action)
 
                 episode_reward += reward
