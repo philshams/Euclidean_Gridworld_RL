@@ -14,6 +14,7 @@ class BaseEnvironment(abc.ABC):
         step: takes action produces reward and next state.
         reset_environment: reset environment and return initial state.
     """
+
     MAPPING = {
         constants.WALL_CHARACTER: 1,
         constants.OPEN_CHARACTER: 0,
@@ -21,8 +22,8 @@ class BaseEnvironment(abc.ABC):
         constants.REWARD_CHARACTER: 0,
     }
 
-    def __init__(self):
-        self._training: bool
+    def __init__(self, training: bool):
+        self._training: bool = training
         self._active: bool
         self._episode_step_count: int
 
@@ -66,9 +67,7 @@ class BaseEnvironment(abc.ABC):
         """
         averaged_values = {}
         for state in self._positional_state_space:
-            non_positional_set = [
-                v for k, v in values.items() if k[:2] == state
-            ]
+            non_positional_set = [v for k, v in values.items() if k[:2] == state]
             non_positional_mean = np.mean(non_positional_set, axis=0)
             averaged_values[state] = non_positional_mean
         return averaged_values
@@ -79,13 +78,8 @@ class BaseEnvironment(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def reset_environment(self, train: bool):
-        """Reset environment.
-
-        Args:
-            train: whether episode is for train or test
-            (may affect e.g. logging).
-        """
+    def reset_environment(self):
+        """Reset environment and associated quantities."""
         pass
 
     @property
