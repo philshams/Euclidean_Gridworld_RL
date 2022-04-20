@@ -1,9 +1,5 @@
 import copy
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Tuple
-from typing import Union
+from typing import Dict, List, Optional, Tuple, Union
 
 from rl_nav.models import tabular_learner
 from rl_nav.utils import epsilon_schedules
@@ -21,6 +17,7 @@ class QLearner(tabular_learner.TabularLearner):
         initialisation_strategy: Dict,
         behaviour: str,
         target: str,
+        imputation_method: str,
     ):
         """Class constructor.
 
@@ -42,6 +39,7 @@ class QLearner(tabular_learner.TabularLearner):
             initialisation_strategy=initialisation_strategy,
             behaviour=behaviour,
             target=target,
+            imputation_method=imputation_method,
         )
 
     def step(
@@ -77,7 +75,6 @@ class QLearner(tabular_learner.TabularLearner):
 
         self._state_visitation_counts[state] += 1
 
-        
         self._step(
             state_id=state_id,
             action=action,
