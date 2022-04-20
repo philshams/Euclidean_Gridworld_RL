@@ -1,11 +1,9 @@
-from typing import Dict
-from typing import List
-from typing import Union
+from typing import Dict, List, Union
 
 import yaml
-from rl_nav import constants
-from rl_nav.experiments.rl_nav_config_template import RLNavConfigTemplate
 from config_manager import base_configuration
+from rl_nav import constants
+from rl_nav.experiments import rl_nav_config_template
 
 
 class RLNavConfig(base_configuration.BaseConfiguration):
@@ -16,9 +14,10 @@ class RLNavConfig(base_configuration.BaseConfiguration):
     """
 
     def __init__(self, config: Union[str, Dict], changes: List[Dict] = []) -> None:
+        base_template = rl_nav_config_template.get_template()
         super().__init__(
             configuration=config,
-            template=RLNavConfigTemplate.base_template,
+            template=base_template,
             changes=changes,
         )
 
