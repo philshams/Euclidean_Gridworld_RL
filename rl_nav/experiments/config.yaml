@@ -8,7 +8,7 @@ learning:
 
     learning_rate: 0.1
     discount_factor: 0.9
-    epsilon: 0.6
+    epsilon: 0.99
 
     imputation_method: random
 
@@ -28,7 +28,7 @@ train_environment:
     env_name: escape_env
     map_path: ../maps/square_escape_map.txt
 
-    episode_timeout: 500
+    episode_timeout: 
     representation: agent_position
     start_position:
     reward_positions:
@@ -37,7 +37,7 @@ train_environment:
     # provide either one set of attributes (used for all rewards)
     # or one set for each reward
     reward_attributes:
-        availability: 1 # integer specifying number available or "infinite"
+        availability: infinite # integer specifying number available or "infinite"
         statistics: gaussian
         gaussian:
             mean: 1
@@ -65,7 +65,8 @@ test_environments:
             variance: 0
 
 training:
-    num_steps: 100000
+    num_steps: 1000000
     visualisation_frequency: 5000
     rollout_frequency: 5000
     test_frequency: 5000
+    checkpoint_frequency: 5000
