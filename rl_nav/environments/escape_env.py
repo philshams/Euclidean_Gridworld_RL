@@ -26,6 +26,7 @@ class EscapeEnv(base_env.BaseEnvironment):
 
     def __init__(
         self,
+        training: bool,
         map_path: str,
         representation: str,
         reward_positions: List[Tuple[int]],
@@ -56,10 +57,8 @@ class EscapeEnv(base_env.BaseEnvironment):
                 direction the agent can see.
         """
 
-        self._active: bool = False
+        super().__init__(training=training)
 
-        self._training: bool
-        self._episode_step_count: int
         self._representation = representation
 
         self._reward_positions = [tuple(p) for p in reward_positions]
@@ -355,7 +354,7 @@ class EscapeEnv(base_env.BaseEnvironment):
         return not any(conditions)
 
     def reset_environment(
-        self, train: bool = True, map_yaml_path: Optional[str] = None
+        self, map_yaml_path: Optional[str] = None
     ) -> Tuple[int, int, int]:
         """Reset environment.
 
@@ -369,7 +368,6 @@ class EscapeEnv(base_env.BaseEnvironment):
 
         self._active = True
         self._episode_step_count = 0
-        self._training = train
         if self._starting_xy is not None:
             self._agent_position = np.array(self._starting_xy)
         else:
@@ -388,7 +386,7 @@ class EscapeEnv(base_env.BaseEnvironment):
         initial_state = self.get_state_representation()
         skeleton = self._env_skeleton()
 
-        if train:
+        if self._training:
             self._train_episode_position_history = [tuple(self._agent_position)]
             self._train_episode_history = [skeleton]
             self._visitation_counts[self._agent_position[1]][
