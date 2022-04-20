@@ -1,10 +1,7 @@
 import abc
 import copy
 import random
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Tuple
+from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 from rl_nav import constants
@@ -23,6 +20,7 @@ class TabularLearner(base_learner.BaseLearner):
         initialisation_strategy: Dict,
         behaviour: str,
         target: str,
+        imputation_method: str,
     ):
         """Class constructor.
 
@@ -57,6 +55,8 @@ class TabularLearner(base_learner.BaseLearner):
         self._learning_rate = learning_rate
         self._gamma = gamma
         self._training = True
+
+        self._imputation_method = imputation_method
 
     def train(self):
         self._training = True
@@ -94,6 +94,20 @@ class TabularLearner(base_learner.BaseLearner):
             return values
         else:
             return self._latest_state_action_values
+
+    def _impute_values(self, state, excess_state_mapping):
+        if self._imputation_method == constants.NEAR_NEIGHBOURS:
+            near_neighbour_ids = [
+                self._state_id_mapping[s] for s in excess_state_mapping[state]
+            ]
+            neighbour_state_action_values = [
+                copy.deepcopy(self._state_action_values[s_id])
+                for s_id in near_neighbour_ids
+            ]
+            state_action_values = np.mean(neighbour_state_action_values, axis=0)
+        elif self._imputation_method == constants.RANDOM:
+            state_action_values = np.random.normal(size=4)
+        return state_action_values
 
     def _initialise_values(self, initialisation_strategy: str) -> np.ndarray:
         """Initialise values for each state, action pair in state-action space.
@@ -144,7 +158,9 @@ class TabularLearner(base_learner.BaseLearner):
 
         return np.amax(state_action_values)
 
-    def _greedy_action(self, state: Tuple[int, int]) -> int:
+    def _greedy_action(
+        self, state: Tuple[int, int], excess_state_mapping: Optional[Dict] = None
+    ) -> int:
         """Find action with highest value in given state.
 
         Args:
@@ -154,8 +170,13 @@ class TabularLearner(base_learner.BaseLearner):
             action: action with highest value in state given.
         """
 
-        state_id = self._state_id_mapping[state]
-        state_action_values = copy.deepcopy(self._state_action_values[state_id])
+        state_id = self._state_id_mapping.get(state)
+        if state_id is not None:
+            state_action_values = copy.deepcopy(self._state_action_values[state_id])
+        else:
+            state_action_values = self._impute_values(
+                state=state, excess_state_mapping=excess_state_mapping
+            )
 
         return np.argmax(state_action_values)
 
@@ -195,7 +216,7 @@ class TabularLearner(base_learner.BaseLearner):
             action = self._greedy_action(state=state)
         return action
 
-    def select_target_action(self, state: Tuple[int, int]) -> int:
+    def select_target_action(self, state: Tuple[int, int], excess_state_mapping) -> int:
         """Select action according to target policy, i.e. policy being learned.
         Here, action with highest value in given state is selected.
 
@@ -206,7 +227,9 @@ class TabularLearner(base_learner.BaseLearner):
             action: greedy action.
         """
         if self._target == constants.GREEDY:
-            action = self._greedy_action(state=state)
+            action = self._greedy_action(
+                state=state, excess_state_mapping=excess_state_mapping
+            )
         return action
 
     def select_behaviour_action(
