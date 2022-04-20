@@ -23,79 +23,21 @@ class EpisodicRunner(base_runner.BaseRunner):
             columns.append(f"{constants.TEST_EPISODE_LENGTH}_{i}")
         return columns
 
-    def _write_scalar(
-        self,
-        tag: str,
-        step: int,
-        scalar: Union[float, int],
-        df_tag: Optional[str] = None,
-    ):
-        """If specified, log scalar."""
-        df_tag = df_tag or tag
-        self._data_logger.write_scalar(tag=df_tag, step=step, scalar=scalar)
-
-    def _log_episode(self, step: int, logging_dict: Dict[str, float]) -> None:
-        """Write scalars for all quantities collected in logging dictionary.
-
-        Args:
-            step: current step.
-            logging_dict: dictionary of items to be logged collected during training.
-        """
-        for tag, scalar in logging_dict.items():
-            self._write_scalar(tag=tag, step=step, scalar=scalar)
-
-    def _generate_visualisations(self):
-        averaged_values = self._train_environment.average_values_over_positional_states(
-            self._model.state_action_values
-        )
-        averaged_visitation_counts = (
-            self._train_environment.average_values_over_positional_states(
-                self._model.state_visitation_counts
-            )
-        )
-
-        averaged_max_values = {p: max(v) for p, v in averaged_values.items()}
-
-        self._train_environment.plot_heatmap_over_env(
-            heatmap=averaged_max_values,
-            save_name=os.path.join(
-                self._visualisations_folder_path,
-                f"{self._step_count}_{constants.VALUES_PDF}",
-            ),
-        )
-
-        self._train_environment.plot_heatmap_over_env(
-            heatmap=averaged_visitation_counts,
-            save_name=os.path.join(
-                self._visualisations_folder_path,
-                f"{self._step_count}_{constants.VISITATION_COUNTS_PDF}",
-            ),
-        )
-        while self._next_visualisation_step <= self._step_count:
-            self._next_visualisation_step += self._visualisation_frequency
-
-    def _generate_rollout(self):
+    def _train_rollout(self):
         self._train_environment.visualise_episode_history(
             save_path=os.path.join(
                 self._rollout_folder_path,
                 f"{constants.INDIVIDUAL_TRAIN_RUN}_{self._step_count}.mp4",
             )
         )
-        for i, test_env in enumerate(self._test_environments):
-            test_env.visualise_episode_history(
-                save_path=os.path.join(
-                    self._rollout_folder_path,
-                    f"{constants.INDIVIDUAL_TEST_RUN}_{i}_{self._step_count}.mp4",
-                ),
-                history=constants.TEST,
-            )
         while self._next_rollout_step <= self._step_count:
             self._next_rollout_step += self._rollout_frequency
 
     def train(self):
         while self._step_count < self._num_steps:
             if self._step_count >= self._next_rollout_step:
-                self._generate_rollout()
+                self._train_rollout()
+                self._test_rollout()
             if self._step_count >= self._next_visualisation_step:
                 self._generate_visualisations()
             if self._step_count >= self._next_test_step:
