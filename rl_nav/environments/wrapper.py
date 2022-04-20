@@ -12,9 +12,9 @@ class Wrapper(base_env.BaseEnvironment):
         return self._env.step(action)
 
     def reset_environment(
-        self, train: bool = True, map_yaml_path: Optional[str] = None
+        self, map_yaml_path: Optional[str] = None
     ) -> Tuple[int, int, int]:
-        return self._env.reset_environment(train=train, map_yaml_path=map_yaml_path)
+        return self._env.reset_environment(map_yaml_path=map_yaml_path)
 
     @property
     def active(self) -> bool:
