@@ -42,7 +42,7 @@ if __name__ == "__main__":
     config_module_name = "rl_nav_config"
     config_module_path = os.path.join(MAIN_FILE_PATH, "rl_nav_config.py")
     config_class = rl_nav_config.RLNavConfig
-    config = config_class(args.config_path)
+    # config = config_class(args.config_path)
 
     runners_module_path = os.path.dirname(os.path.abspath(runners.__file__))
 
