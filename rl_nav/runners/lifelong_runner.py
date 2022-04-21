@@ -7,9 +7,6 @@ class LifelongRunner(base_runner.BaseRunner):
 
         super().__init__(config=config, unique_id=unique_id)
 
-        self._checkpoint_frequency = config.checkpoint_frequency
-        self._next_checkpoint_step = config.checkpoint_frequency
-
     def _get_data_columns(self):
         columns = [
             constants.STEP,
