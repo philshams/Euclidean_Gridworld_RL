@@ -46,7 +46,10 @@ class EpisodicRunner(base_runner.BaseRunner):
                 test_logging_dict = {}
             episode_logging_dict = {**test_logging_dict, **self._train_episode()}
             self._log_episode(step=self._step_count, logging_dict=episode_logging_dict)
-            self._data_logger.checkpoint()
+            if self._step_count >= self._next_checkpoint_step:
+                self._data_logger.checkpoint()
+                while self._next_checkpoint_step <= self._step_count:
+                    self._next_checkpoint_step += self._checkpoint_frequency
 
     def _train_episode(self) -> Dict[str, Any]:
         """Perform single training loop.
@@ -65,20 +68,8 @@ class EpisodicRunner(base_runner.BaseRunner):
 
         while self._train_environment.active and self._step_count < self._num_steps:
 
-            action = self._model.select_behaviour_action(state, epsilon=self._epsilon)
-            reward, new_state = self._train_environment.step(action)
-
-            self._model.step(
-                state=state,
-                action=action,
-                reward=reward,
-                new_state=new_state,
-                active=self._train_environment.active,
-            )
-            state = new_state
+            state, reward = self._train_step(state=state)
             episode_reward += reward
-
-            self._step_count += 1
 
         logging_dict = {
             constants.STEP: self._step_count,
