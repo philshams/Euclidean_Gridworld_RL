@@ -3,7 +3,7 @@ import os
 
 from rl_nav import constants, runners
 from rl_nav.experiments import rl_nav_config
-from rl_nav.runners import q_learning_runner
+from rl_nav.runners import q_learning_runner, successor_rep_runner
 from run_modes import cluster_run, parallel_run, serial_run, single_run, utils
 
 MAIN_FILE_PATH = os.path.dirname(os.path.realpath(__file__))
@@ -55,6 +55,18 @@ if __name__ == "__main__":
         else:
             runner_class = q_learning_runner.EpisodicQLearningRunner
             runner_class_name = "EpisodicQLearningRunner"
+
+    elif config.model == constants.SUCCESSOR_REP:
+        runner_module_name = "successor_rep_runner"
+        runner_module_path = os.path.join(
+            runners_module_path, "successor_rep_runner.py"
+        )
+        if config.train_episode_timeout is None:
+            runner_class = successor_rep_runner.LifelongSRRunner
+            runner_class_name = "LifelongSRRunner"
+        else:
+            runner_class = successor_rep_runner.EpisodicSRRunner
+            runner_class_name = "EpisodicSRRunner"
 
     else:
         raise ValueError(f"Model specified in config: {config.model} not recongnised.")
