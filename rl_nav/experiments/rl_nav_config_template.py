@@ -17,7 +17,9 @@ class RLNavConfigTemplate:
                 config_field.Field(
                     name=constants.MODEL,
                     types=[str],
-                    requirements=[lambda x: x in [constants.Q_LEARNING]],
+                    requirements=[
+                        lambda x: x in [constants.Q_LEARNING, constants.SUCCESSOR_REP]
+                    ],
                 ),
                 config_field.Field(
                     name=constants.BEHAVIOUR,
