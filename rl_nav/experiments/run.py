@@ -1,10 +1,9 @@
 import argparse
-import copy
 import os
 
 from rl_nav import constants, runners
 from rl_nav.experiments import rl_nav_config
-from rl_nav.runners import episodic_runner, lifelong_runner
+from rl_nav.runners import q_learning_runner
 from run_modes import cluster_run, parallel_run, serial_run, single_run, utils
 
 MAIN_FILE_PATH = os.path.dirname(os.path.realpath(__file__))
@@ -47,16 +46,18 @@ if __name__ == "__main__":
 
     runners_module_path = os.path.dirname(os.path.abspath(runners.__file__))
 
-    if config.train_episode_timeout is None:
-        runner_class = lifelong_runner.LifelongRunner
-        runner_class_name = "LifelongRunner"
-        runner_module_name = "lifelong_runner"
-        runner_module_path = os.path.join(runners_module_path, "lifelong_runner.py")
+    if config.model == constants.Q_LEARNING:
+        runner_module_name = "q_learning_runner"
+        runner_module_path = os.path.join(runners_module_path, "q_learning_runner.py")
+        if config.train_episode_timeout is None:
+            runner_class = q_learning_runner.LifelongQLearningRunner
+            runner_class_name = "LifelongQLearningRunner"
+        else:
+            runner_class = q_learning_runner.EpisodicQLearningRunner
+            runner_class_name = "EpisodicQLearningRunner"
+
     else:
-        runner_class = episodic_runner.EpisodicRunner
-        runner_class_name = "EpisodicRunner"
-        runner_module_name = "episodic_runner"
-        runner_module_path = os.path.join(runners_module_path, "episodic_runner.py")
+        raise ValueError(f"Model specified in config: {config.model} not recongnised.")
 
     if args.mode == constants.SINGLE:
 
