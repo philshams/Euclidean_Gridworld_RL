@@ -42,6 +42,8 @@ class BaseRunner(base_runner.BaseRunner):
         self._next_visualisation_step = config.visualisation_frequency
         self._test_frequency = config.test_frequency
         self._next_test_step = 0
+        self._checkpoint_frequency = config.checkpoint_frequency
+        self._next_checkpoint_step = config.checkpoint_frequency
 
         super().__init__(config=config, unique_id=unique_id)
 
@@ -57,6 +59,10 @@ class BaseRunner(base_runner.BaseRunner):
 
     @abc.abstractmethod
     def train(self):
+        pass
+
+    @abc.abstractmethod
+    def _train_step(self):
         pass
 
     def _setup_train_environment(self, config):
@@ -142,17 +148,24 @@ class BaseRunner(base_runner.BaseRunner):
 
     def _setup_model(self, config):
         """Instantiate model specified in configuration."""
-        initialisation_strategy = model_utils.get_initialisation_strategy(config)
-        model = q_learning.QLearner(
-            action_space=self._train_environment.action_space,
-            state_space=self._train_environment.state_space,
-            behaviour=config.behaviour,
-            target=config.target,
-            initialisation_strategy=initialisation_strategy,
-            learning_rate=config.learning_rate,
-            gamma=config.discount_factor,
-            imputation_method=config.imputation_method,
-        )
+        if config.model == constants.Q_LEARNING:
+            initialisation_strategy = model_utils.get_initialisation_strategy(config)
+            model = q_learning.QLearner(
+                action_space=self._train_environment.action_space,
+                state_space=self._train_environment.state_space,
+                behaviour=config.behaviour,
+                target=config.target,
+                initialisation_strategy=initialisation_strategy,
+                learning_rate=config.learning_rate,
+                gamma=config.discount_factor,
+                imputation_method=config.imputation_method,
+            )
+        elif config.model == constants.SUCCESSOR_REP:
+            import pdb
+
+            pdb.set_trace()
+        else:
+            raise ValueError(f"Model {config.model} not recogised.")
         return model
 
     def _write_scalar(
