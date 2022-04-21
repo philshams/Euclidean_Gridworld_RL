@@ -3,5 +3,4 @@ pyyaml
 matplotlib
 opencv-python
 
-git+https://github.com/seblee97/run_modes.gitpython
-git+https://github.com/seblee97/plotter.gitpython
+git+https://github.com/seblee97/run_modes.git
