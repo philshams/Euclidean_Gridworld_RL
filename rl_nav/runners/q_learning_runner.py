@@ -6,7 +6,7 @@ class LifelongQLearningRunner(lifelong_runner.LifelongRunner):
 
         super().__init__(config=config, unique_id=unique_id)
 
-    def _train_step(self, state) -> float:
+    def _model_train_step(self, state) -> float:
         """Perform single training step."""
         action = self._model.select_behaviour_action(state, epsilon=self._epsilon)
         reward, new_state = self._train_environment.step(action)
@@ -29,7 +29,7 @@ class EpisodicQLearningRunner(episodic_runner.EpisodicRunner):
 
         super().__init__(config=config, unique_id=unique_id)
 
-    def _train_step(self, state) -> float:
+    def _model_train_step(self, state) -> float:
         """Perform single training step."""
         action = self._model.select_behaviour_action(state, epsilon=self._epsilon)
         reward, new_state = self._train_environment.step(action)
