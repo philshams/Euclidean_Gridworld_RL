@@ -249,37 +249,111 @@ class BaseRunner(base_runner.BaseRunner):
                 ),
                 history=constants.TEST,
             )
-        while self._next_rollout_step <= self._step_count:
-            self._next_rollout_step += self._rollout_frequency
+        # while self._next_rollout_step <= self._step_count:
+        #     self._next_rollout_step += self._rollout_frequency
 
-    def _test(self):
+    def _find_reward_test(self):
+        """Allow agent one more 'period' of exploration to find the reward
+        (in the test environment), before test rollout."""
+        test_logging_dict = {}
+
+        for i, test_env in enumerate(self._test_environments):
+
+            final_period_reward = 0
+
+            state = test_env.reset_environment(episode_timeout=np.inf)
+
+            model_copy = copy.deepcopy(self._model)
+            model_copy.allow_state_instantiation = True
+
+            while final_period_reward < test_env.total_rewards_available:
+
+                # TODO: unclear which behaviour policy to use here...
+                action = model_copy.select_behaviour_action(
+                    state,
+                    epsilon=self._epsilon,
+                    excess_state_mapping=self._excess_state_mapping[i],
+                )
+                reward, new_state = test_env.step(action)
+
+                model_copy.step(
+                    state=state,
+                    action=action,
+                    reward=reward,
+                    new_state=new_state,
+                    active=test_env.active,
+                )
+                state = new_state
+                final_period_reward += reward
+
+            model_copy.allow_state_instantiation = False
+            model_copy.eval()
+
+            reward, length = self._single_test(
+                test_model=model_copy,
+                test_env=test_env,
+                excess_state_mapping=self._excess_state_mapping[i],
+                retain_history=True,
+            )
+
+            test_logging_dict[
+                f"{constants.TEST_EPISODE_REWARD}_{i}_{constants.FINAL_REWARD_RUN}"
+            ] = reward
+            test_logging_dict[
+                f"{constants.TEST_EPISODE_LENGTH}_{i}_{constants.FINAL_REWARD_RUN}"
+            ] = length
+
+        self._test_rollout(
+            save_name_base=f"{constants.INDIVIDUAL_TEST_RUN}_{constants.FINAL_REWARD_RUN}"
+        )
+
+        return test_logging_dict
+
+    def _test(self, test_model):
         """Test rollout."""
-        self._model.eval()
+        test_model.eval()
 
         test_logging_dict = {}
 
         for i, test_env in enumerate(self._test_environments):
-            episode_reward = 0
 
-            state = test_env.reset_environment()
+            reward, length = self._single_test(
+                test_model=test_model,
+                test_env=test_env,
+                excess_state_mapping=self._excess_state_mapping[i],
+            )
 
-            while test_env.active:
+            test_logging_dict[f"{constants.TEST_EPISODE_REWARD}_{i}"] = reward
+            test_logging_dict[f"{constants.TEST_EPISODE_LENGTH}_{i}"] = length
 
-                action = self._model.select_target_action(
-                    state, excess_state_mapping=self._excess_state_mapping[i]
-                )
-                reward, state = test_env.step(action)
+        self._test_rollout(save_name_base=f"{constants.INDIVIDUAL_TEST_RUN}")
 
-                episode_reward += reward
-
-            test_logging_dict[f"{constants.TEST_EPISODE_REWARD}_{i}"] = episode_reward
-            test_logging_dict[
-                f"{constants.TEST_EPISODE_LENGTH}_{i}"
-            ] = test_env.episode_step_count
-
-        self._model.train()
+        test_model.train()
 
         while self._next_test_step <= self._step_count:
             self._next_test_step += self._test_frequency
 
         return test_logging_dict
+
+    def _single_test(
+        self,
+        test_model,
+        test_env,
+        excess_state_mapping,
+        retain_history: Optional[bool] = False,
+    ):
+        """Test rollout with single model on single environment."""
+        episode_reward = 0
+
+        state = test_env.reset_environment(retain_history=retain_history)
+
+        while test_env.active:
+
+            action = test_model.select_target_action(
+                state, excess_state_mapping=excess_state_mapping
+            )
+            reward, state = test_env.step(action)
+
+            episode_reward += reward
+
+        return episode_reward, test_env.episode_step_count
