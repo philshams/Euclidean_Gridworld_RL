@@ -116,6 +116,9 @@ class Wrapper(base_env.BaseEnvironment):
             heatmap=heatmap, fig=fig, ax=ax, save_name=save_name
         )
 
+    def save_history(self, save_path):
+        self._env.save_history(save_path=save_path)
+
     def average_values_over_positional_states(
         self, values: Dict[Tuple[int], float]
     ) -> Dict[Tuple[int], float]:
