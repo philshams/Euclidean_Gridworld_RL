@@ -86,7 +86,8 @@ class EscapeEnv(base_env.BaseEnvironment):
         self._batch_dimension = batch_dimension
         self._torch_axes = torch_axes
 
-        self._setup_environment(map_ascii_path=map_path)
+        reward_state = self._representation == constants.AGENT_POSITION_REWARD
+        self._setup_environment(map_ascii_path=map_path, reward_state=reward_state)
 
         # states are zero, -1 removes walls from counts.
         self._visitation_counts = -1 * copy.deepcopy(self._map)
