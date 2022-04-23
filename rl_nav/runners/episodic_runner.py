@@ -12,15 +12,11 @@ class EpisodicRunner(base_runner.BaseRunner):
 
         self._episode_count = 0
 
-    def _get_data_columns(self):
+    def _get_runner_specific_data_columns(self):
         columns = [
-            constants.STEP,
             constants.TRAIN_EPISODE_REWARD,
             constants.TRAIN_EPISODE_LENGTH,
         ]
-        for i in range(len(self._test_environments)):
-            columns.append(f"{constants.TEST_EPISODE_REWARD}_{i}")
-            columns.append(f"{constants.TEST_EPISODE_LENGTH}_{i}")
         return columns
 
     def _train_rollout(self):
@@ -37,11 +33,13 @@ class EpisodicRunner(base_runner.BaseRunner):
         while self._step_count < self._num_steps:
             if self._step_count >= self._next_rollout_step:
                 self._train_rollout()
-                self._test_rollout()
+            #     self._test_rollout(save_name_base=)
             if self._step_count >= self._next_visualisation_step:
                 self._generate_visualisations()
             if self._step_count >= self._next_test_step:
-                test_logging_dict = self._test()
+                plain_logging_dict = self._test(self._model)
+                find_reward_logging_dict = self._find_reward_test()
+                test_logging_dict = {**plain_logging_dict, **find_reward_logging_dict}
             else:
                 test_logging_dict = {}
             episode_logging_dict = {**test_logging_dict, **self._train_episode()}
