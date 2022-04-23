@@ -98,16 +98,23 @@ class TabularLearner(base_learner.BaseLearner):
 
     def _impute_values(self, state, excess_state_mapping):
         if self._imputation_method == constants.NEAR_NEIGHBOURS:
-            near_neighbour_ids = [
-                self._state_id_mapping[s] for s in excess_state_mapping[state]
-            ]
-            neighbour_state_action_values = [
-                copy.deepcopy(self._state_action_values[s_id])
-                for s_id in near_neighbour_ids
-            ]
-            state_action_values = np.mean(neighbour_state_action_values, axis=0)
+            return self._impute_near_neighbours()
         elif self._imputation_method == constants.RANDOM:
-            state_action_values = np.random.normal(size=4)
+            return self._impute_randomly()
+
+    def _impute_near_neighbours(self, state, excess_state_mapping):
+        near_neighbour_ids = [
+            self._state_id_mapping[s] for s in excess_state_mapping[state]
+        ]
+        neighbour_state_action_values = [
+            copy.deepcopy(self._state_action_values[s_id])
+            for s_id in near_neighbour_ids
+        ]
+        state_action_values = np.mean(neighbour_state_action_values, axis=0)
+        return state_action_values
+
+    def _impute_randomly(self):
+        state_action_values = np.random.normal(size=len(self._action_space))
         return state_action_values
 
     def _initialise_values(self, initialisation_strategy: str) -> np.ndarray:
