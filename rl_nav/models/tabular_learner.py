@@ -57,6 +57,7 @@ class TabularLearner(base_learner.BaseLearner):
         self._training = True
 
         self._imputation_method = imputation_method
+        self._allow_state_instantiation = False
 
     def train(self):
         self._training = True
@@ -266,12 +267,24 @@ class TabularLearner(base_learner.BaseLearner):
             action: greedy action.
         """
         if self._behaviour == constants.GREEDY:
-            action = self._greedy_action(state=state)
+            action = self._greedy_action(
+                state=state, excess_state_mapping=excess_state_mapping
+            )
         elif self._behaviour == constants.EPSILON_GREEDY:
-            action = self._epsilon_greedy_action(state=state, epsilon=epsilon)
+            action = self._epsilon_greedy_action(
+                state=state, epsilon=epsilon, excess_state_mapping=excess_state_mapping
+            )
         return action
 
     @abc.abstractmethod
     def step(self, *args, **kwargs) -> None:
         """Update relevant data for learner."""
         pass
+
+    @property
+    def allow_state_instantiation(self):
+        return self._allow_state_instantiation
+
+    @allow_state_instantiation.setter
+    def allow_state_instantiation(self, allow: bool):
+        self._allow_state_instantiation = allow
