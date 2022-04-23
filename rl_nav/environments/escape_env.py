@@ -78,6 +78,7 @@ class EscapeEnv(base_env.BaseEnvironment):
             self._test_episode_partial_history: List[np.ndarray]
 
         self._episode_timeout = episode_timeout or np.inf
+        self._standard_episode_timeout = episode_timeout or np.inf
         self._scaling = scaling
         self._field_x = field_x
         self._field_y = field_y
