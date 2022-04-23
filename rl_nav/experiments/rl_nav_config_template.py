@@ -12,8 +12,13 @@ class RLNavConfigTemplate:
         self._initialise()
 
     def _initialise(self):
-        self._learning_template = config_template.Template(
+        self._training_template = config_template.Template(
             fields=[
+                config_field.Field(
+                    name=constants.NUM_STEPS,
+                    types=[int],
+                    requirements=[lambda x: x > 0],
+                ),
                 config_field.Field(
                     name=constants.MODEL,
                     types=[str],
@@ -56,7 +61,7 @@ class RLNavConfigTemplate:
                     ],
                 ),
             ],
-            level=[constants.LEARNING],
+            level=[constants.TRAINING],
         )
 
         self._random_uniform_template = config_template.Template(
@@ -224,13 +229,8 @@ class RLNavConfigTemplate:
             key_prefix=constants.TEST,
         )
 
-        self._training_template = config_template.Template(
+        self._logging_template = config_template.Template(
             fields=[
-                config_field.Field(
-                    name=constants.NUM_STEPS,
-                    types=[int],
-                    requirements=[lambda x: x > 0],
-                ),
                 config_field.Field(
                     name=constants.VISUALISATION_FREQUENCY,
                     types=[int],
@@ -252,7 +252,7 @@ class RLNavConfigTemplate:
                     requirements=[lambda x: x > 0],
                 ),
             ],
-            level=[constants.TRAINING],
+            level=[constants.LOGGING],
         )
 
     @property
@@ -262,10 +262,10 @@ class RLNavConfigTemplate:
                 config_field.Field(name=constants.SEED, types=[int]),
             ],
             nested_templates=[
-                self._learning_template,
+                self._training_template,
                 self._initialisation_template,
                 self._train_environment_template,
                 self._test_environments_template,
-                self._training_template,
+                self._logging_template,
             ],
         )
