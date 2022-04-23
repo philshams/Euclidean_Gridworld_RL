@@ -18,7 +18,7 @@ class BaseRunner(base_runner.BaseRunner):
 
         test_env_excess_states = [
             set(test_env.state_space) - set(self._train_environment.state_space)
-            for test_env in self._test_environments
+            for test_env in self._test_environments.values()
         ]
         self._excess_state_mapping = [
             {
@@ -58,14 +58,14 @@ class BaseRunner(base_runner.BaseRunner):
         columns = [
             constants.STEP,
         ]
-        for i in range(len(self._test_environments)):
-            columns.append(f"{constants.TEST_EPISODE_REWARD}_{i}")
-            columns.append(f"{constants.TEST_EPISODE_LENGTH}_{i}")
+        for map_name in self._test_environments.keys():
+            columns.append(f"{constants.TEST_EPISODE_REWARD}_{map_name}")
+            columns.append(f"{constants.TEST_EPISODE_LENGTH}_{map_name}")
             columns.append(
-                f"{constants.TEST_EPISODE_REWARD}_{i}_{constants.FINAL_REWARD_RUN}"
+                f"{constants.TEST_EPISODE_REWARD}_{map_name}_{constants.FINAL_REWARD_RUN}"
             )
             columns.append(
-                f"{constants.TEST_EPISODE_LENGTH}_{i}_{constants.FINAL_REWARD_RUN}"
+                f"{constants.TEST_EPISODE_LENGTH}_{map_name}_{constants.FINAL_REWARD_RUN}"
             )
 
         return columns + self._get_runner_specific_data_columns()
@@ -79,17 +79,20 @@ class BaseRunner(base_runner.BaseRunner):
         pass
 
     def _train_step(self, state):
+
+        self._step_count += 1
+
         logging_dict = {}
         if (
             self._step_count % self._visualisation_frequency == 0
-            and self._step_count != 0
+            and self._step_count != 1
         ):
             self._generate_visualisations()
         if self._step_count % self._test_frequency == 0:
             logging_dict = self._perform_tests(
                 rollout=(self._step_count % self._rollout_frequency == 0)
             )
-        if self._step_count % self._checkpoint_frequency == 0 and self._step_count != 0:
+        if self._step_count % self._checkpoint_frequency == 0 and self._step_count != 1:
             self._data_logger.checkpoint()
 
         state, reward = self._model_train_step(state)
@@ -117,15 +120,14 @@ class BaseRunner(base_runner.BaseRunner):
 
         environment_args = self._get_environment_args(config=config, train=False)
 
-        environments = []
+        environments = {}
 
         if config.test_env_name == constants.ESCAPE_ENV:
             for map_path in list(set(config.test_map_paths + [config.train_map_path])):
+                map_name = map_path.split("/")[-1].rstrip(".txt")
                 environment_args[constants.MAP_PATH] = map_path
                 environment = escape_env.EscapeEnv(**environment_args)
-                environments.append(environment)
-
-        environments = [visualisation_env.VisualisationEnv(env) for env in environments]
+                environments[map_name] = visualisation_env.VisualisationEnv(environment)
 
         return environments
 
@@ -253,13 +255,19 @@ class BaseRunner(base_runner.BaseRunner):
         )
 
     def _test_rollout(self, save_name_base: str):
-        for i, test_env in enumerate(self._test_environments):
+        for i, (map_name, test_env) in enumerate(self._test_environments.items()):
             test_env.visualise_episode_history(
                 save_path=os.path.join(
                     self._rollout_folder_path,
-                    f"{save_name_base}_{i}_{self._step_count}.mp4",
+                    f"{save_name_base}_{map_name}_{self._step_count}.mp4",
                 ),
                 history=constants.TEST,
+            )
+            test_env.save_history(
+                save_path=os.path.join(
+                    self._rollout_folder_path,
+                    f"{save_name_base}_{i}_{self._step_count}",
+                )
             )
 
     def _perform_tests(self, rollout: bool):
@@ -273,7 +281,7 @@ class BaseRunner(base_runner.BaseRunner):
         (in the test environment), before test rollout."""
         test_logging_dict = {}
 
-        for i, test_env in enumerate(self._test_environments):
+        for i, (map_name, test_env) in enumerate(self._test_environments.items()):
 
             final_period_reward = 0
 
@@ -313,10 +321,10 @@ class BaseRunner(base_runner.BaseRunner):
             )
 
             test_logging_dict[
-                f"{constants.TEST_EPISODE_REWARD}_{i}_{constants.FINAL_REWARD_RUN}"
+                f"{constants.TEST_EPISODE_REWARD}_{map_name}_{constants.FINAL_REWARD_RUN}"
             ] = reward
             test_logging_dict[
-                f"{constants.TEST_EPISODE_LENGTH}_{i}_{constants.FINAL_REWARD_RUN}"
+                f"{constants.TEST_EPISODE_LENGTH}_{map_name}_{constants.FINAL_REWARD_RUN}"
             ] = length
 
         if rollout:
@@ -332,7 +340,7 @@ class BaseRunner(base_runner.BaseRunner):
 
         test_logging_dict = {}
 
-        for i, test_env in enumerate(self._test_environments):
+        for i, (map_name, test_env) in enumerate(self._test_environments.items()):
 
             reward, length = self._single_test(
                 test_model=test_model,
@@ -340,8 +348,8 @@ class BaseRunner(base_runner.BaseRunner):
                 excess_state_mapping=self._excess_state_mapping[i],
             )
 
-            test_logging_dict[f"{constants.TEST_EPISODE_REWARD}_{i}"] = reward
-            test_logging_dict[f"{constants.TEST_EPISODE_LENGTH}_{i}"] = length
+            test_logging_dict[f"{constants.TEST_EPISODE_REWARD}_{map_name}"] = reward
+            test_logging_dict[f"{constants.TEST_EPISODE_LENGTH}_{map_name}"] = length
 
         if rollout:
             self._test_rollout(save_name_base=f"{constants.INDIVIDUAL_TEST_RUN}")
