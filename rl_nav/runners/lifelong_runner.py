@@ -7,15 +7,8 @@ class LifelongRunner(base_runner.BaseRunner):
 
         super().__init__(config=config, unique_id=unique_id)
 
-    def _get_data_columns(self):
-        columns = [
-            constants.STEP,
-            constants.TRAIN_REWARD,
-        ]
-        for i in range(len(self._test_environments)):
-            columns.append(f"{constants.TEST_EPISODE_REWARD}_{i}")
-            columns.append(f"{constants.TEST_EPISODE_LENGTH}_{i}")
-        return columns
+    def _get_runner_specific_data_columns(self):
+        return [constants.TRAIN_REWARD]
 
     def train(self):
 
@@ -23,12 +16,14 @@ class LifelongRunner(base_runner.BaseRunner):
         train_reward = 0
 
         while self._step_count < self._num_steps:
-            if self._step_count >= self._next_rollout_step:
-                self._test_rollout()
+            # if self._step_count >= self._next_rollout_step:
+            #     self._test_rollout(save_name_base=constants.INDIVIDUAL_TEST_RUN)
             if self._step_count >= self._next_visualisation_step:
                 self._generate_visualisations()
             if self._step_count >= self._next_test_step:
-                logging_dict = self._test()
+                plain_logging_dict = self._test(self._model)
+                find_reward_logging_dict = self._find_reward_test()
+                logging_dict = {**plain_logging_dict, **find_reward_logging_dict}
             else:
                 logging_dict = {}
             if self._step_count >= self._next_checkpoint_step:
@@ -36,20 +31,8 @@ class LifelongRunner(base_runner.BaseRunner):
                 while self._next_checkpoint_step <= self._step_count:
                     self._next_checkpoint_step += self._checkpoint_frequency
 
-            action = self._model.select_behaviour_action(state, epsilon=self._epsilon)
-            reward, new_state = self._train_environment.step(action)
-
-            self._model.step(
-                state=state,
-                action=action,
-                reward=reward,
-                new_state=new_state,
-                active=self._train_environment.active,
-            )
-            state = new_state
+            state, reward = self._train_step(state=state)
             train_reward += reward
-
-            self._step_count += 1
 
             logging_dict[constants.STEP] = self._step_count
             logging_dict[constants.TRAIN_REWARD] = train_reward
