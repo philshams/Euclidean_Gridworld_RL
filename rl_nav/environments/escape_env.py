@@ -232,6 +232,8 @@ class EscapeEnv(base_env.BaseEnvironment):
         This can either be a tuple of the agent and key positions,
         or a top-down pixel view of the environment (for DL)."""
         if self._representation == constants.AGENT_POSITION:
+            return tuple(self._agent_position)
+        elif self._representation == constants.AGENT_POSITION_REWARD:
             return tuple(self._agent_position) + tuple(self._rewards_state)
         elif self._representation in [constants.PIXEL, constants.PO_PIXEL]:
             if tuple_state is None:
