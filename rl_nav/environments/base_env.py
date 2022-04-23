@@ -124,6 +124,10 @@ class BaseEnvironment(abc.ABC):
         return self._positional_state_space
 
     @property
+    def total_rewards_available(self):
+        return self._total_rewards_available
+
+    @property
     def visitation_counts(self) -> np.ndarray:
         return self._visitation_counts
 
