@@ -1,4 +1,5 @@
 import abc
+import copy
 import os
 from typing import Any, Dict, Optional, Union
 
@@ -56,6 +57,26 @@ class BaseRunner(base_runner.BaseRunner):
         )
         os.makedirs(name=self._rollout_folder_path, exist_ok=True)
         os.makedirs(name=self._visualisations_folder_path, exist_ok=True)
+
+    def _get_data_columns(self):
+        columns = [
+            constants.STEP,
+        ]
+        for i in range(len(self._test_environments)):
+            columns.append(f"{constants.TEST_EPISODE_REWARD}_{i}")
+            columns.append(f"{constants.TEST_EPISODE_LENGTH}_{i}")
+            columns.append(
+                f"{constants.TEST_EPISODE_REWARD}_{i}_{constants.FINAL_REWARD_RUN}"
+            )
+            columns.append(
+                f"{constants.TEST_EPISODE_LENGTH}_{i}_{constants.FINAL_REWARD_RUN}"
+            )
+
+        return columns + self._get_runner_specific_data_columns()
+
+    @abc.abstractmethod
+    def _get_runner_specific_data_columns(self):
+        pass
 
     @abc.abstractmethod
     def train(self):
