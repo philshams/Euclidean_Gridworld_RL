@@ -240,12 +240,12 @@ class BaseRunner(base_runner.BaseRunner):
         while self._next_visualisation_step <= self._step_count:
             self._next_visualisation_step += self._visualisation_frequency
 
-    def _test_rollout(self):
+    def _test_rollout(self, save_name_base: str):
         for i, test_env in enumerate(self._test_environments):
             test_env.visualise_episode_history(
                 save_path=os.path.join(
                     self._rollout_folder_path,
-                    f"{constants.INDIVIDUAL_TEST_RUN}_{i}_{self._step_count}.mp4",
+                    f"{save_name_base}_{i}_{self._step_count}.mp4",
                 ),
                 history=constants.TEST,
             )
