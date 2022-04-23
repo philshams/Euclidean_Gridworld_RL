@@ -223,7 +223,12 @@ class TabularLearner(base_learner.BaseLearner):
 
         return np.random.choice(self._action_space, p=softmax_values)
 
-    def _epsilon_greedy_action(self, state: Tuple[int, int], epsilon: float) -> int:
+    def _epsilon_greedy_action(
+        self,
+        state: Tuple[int, int],
+        epsilon: float,
+        excess_state_mapping: Optional[Dict] = None,
+    ) -> int:
         """Choose greedy policy with probability
         (1 - epsilon) and a random action with probability epsilon.
 
@@ -237,7 +242,9 @@ class TabularLearner(base_learner.BaseLearner):
         if random.random() < epsilon:
             action = random.choice(self._action_space)
         else:
-            action = self._greedy_action(state=state)
+            action = self._greedy_action(
+                state=state, excess_state_mapping=excess_state_mapping
+            )
         return action
 
     def select_target_action(self, state: Tuple[int, int], excess_state_mapping) -> int:
@@ -261,7 +268,7 @@ class TabularLearner(base_learner.BaseLearner):
         return action
 
     def select_behaviour_action(
-        self, state: Tuple[int, int], epsilon: float
+        self, state: Tuple[int, int], epsilon: float, excess_state_mapping=None
     ) -> Tuple[int, float]:
         """Select action with behaviour policy, i.e. policy collecting trajectory data
         and generating behaviour. Sarsa lambda is on-policy so this is the same as the
