@@ -1,8 +1,7 @@
-import copy
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Tuple
 
+import numpy as np
 from rl_nav.models import tabular_learner
-from rl_nav.utils import epsilon_schedules
 
 
 class QLearner(tabular_learner.TabularLearner):
@@ -92,6 +91,15 @@ class QLearner(tabular_learner.TabularLearner):
         new_state,
     ):
         initial_state_action_value = self._state_action_values[state_id][action]
+
+        if new_state not in self._state_id_mapping and self._allow_state_instantiation:
+            self._state_id_mapping[new_state] = len(self._state_id_mapping)
+            self._id_state_mapping[len(self._id_state_mapping)] = new_state
+            imputed_values = self._impute_randomly().reshape(1, len(self._action_space))
+            self._state_action_values = np.vstack(
+                (self._state_action_values, imputed_values)
+            )
+            self._state_visitation_counts[new_state] = 0
 
         updated_state_action_value = (
             initial_state_action_value
