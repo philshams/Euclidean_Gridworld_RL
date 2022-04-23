@@ -38,13 +38,9 @@ class BaseRunner(base_runner.BaseRunner):
         self._num_steps = config.num_steps
         self._step_count = 0
         self._rollout_frequency = config.rollout_frequency
-        self._next_rollout_step = config.rollout_frequency
         self._visualisation_frequency = config.visualisation_frequency
-        self._next_visualisation_step = config.visualisation_frequency
         self._test_frequency = config.test_frequency
-        self._next_test_step = 0
         self._checkpoint_frequency = config.checkpoint_frequency
-        self._next_checkpoint_step = config.checkpoint_frequency
 
         super().__init__(config=config, unique_id=unique_id)
 
