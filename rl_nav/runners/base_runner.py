@@ -78,8 +78,26 @@ class BaseRunner(base_runner.BaseRunner):
     def train(self):
         pass
 
+    def _train_step(self, state):
+        logging_dict = {}
+        if (
+            self._step_count % self._visualisation_frequency == 0
+            and self._step_count != 0
+        ):
+            self._generate_visualisations()
+        if self._step_count % self._test_frequency == 0:
+            logging_dict = self._perform_tests(
+                rollout=(self._step_count % self._rollout_frequency == 0)
+            )
+        if self._step_count % self._checkpoint_frequency == 0 and self._step_count != 0:
+            self._data_logger.checkpoint()
+
+        state, reward = self._model_train_step(state)
+
+        return state, reward, logging_dict
+
     @abc.abstractmethod
-    def _train_step(self):
+    def _model_train_step(self, state):
         pass
 
     def _setup_train_environment(self, config):
@@ -233,8 +251,6 @@ class BaseRunner(base_runner.BaseRunner):
                 f"{self._step_count}_{constants.VISITATION_COUNTS_PDF}",
             ),
         )
-        while self._next_visualisation_step <= self._step_count:
-            self._next_visualisation_step += self._visualisation_frequency
 
     def _test_rollout(self, save_name_base: str):
         for i, test_env in enumerate(self._test_environments):
@@ -245,10 +261,14 @@ class BaseRunner(base_runner.BaseRunner):
                 ),
                 history=constants.TEST,
             )
-        # while self._next_rollout_step <= self._step_count:
-        #     self._next_rollout_step += self._rollout_frequency
 
-    def _find_reward_test(self):
+    def _perform_tests(self, rollout: bool):
+        find_reward_logging_dict = self._find_reward_test(rollout=rollout)
+        plain_logging_dict = self._test(test_model=self._model, rollout=rollout)
+        logging_dict = {**plain_logging_dict, **find_reward_logging_dict}
+        return logging_dict
+
+    def _find_reward_test(self, rollout: bool):
         """Allow agent one more 'period' of exploration to find the reward
         (in the test environment), before test rollout."""
         test_logging_dict = {}
@@ -299,13 +319,14 @@ class BaseRunner(base_runner.BaseRunner):
                 f"{constants.TEST_EPISODE_LENGTH}_{i}_{constants.FINAL_REWARD_RUN}"
             ] = length
 
-        self._test_rollout(
-            save_name_base=f"{constants.INDIVIDUAL_TEST_RUN}_{constants.FINAL_REWARD_RUN}"
-        )
+        if rollout:
+            self._test_rollout(
+                save_name_base=f"{constants.INDIVIDUAL_TEST_RUN}_{constants.FINAL_REWARD_RUN}"
+            )
 
         return test_logging_dict
 
-    def _test(self, test_model):
+    def _test(self, test_model, rollout: bool):
         """Test rollout."""
         test_model.eval()
 
@@ -322,12 +343,10 @@ class BaseRunner(base_runner.BaseRunner):
             test_logging_dict[f"{constants.TEST_EPISODE_REWARD}_{i}"] = reward
             test_logging_dict[f"{constants.TEST_EPISODE_LENGTH}_{i}"] = length
 
-        self._test_rollout(save_name_base=f"{constants.INDIVIDUAL_TEST_RUN}")
+        if rollout:
+            self._test_rollout(save_name_base=f"{constants.INDIVIDUAL_TEST_RUN}")
 
         test_model.train()
-
-        while self._next_test_step <= self._step_count:
-            self._next_test_step += self._test_frequency
 
         return test_logging_dict
 
