@@ -29,7 +29,9 @@ class RLNavConfig(base_configuration.BaseConfiguration):
         Raises:
             AssertionError: if any rules are broken by config.
         """
-        pass
+        assert (
+            self.rollout_frequency % self.test_frequency == 0
+        ), "rollout_frequency must be multiple of test_frequency"
 
     def _maybe_reconfigure(self, property_name: str) -> None:
         pass
