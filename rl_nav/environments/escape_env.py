@@ -272,7 +272,29 @@ class EscapeEnv(base_env.BaseEnvironment):
 
         moving_into_wall = tuple(provisional_new_position) in self._wall_state_space
 
-        if not moving_into_wall:
+        moving_into_k_block = (
+            (self._k_block_state_space is not None)
+            and (tuple(provisional_new_position) in self._k_block_state_space)
+            and (
+                np.array_equal(delta, self.DELTAS[2])
+                or np.array_equal(delta, self.DELTAS[3])
+            )
+        )
+
+        moving_into_h_block = (
+            (self._h_block_state_space is not None)
+            and (tuple(provisional_new_position) in self._h_block_state_space)
+            and (
+                np.array_equal(delta, self.DELTAS[0])
+                or np.array_equal(delta, self.DELTAS[3])
+            )
+        )
+
+        move_permissible = all(
+            [not moving_into_wall, not moving_into_k_block, not moving_into_h_block]
+        )
+
+        if move_permissible:
             self._agent_position = provisional_new_position
 
         return self._compute_reward()
