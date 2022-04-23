@@ -19,8 +19,6 @@ class LifelongQLearningRunner(lifelong_runner.LifelongRunner):
             active=self._train_environment.active,
         )
 
-        self._step_count += 1
-
         return new_state, reward
 
 
@@ -41,7 +39,5 @@ class EpisodicQLearningRunner(episodic_runner.EpisodicRunner):
             new_state=new_state,
             active=self._train_environment.active,
         )
-
-        self._step_count += 1
 
         return new_state, reward
