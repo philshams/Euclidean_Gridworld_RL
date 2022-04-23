@@ -383,6 +383,12 @@ class EscapeEnv(base_env.BaseEnvironment):
         ]
         return not any(conditions)
 
+    def save_history(self, save_path: str):
+        if self._training:
+            np.save(save_path, np.array(self._train_episode_position_history))
+        else:
+            np.save(save_path, np.array(self._test_episode_position_history))
+
     def reset_environment(
         self,
         map_yaml_path: Optional[str] = None,
