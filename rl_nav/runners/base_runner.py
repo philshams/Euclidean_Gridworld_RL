@@ -106,7 +106,7 @@ class BaseRunner(base_runner.BaseRunner):
         environments = []
 
         if config.test_env_name == constants.ESCAPE_ENV:
-            for map_path in config.test_map_paths:
+            for map_path in list(set(config.test_map_paths + [config.train_map_path])):
                 environment_args[constants.MAP_PATH] = map_path
                 environment = escape_env.EscapeEnv(**environment_args)
                 environments.append(environment)
