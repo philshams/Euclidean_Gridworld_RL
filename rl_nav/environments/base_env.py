@@ -29,7 +29,9 @@ class BaseEnvironment(abc.ABC):
         self._active: bool
         self._episode_step_count: int
 
-    def _setup_environment(self, map_ascii_path: Optional[str] = None):
+    def _setup_environment(
+        self, map_ascii_path: Optional[str] = None, reward_state: bool = False
+    ):
 
         if map_ascii_path is not None:
             self._map = env_utils.parse_map_outline(
@@ -46,14 +48,27 @@ class BaseEnvironment(abc.ABC):
         else:
             self._total_rewards_available = availability * len(self._rewards)
 
-        (
-            self._positional_state_space,
-            self._rewards_received_state_space,
-            self._state_space,
-            self._wall_state_space,
-        ) = env_utils.configure_state_space(
-            map_outline=self._map,
-            reward_positions=self._reward_positions,
+        if reward_state:
+            reward_position_arg = self._reward_positions
+        else:
+            reward_position_arg = None
+        state_space_dictionary = env_utils.configure_state_space(
+            map_outline=self._map, reward_positions=reward_position_arg
+        )
+
+        self._positional_state_space = state_space_dictionary.get(
+            constants.POSITIONAL_STATE_SPACE
+        )
+        self._rewards_received_state_space = state_space_dictionary.get(
+            constants.REWARDS_RECEIVED_STATE_SPACE
+        )
+        self._state_space = state_space_dictionary.get(constants.STATE_SPACE)
+        self._wall_state_space = state_space_dictionary.get(constants.WALL_STATE_SPACE)
+        self._k_block_state_space = state_space_dictionary.get(
+            constants.K_BLOCK_STATE_SPACE
+        )
+        self._h_block_state_space = state_space_dictionary.get(
+            constants.H_BLOCK_STATE_SPACE
         )
 
     def average_values_over_positional_states(
