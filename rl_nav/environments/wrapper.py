@@ -12,9 +12,16 @@ class Wrapper(base_env.BaseEnvironment):
         return self._env.step(action)
 
     def reset_environment(
-        self, map_yaml_path: Optional[str] = None
+        self,
+        map_yaml_path: Optional[str] = None,
+        episode_timeout: Optional[int] = None,
+        retain_history: Optional[bool] = False,
     ) -> Tuple[int, int, int]:
-        return self._env.reset_environment(map_yaml_path=map_yaml_path)
+        return self._env.reset_environment(
+            map_yaml_path=map_yaml_path,
+            episode_timeout=episode_timeout,
+            retain_history=retain_history,
+        )
 
     @property
     def active(self) -> bool:
@@ -39,6 +46,10 @@ class Wrapper(base_env.BaseEnvironment):
     @property
     def positional_state_space(self):
         return self._env.positional_state_space
+
+    @property
+    def total_rewards_available(self):
+        return self._env.total_rewards_available
 
     @property
     def visitation_counts(self) -> np.ndarray:
