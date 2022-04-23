@@ -149,33 +149,55 @@ def setup_rewards(reward_positions, reward_attributes) -> Dict[Tuple, Callable]:
     return rewards
 
 
-def configure_state_space(map_outline, reward_positions):
+def configure_state_space(map_outline, reward_positions: Optional):
     """Get state space for the environment from the parsed map.
     Further split state space into walls, valid positions, key possessions etc.
     """
+
+    state_space_dictionary = {}
+
     state_indices = np.where(map_outline == 0)
     wall_indices = np.where(map_outline == 1)
+    k_block_indices = np.where(map_outline == 0.6)
+    h_block_indices = np.where(map_outline == 0.4)
 
-    positional_state_space = list(zip(state_indices[1], state_indices[0]))
-    rewards_received_state_space = list(
-        itertools.product([0, 1], repeat=len(reward_positions))
-    )
-    state_space = [
-        i[0] + i[1]
-        for i in itertools.product(
-            positional_state_space,
-            rewards_received_state_space,
-        )
-    ]
-
+    empty_state_space = list(zip(state_indices[1], state_indices[0]))
     wall_state_space = list(zip(wall_indices[1], wall_indices[0]))
+    k_block_state_space = list(zip(k_block_indices[1], k_block_indices[0]))
+    h_block_state_space = list(zip(h_block_indices[1], h_block_indices[0]))
 
-    return (
-        positional_state_space,
-        rewards_received_state_space,
-        state_space,
-        wall_state_space,
-    )
+    positional_state_space = empty_state_space
+
+    if len(k_block_state_space):
+        positional_state_space.extend(k_block_state_space)
+        state_space_dictionary[constants.K_BLOCK_STATE_SPACE] = k_block_state_space
+    if len(h_block_state_space):
+        positional_state_space.extend(h_block_state_space)
+        state_space_dictionary[constants.H_BLOCK_STATE_SPACE] = h_block_state_space
+
+    state_space_dictionary[constants.WALL_STATE_SPACE] = wall_state_space
+    state_space_dictionary[constants.POSITIONAL_STATE_SPACE] = positional_state_space
+
+    if reward_positions is not None:
+        rewards_received_state_space = list(
+            itertools.product([0, 1], repeat=len(reward_positions))
+        )
+        state_space_dictionary[
+            constants.REWARDS_RECEIVED_STATE_SPACE
+        ] = rewards_received_state_space
+        state_space = [
+            i[0] + i[1]
+            for i in itertools.product(
+                positional_state_space,
+                rewards_received_state_space,
+            )
+        ]
+    else:
+        state_space = positional_state_space
+
+    state_space_dictionary[constants.STATE_SPACE] = state_space
+
+    return state_space_dictionary
 
 
 def rgb_to_grayscale(rgb: np.ndarray) -> np.ndarray:
