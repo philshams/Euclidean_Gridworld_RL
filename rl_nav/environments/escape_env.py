@@ -384,7 +384,10 @@ class EscapeEnv(base_env.BaseEnvironment):
         return not any(conditions)
 
     def reset_environment(
-        self, map_yaml_path: Optional[str] = None
+        self,
+        map_yaml_path: Optional[str] = None,
+        episode_timeout: Optional[int] = None,
+        retain_history: Optional[bool] = False,
     ) -> Tuple[int, int, int]:
         """Reset environment.
 
@@ -395,6 +398,11 @@ class EscapeEnv(base_env.BaseEnvironment):
         """
         if map_yaml_path is not None:
             self._setup_environment(map_yaml_path=map_yaml_path)
+        if episode_timeout is not None:
+            # allow for temporary switch to timeout conditions
+            self._episode_timeout = episode_timeout
+        else:
+            self._episode_timeout = self._standard_episode_timeout
 
         self._active = True
         self._episode_step_count = 0
@@ -416,26 +424,27 @@ class EscapeEnv(base_env.BaseEnvironment):
         initial_state = self.get_state_representation()
         skeleton = self._env_skeleton()
 
-        if self._training:
-            self._train_episode_position_history = [tuple(self._agent_position)]
-            self._train_episode_history = [skeleton]
-            self._visitation_counts[self._agent_position[1]][
-                self._agent_position[0]
-            ] += 1
-            if self._representation == constants.PO_PIXEL:
-                self._train_episode_partial_history = [
-                    self._partial_observation(
-                        state=skeleton, agent_position=self._agent_position
-                    )
-                ]
-        else:
-            self._test_episode_position_history = [tuple(self._agent_position)]
-            self._test_episode_history = [skeleton]
-            if self._representation == constants.PO_PIXEL:
-                self._test_episode_partial_history = [
-                    self._partial_observation(
-                        state=skeleton, agent_position=self._agent_position
-                    )
-                ]
+        if not retain_history:
+            if self._training:
+                self._train_episode_position_history = [tuple(self._agent_position)]
+                self._train_episode_history = [skeleton]
+                self._visitation_counts[self._agent_position[1]][
+                    self._agent_position[0]
+                ] += 1
+                if self._representation == constants.PO_PIXEL:
+                    self._train_episode_partial_history = [
+                        self._partial_observation(
+                            state=skeleton, agent_position=self._agent_position
+                        )
+                    ]
+            else:
+                self._test_episode_position_history = [tuple(self._agent_position)]
+                self._test_episode_history = [skeleton]
+                if self._representation == constants.PO_PIXEL:
+                    self._test_episode_partial_history = [
+                        self._partial_observation(
+                            state=skeleton, agent_position=self._agent_position
+                        )
+                    ]
 
         return initial_state
