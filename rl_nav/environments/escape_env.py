@@ -113,6 +113,10 @@ class EscapeEnv(base_env.BaseEnvironment):
         # make walls black
         skeleton[self._map == 1] = np.zeros(3)
 
+        # make k blocks, h blocks silver
+        skeleton[self._map == 0.4] = 0.75 * np.ones(3)
+        skeleton[self._map == 0.6] = 0.75 * np.ones(3)
+
         if rewards is not None:
             if isinstance(rewards, str):
                 if rewards == constants.STATIONARY:
