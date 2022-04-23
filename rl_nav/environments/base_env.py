@@ -17,6 +17,8 @@ class BaseEnvironment(abc.ABC):
 
     MAPPING = {
         constants.WALL_CHARACTER: 1,
+        constants.H_BLOCK_CHARACTER: 0.4,
+        constants.K_BLOCK_CHARACTER: 0.6,
         constants.OPEN_CHARACTER: 0,
         constants.START_CHARACTER: 0,
         constants.REWARD_CHARACTER: 0,
