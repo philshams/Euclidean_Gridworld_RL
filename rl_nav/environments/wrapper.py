@@ -94,11 +94,10 @@ class Wrapper(base_env.BaseEnvironment):
     def _env_skeleton(
         self,
         rewards: Union[None, str, Tuple[int]] = "state",
-        keys: Union[None, str, Tuple[int]] = "state",
-        doors: Union[None, str] = "state",
         agent: Union[None, str, np.ndarray] = "state",
+        cue: Union[None, str, np.ndarray] = None,
     ):
-        self._env._env_skeleton(rewards=rewards, keys=keys, doors=doors, agent=agent)
+        return self._env._env_skeleton(rewards=rewards, agent=agent, cue=cue)
 
     def visualise_episode_history(
         self, save_path: str, history: Union[str, List[np.ndarray]] = "train"
@@ -118,6 +117,9 @@ class Wrapper(base_env.BaseEnvironment):
 
     def save_history(self, save_path):
         self._env.save_history(save_path=save_path)
+
+    def save_as_array(self, save_path: str):
+        self._env.save_as_array(save_path=save_path)
 
     def average_values_over_positional_states(
         self, values: Dict[Tuple[int], float]
