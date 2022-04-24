@@ -13,6 +13,7 @@ from run_modes import base_runner
 
 class BaseRunner(base_runner.BaseRunner):
     def __init__(self, config, unique_id: str):
+
         self._train_environment = self._setup_train_environment(config=config)
         self._test_environments = self._setup_test_environments(config=config)
 
@@ -34,6 +35,8 @@ class BaseRunner(base_runner.BaseRunner):
 
         self._model = self._setup_model(config=config)
 
+        super().__init__(config=config, unique_id=unique_id)
+
         self._epsilon = config.epsilon
         self._num_steps = config.num_steps
         self._step_count = 0
@@ -42,8 +45,6 @@ class BaseRunner(base_runner.BaseRunner):
         self._test_frequency = config.test_frequency
         self._checkpoint_frequency = config.checkpoint_frequency
 
-        super().__init__(config=config, unique_id=unique_id)
-
         # logging setup
         self._rollout_folder_path = os.path.join(
             self._checkpoint_path, constants.ROLLOUTS
@@ -51,8 +52,19 @@ class BaseRunner(base_runner.BaseRunner):
         self._visualisations_folder_path = os.path.join(
             self._checkpoint_path, constants.VISUALISATIONS
         )
+        self._env_skeletons_path = os.path.join(
+            self._checkpoint_path, constants.ENV_SKELETON
+        )
         os.makedirs(name=self._rollout_folder_path, exist_ok=True)
         os.makedirs(name=self._visualisations_folder_path, exist_ok=True)
+        os.makedirs(name=self._env_skeletons_path, exist_ok=True)
+
+        for map_name, test_env in self._test_environments.items():
+            test_env.save_as_array(
+                save_path=os.path.join(
+                    self._env_skeletons_path, f"{map_name}_{constants.ENV_SKELETON}"
+                )
+            )
 
     def _get_data_columns(self):
         columns = [
@@ -92,8 +104,6 @@ class BaseRunner(base_runner.BaseRunner):
             logging_dict = self._perform_tests(
                 rollout=(self._step_count % self._rollout_frequency == 0)
             )
-        if self._step_count % self._checkpoint_frequency == 0 and self._step_count != 1:
-            self._data_logger.checkpoint()
 
         state, reward = self._model_train_step(state)
 
@@ -266,7 +276,7 @@ class BaseRunner(base_runner.BaseRunner):
             test_env.save_history(
                 save_path=os.path.join(
                     self._rollout_folder_path,
-                    f"{save_name_base}_{i}_{self._step_count}",
+                    f"{save_name_base}_{map_name}_{self._step_count}",
                 )
             )
 
