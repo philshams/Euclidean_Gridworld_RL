@@ -455,25 +455,36 @@ class EscapeEnv(base_env.BaseEnvironment):
 
         if not retain_history:
             if self._training:
-                self._train_episode_position_history = [tuple(self._agent_position)]
-                self._train_episode_history = [skeleton]
-                self._visitation_counts[self._agent_position[1]][
-                    self._agent_position[0]
-                ] += 1
+                self._train_episode_position_history = []
+                self._train_episode_history = []
                 if self._representation == constants.PO_PIXEL:
-                    self._train_episode_partial_history = [
-                        self._partial_observation(
-                            state=skeleton, agent_position=self._agent_position
-                        )
-                    ]
+                    self._train_episode_partial_history = []
             else:
-                self._test_episode_position_history = [tuple(self._agent_position)]
-                self._test_episode_history = [skeleton]
+                self._test_episode_position_history = []
+                self._test_episode_history = []
                 if self._representation == constants.PO_PIXEL:
-                    self._test_episode_partial_history = [
-                        self._partial_observation(
-                            state=skeleton, agent_position=self._agent_position
-                        )
-                    ]
+                    self._test_episode_partial_history = []
+
+        if self._training:
+            self._train_episode_position_history.append(tuple(self._agent_position))
+            self._train_episode_history.append(skeleton)
+            self._visitation_counts[self._agent_position[1]][
+                self._agent_position[0]
+            ] += 1
+            if self._representation == constants.PO_PIXEL:
+                self._train_episode_partial_history.append(
+                    self._partial_observation(
+                        state=skeleton, agent_position=self._agent_position
+                    )
+                )
+        else:
+            self._test_episode_position_history.append(tuple(self._agent_position))
+            self._test_episode_history.append(skeleton)
+            if self._representation == constants.PO_PIXEL:
+                self._test_episode_partial_history.append(
+                    self._partial_observation(
+                        state=skeleton, agent_position=self._agent_position
+                    )
+                )
 
         return initial_state
