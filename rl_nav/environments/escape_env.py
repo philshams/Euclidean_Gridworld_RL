@@ -156,6 +156,12 @@ class EscapeEnv(base_env.BaseEnvironment):
 
         return skeleton
 
+    def save_as_array(self, save_path: str):
+        env_skeleton = self._env_skeleton(
+            agent=None, cue=None, rewards=constants.STATIONARY
+        )
+        np.save(save_path, env_skeleton)
+
     def _partial_observation(self, state, agent_position):
 
         height = state.shape[0]
