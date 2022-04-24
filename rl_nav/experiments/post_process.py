@@ -4,6 +4,7 @@ import os
 
 from plotter import plot_functions
 from rl_nav import constants
+from rl_nav.utils import plot_utils
 
 parser = argparse.ArgumentParser()
 
@@ -54,6 +55,8 @@ if __name__ == "__main__":
             ]
 
             exp_names = [name for name in exp_names if name not in excluded_experiments]
+
+    plot_utils.plot_trajectories(folder_path=args.results_folder, exp_names=exp_names)
 
     plot_functions.plot_all_multi_seed_multi_run(
         folder_path=args.results_folder,
