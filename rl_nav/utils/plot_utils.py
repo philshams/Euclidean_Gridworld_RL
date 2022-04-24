@@ -39,9 +39,6 @@ def plot_trajectories(folder_path, exp_names):
                     split_indices.append(split_index)
 
                 split_index = min(split_indices)
-                # plt.plot(
-                #     x[: split_index + 1], y[: split_index + 1], color="red", alpha=0.2
-                # )
                 plt.plot(
                     x[split_index + 1 :],
                     y[split_index + 1 :],
