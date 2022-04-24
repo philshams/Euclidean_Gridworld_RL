@@ -62,3 +62,9 @@ class EpisodicRunner(base_runner.BaseRunner):
                 ] = self._train_environment.episode_step_count
 
             self._log_episode(step=self._step_count, logging_dict=logging_dict)
+
+            if (
+                self._step_count % self._checkpoint_frequency == 0
+                and self._step_count != 1
+            ):
+                self._data_logger.checkpoint()
