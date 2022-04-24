@@ -10,17 +10,20 @@ class BaseLearner(abc.ABC):
 
     @abc.abstractmethod
     def eval(self) -> None:
+        """set model to evaluation mode."""
         pass
 
     @abc.abstractmethod
     def train(self) -> None:
+        """set model to train mode."""
         pass
 
     @abc.abstractmethod
     def select_target_action(self, state: Any) -> None:
+        """select action for target/test."""
         pass
 
     @abc.abstractmethod
     def step(self, *args, **kwargs) -> None:
-        """Update relevant data for learner."""
+        """update relevant data/parameters for learner."""
         pass

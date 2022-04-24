@@ -28,7 +28,9 @@ class QLearner(tabular_learner.TabularLearner):
             initialisation_strategy: name of network initialisation strategy.
             behaviour: name of behaviour type e.g. epsilon_greedy.
             target: name of target type e.g. greedy.
-            epsilon: exploration parameter.
+            imputation_method: name of method to impute values at test time
+                for states not present during training,
+                e.g. near_neighbours or random.
         """
         super().__init__(
             action_space=action_space,

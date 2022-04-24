@@ -32,7 +32,9 @@ class TabularLearner(base_learner.BaseLearner):
             initialisation_strategy: name of network initialisation strategy.
             behaviour: name of behaviour type e.g. epsilon_greedy.
             target: name of target type e.g. greedy.
-            epsilon: exploration parameter.
+            imputation_method: name of method to impute values at test time
+                for states not present during training,
+                e.g. near_neighbours or random.
         """
         self._action_space = action_space
         self._state_space = state_space
@@ -60,9 +62,11 @@ class TabularLearner(base_learner.BaseLearner):
         self._allow_state_instantiation = False
 
     def train(self):
+        """set model to train mode."""
         self._training = True
 
     def eval(self):
+        """set model to evaluation mode."""
         self._training = False
         self._latest_state_action_values = {
             self._id_state_mapping[i]: action_values
@@ -71,18 +75,24 @@ class TabularLearner(base_learner.BaseLearner):
 
     @property
     def action_space(self) -> List[int]:
+        """actions available to agent."""
         return self._action_space
 
     @property
     def state_id_mapping(self) -> Dict:
+        """one way mapping from states to indices for states;
+        inverse mapping of _id_state_mapping."""
         return self._state_id_mapping
 
     @property
     def id_state_mapping(self) -> Dict:
+        """one way mapping from indices for states to states;
+        inverse mapping of _state_id_mapping."""
         return self._id_state_mapping
 
     @property
     def state_visitation_counts(self) -> Dict[Tuple[int, int], int]:
+        """number of times each state has been visited."""
         return self._state_visitation_counts
 
     @property
@@ -96,13 +106,42 @@ class TabularLearner(base_learner.BaseLearner):
         else:
             return self._latest_state_action_values
 
-    def _impute_values(self, state, excess_state_mapping):
+    def _impute_values(
+        self,
+        state: Tuple[int, int],
+        excess_state_mapping: Dict[Tuple[int, int], List[Tuple[int, int]]],
+    ) -> float:
+        """method to impute values for new state that has no entry in table.
+
+        Args:
+            state: new state for which value is being imputed.
+            excess_state_mapping: mapping from state to near neighbours.
+
+        Returns:
+            imputed_value for state.
+        """
         if self._imputation_method == constants.NEAR_NEIGHBOURS:
-            return self._impute_near_neighbours()
+            return self._impute_near_neighbours(
+                state=state, excess_state_mapping=excess_state_mapping
+            )
         elif self._imputation_method == constants.RANDOM:
             return self._impute_randomly()
 
-    def _impute_near_neighbours(self, state, excess_state_mapping):
+    def _impute_near_neighbours(
+        self,
+        state: Tuple[int, int],
+        excess_state_mapping: Dict[Tuple[int, int], List[Tuple[int, int]]],
+    ):
+        """method to impute values for new state that has no entry in table
+        using average of values in table that are near neighbours (directly reachable).
+
+        Args:
+            state: new state for which value is being imputed.
+            excess_state_mapping: mapping from state to near neighbours.
+
+        Returns:
+            imputed_value for state.
+        """
         near_neighbour_ids = [
             self._state_id_mapping[s] for s in excess_state_mapping[state]
         ]
@@ -114,6 +153,12 @@ class TabularLearner(base_learner.BaseLearner):
         return state_action_values
 
     def _impute_randomly(self):
+        """method to impute values for new state that has no entry in table
+        by initialising randomly
+
+        Returns:
+            imputed_value for state.
+        """
         state_action_values = np.random.normal(size=len(self._action_space))
         return state_action_values
 
@@ -173,6 +218,7 @@ class TabularLearner(base_learner.BaseLearner):
 
         Args:
             state: state for which to find action with highest value.
+            excess_state_mapping: mapping from state to near neighbours.
 
         Returns:
             action: action with highest value in state given.
@@ -210,6 +256,12 @@ class TabularLearner(base_learner.BaseLearner):
     def _greedy_sample_action(
         self, state: Tuple[int, int], excess_state_mapping: Optional[Dict] = None
     ):
+        """take action by sampling from distribution of values.
+
+        Args:
+            state: state: state for which to find action.
+            excess_state_mapping: mapping from state to near neighbours.
+        """
         state_id = self._state_id_mapping.get(state)
         if state_id is not None:
             state_action_values = copy.deepcopy(self._state_action_values[state_id])
