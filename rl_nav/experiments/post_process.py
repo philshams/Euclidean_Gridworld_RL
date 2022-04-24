@@ -12,6 +12,11 @@ parser.add_argument(
     "--results_folder", type=str, help="path to results folder to post-process."
 )
 parser.add_argument(
+    "--trajectories_only",
+    action="store_true",
+    help="whether to ignore scalar plots and plot trajectory summaries only.",
+)
+parser.add_argument(
     "--smoothing", type=int, help="window width for moving averaging.", default=40
 )
 parser.add_argument(
@@ -58,22 +63,24 @@ if __name__ == "__main__":
 
     plot_utils.plot_trajectories(folder_path=args.results_folder, exp_names=exp_names)
 
-    plot_functions.plot_all_multi_seed_multi_run(
-        folder_path=args.results_folder,
-        exp_names=exp_names,
-        window_width=args.smoothing,
-        linewidth=args.linewidth,
-        colormap=args.cmap,
-        index=constants.STEP,
-        averaging_method=constants.INTERPOLATION,
-    )
+    if not args.trajectories_only:
 
-    plot_functions.plot_multi_seed_multi_run(
-        folder_path=args.results_folder,
-        exp_names=exp_names,
-        window_width=args.smoothing,
-        linewidth=args.linewidth,
-        colormap=args.cmap,
-        index=constants.STEP,
-        averaging_method=constants.INTERPOLATION,
-    )
+        plot_functions.plot_all_multi_seed_multi_run(
+            folder_path=args.results_folder,
+            exp_names=exp_names,
+            window_width=args.smoothing,
+            linewidth=args.linewidth,
+            colormap=args.cmap,
+            index=constants.STEP,
+            averaging_method=constants.INTERPOLATION,
+        )
+
+        plot_functions.plot_multi_seed_multi_run(
+            folder_path=args.results_folder,
+            exp_names=exp_names,
+            window_width=args.smoothing,
+            linewidth=args.linewidth,
+            colormap=args.cmap,
+            index=constants.STEP,
+            averaging_method=constants.INTERPOLATION,
+        )
