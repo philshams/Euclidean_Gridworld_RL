@@ -43,9 +43,14 @@ class EscapeEnv(base_env.BaseEnvironment):
         """Class constructor.
 
         Args:
+            training: signals whether environment instance is for training.
             map_path: path to txt or other ascii file with map specifications.
             representation: agent_position (for tabular) or pixel
                 (for function approximation).
+            reward_positions: list of positions in which reward is located.
+            reward_attributes: list of attributes each reward exhibits
+                (e.g. statistics).
+            start_position: coordinate start position of agent.
             episode_timeout: number of steps before episode automatically terminates.
             scaling: optional integer (for use with pixel representations)
                 specifying how much to expand state by.
@@ -55,6 +60,10 @@ class EscapeEnv(base_env.BaseEnvironment):
             field_y: integer (required for use with partial observability
                 in pixel representations) specifying how many pixels in each y
                 direction the agent can see.
+            grayscale: whether to keep rgb channels or compress to grayscale.
+            batch_dimension: (for use with certain techniques);
+                numer of examples per optimisation step.
+            torch_axes: whether to use torch or tf paradigm of axis ordering.
         """
 
         super().__init__(training=training)
@@ -96,13 +105,23 @@ class EscapeEnv(base_env.BaseEnvironment):
         self,
         rewards: Union[None, str, Tuple[int]] = "state",
         agent: Union[None, str, np.ndarray] = "state",
-        cue: Union[None, str, np.ndarray] = None,
     ) -> np.ndarray:
         """Get a 'skeleton' of map e.g. for visualisation purposes.
 
         Args:
-            rewards: # TODO whether or not to mark out rewards (ignores magnitudes).
-            show_agent: whether or not to mark out agent position
+            rewards: specifies if/how to represent rewards in env;
+                if "state" is given, rewards represented according to
+                    rewards_received state.
+                if "stationary" is given, rewards represented where they are
+                    specified at start.
+                if None given, rewards are not represented.
+                if tuple of boolean ints given, rewards of indices with True
+                    value represented.
+            agent: specifies if/how to represent agent in env;
+                if "state" is given, agent represented according to
+                    current agent position.
+                if "stationary" is given, agent represented at start position.
+                if None given, agent not represented.
 
         Returns:
             skeleton: np array of map.
@@ -157,9 +176,7 @@ class EscapeEnv(base_env.BaseEnvironment):
         return skeleton
 
     def save_as_array(self, save_path: str):
-        env_skeleton = self._env_skeleton(
-            agent=None, cue=None, rewards=constants.STATIONARY
-        )
+        env_skeleton = self._env_skeleton(agent=None, rewards=constants.STATIONARY)
         np.save(save_path, env_skeleton)
 
     def _partial_observation(self, state, agent_position):

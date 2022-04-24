@@ -10,9 +10,10 @@ try:
     from matplotlib import cm
     from matplotlib import pyplot as plt
     from mpl_toolkits.axes_grid1 import make_axes_locatable
-except:
+except ModuleNotFoundError:
     raise AssertionError(
-        "To use visualisation wrapper, further package requirements need to be satisfied. Please consult README."
+        "To use visualisation wrapper, further package requirements "
+        "need to be satisfied. Please consult README."
     )
 
 
@@ -29,6 +30,13 @@ class VisualisationEnv(wrapper.Wrapper):
         dpi: Optional[int] = 60,
         format: str = "state",
     ) -> None:
+        """Method to render environment.
+
+        Args:
+            save_path: optional path to which to save image.
+            dpi: optional pixel.
+            format: state of environment to render.
+        """
         if format == constants.STATE:
             assert (
                 self._env.active
@@ -40,10 +48,7 @@ class VisualisationEnv(wrapper.Wrapper):
             plt.imshow(
                 self._env._env_skeleton(
                     rewards=format,
-                    keys={k: format for k in self._env._key_ids},
-                    doors=format,
                     agent=format,
-                    cue=format,
                 ),
                 origin="lower",
             )
@@ -52,10 +57,7 @@ class VisualisationEnv(wrapper.Wrapper):
             plt.imshow(
                 self._env._env_skeleton(
                     rewards=format,
-                    keys={k: format for k in self._env._key_ids},
-                    doors=format,
                     agent=format,
-                    cue=format,
                 ),
                 origin="lower",
             )
@@ -67,7 +69,7 @@ class VisualisationEnv(wrapper.Wrapper):
 
         Args:
             save_path: name of file to be saved.
-            history: "train", "test" to plot train or test history, 
+            history: "train", "test" to plot train or test history,
             else provide an independent history.
         """
         if isinstance(history, str):
@@ -108,6 +110,14 @@ class VisualisationEnv(wrapper.Wrapper):
         ax: Optional[matplotlib.axes.Axes] = None,
         save_name: Optional[str] = None,
     ) -> None:
+        """plot quantities over top of environmen (e.g. value function)
+
+        Args:
+            heatmap: data to plot; dictionary of states (keys) and quantities (values).
+            fig: figure on which to plot.
+            ax: axis on which to plot.
+            save_name: path to which to save plot.
+        """
         assert (
             ax is not None and fig is not None
         ) or save_name is not None, "Either must provide axis to plot heatmap over,"
@@ -115,7 +125,6 @@ class VisualisationEnv(wrapper.Wrapper):
         environment_map = self._env._env_skeleton(
             rewards=None,
             agent=None,
-            cue=None,
         )
 
         all_values = list(heatmap.values())

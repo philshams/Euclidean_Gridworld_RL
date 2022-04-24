@@ -1,6 +1,5 @@
 import abc
-import itertools
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Tuple, Union
 
 import numpy as np
 from rl_nav import constants
@@ -25,13 +24,23 @@ class BaseEnvironment(abc.ABC):
     }
 
     def __init__(self, training: bool):
+        """Class constructor.
+
+        Args:
+            training: signals whether environment instance is for training
+            ot testing.
+        """
         self._training: bool = training
         self._active: bool
         self._episode_step_count: int
 
-    def _setup_environment(
-        self, map_ascii_path: Optional[str] = None, reward_state: bool = False
-    ):
+    def _setup_environment(self, map_ascii_path, reward_state: bool = False) -> None:
+        """Environment setup method.
+
+        Args:
+            map_ascii_path: path to text file specifying map layout.
+            reward_state: whether to include reward in state.
+        """
 
         if map_ascii_path is not None:
             self._map = env_utils.parse_map_outline(
@@ -76,7 +85,7 @@ class BaseEnvironment(abc.ABC):
     ) -> Dict[Tuple[int], float]:
         """For certain analyses (e.g. plotting value functions) we want to
         average the values for each position over all non-positional state information--
-        in this case the key posessions.
+        in this case perhaps the rewards received.
         Args:
             values: full state-action value information
         Returns:
@@ -95,40 +104,50 @@ class BaseEnvironment(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def reset_environment(self):
+    def reset_environment(self) -> None:
         """Reset environment and associated quantities."""
         pass
 
     @property
     def active(self) -> bool:
+        """Determines episode termination."""
         return self._active
 
     @property
     def episode_step_count(self) -> int:
+        """Number of steps taken in environment."""
         return self._episode_step_count
 
     @property
     def agent_position(self) -> Tuple[int, int]:
+        """Current x, y position of agent."""
         return tuple(self._agent_position)
 
     @property
     def action_space(self) -> List[int]:
+        """Actions (as integer indices) available in environment"""
         return self.ACTION_SPACE
 
     @property
-    def state_space(self) -> List[Tuple[int, int]]:
+    def state_space(self) -> List[Tuple[int]]:
+        """List of tuples of states available in envrionment."""
         return self._state_space
 
     @property
-    def positional_state_space(self):
+    def positional_state_space(self) -> List[Tuple[int]]:
+        """List of tuples of positional components
+        of the states available in envrionment."""
         return self._positional_state_space
 
     @property
-    def total_rewards_available(self):
+    def total_rewards_available(self) -> Union[float, int]:
+        """Total scalar reward available from the environment
+        from instantiation to termination."""
         return self._total_rewards_available
 
     @property
     def visitation_counts(self) -> np.ndarray:
+        """Number of times agent has visited each state"""
         return self._visitation_counts
 
     @property

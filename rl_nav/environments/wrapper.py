@@ -95,9 +95,8 @@ class Wrapper(base_env.BaseEnvironment):
         self,
         rewards: Union[None, str, Tuple[int]] = "state",
         agent: Union[None, str, np.ndarray] = "state",
-        cue: Union[None, str, np.ndarray] = None,
     ):
-        return self._env._env_skeleton(rewards=rewards, agent=agent, cue=cue)
+        return self._env._env_skeleton(rewards=rewards, agent=agent)
 
     def visualise_episode_history(
         self, save_path: str, history: Union[str, List[np.ndarray]] = "train"
