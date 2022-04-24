@@ -102,7 +102,11 @@ if __name__ == "__main__":
         else:
             config_changes_path = args.config_changes
 
-        seeds = utils.process_seed_arguments(args.seeds)
+        try:
+            seeds_arg = int(args.seeds)
+        except ValueError:
+            seeds_arg = args.seeds
+        seeds = utils.process_seed_arguments(seeds_arg)
 
         experiment_path, checkpoint_paths = utils.setup_experiment(
             mode="multi",
