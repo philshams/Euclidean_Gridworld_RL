@@ -1,6 +1,8 @@
+import copy
 from typing import Dict, List, Tuple
 
 import numpy as np
+from rl_nav import constants
 from rl_nav.models import tabular_learner
 
 
@@ -42,6 +44,109 @@ class QLearner(tabular_learner.TabularLearner):
             target=target,
             imputation_method=imputation_method,
         )
+
+        self._state_action_values = self._initialise_values(
+            initialisation_strategy=initialisation_strategy
+        )
+        self._latest_state_action_values = {
+            self._id_state_mapping[i]: action_values
+            for i, action_values in enumerate(self._state_action_values)
+        }
+
+    @property
+    def state_action_values(self) -> Dict[Tuple[int, int], np.ndarray]:
+        if self._training:
+            values = {
+                self._id_state_mapping[i]: action_values
+                for i, action_values in enumerate(self._state_action_values)
+            }
+            return values
+        else:
+            return self._latest_state_action_values
+
+    def _impute_near_neighbours(
+        self,
+        state: Tuple[int, int],
+        excess_state_mapping: Dict[Tuple[int, int], List[Tuple[int, int]]],
+        store_imputation: bool,
+    ):
+        """method to impute values for new state that has no entry in table
+        using average of values in table that are near neighbours (directly reachable).
+
+        Args:
+            state: new state for which value is being imputed.
+            excess_state_mapping: mapping from state to near neighbours.
+            store_imputation: whether to compute for single-use or store
+                as part of model for future use.
+
+        Returns:
+            imputed_value for state.
+        """
+        near_neighbour_ids = [
+            self._state_id_mapping[s] for s in excess_state_mapping[state]
+        ]
+        neighbour_state_action_values = [
+            copy.deepcopy(self._state_action_values[s_id])
+            for s_id in near_neighbour_ids
+        ]
+        state_action_values = np.mean(neighbour_state_action_values, axis=0)
+        return state_action_values
+
+    def _impute_randomly(self, state: Tuple[int, int], store_imputation: bool):
+        """method to impute values for new state that has no entry in table
+        by initialising randomly
+
+        Args:
+            state: new state for which value is being imputed.
+            store_imputation: whether to compute for single-use or store
+                as part of model for future use.
+
+        Returns:
+            imputed_value for state.
+        """
+        state_action_values = np.random.normal(size=len(self._action_space))
+
+        if store_imputation:
+            self._store_imputation(state=state, imputation=state_action_values)
+        return state_action_values
+
+    def _store_imputation(self, state, imputation):
+        self._state_id_mapping[state] = len(self._state_id_mapping)
+        self._id_state_mapping[len(self._id_state_mapping)] = state
+
+        self._state_action_values = np.vstack(
+            (self._state_action_values, imputation.reshape(1, len(self._action_space)))
+        )
+        self._state_visitation_counts[state] = 0
+
+    def _initialise_values(self, initialisation_strategy: str) -> np.ndarray:
+        """Initialise values for each state, action pair in state-action space.
+
+        Args:
+            initialisation_strategy: name of method used to initialise.
+
+        Returns:
+            initial_values: matrix containing state-action id / value mapping.
+        """
+        initialisation_strategy_name = list(initialisation_strategy.keys())[0]
+        if isinstance(initialisation_strategy_name, (int, float)):
+            return initialisation_strategy_name * np.ones(
+                (len(self._state_space), len(self._action_space))
+            )
+        elif initialisation_strategy_name == constants.RANDOM_UNIFORM:
+            return np.random.rand(len(self._state_space), len(self._action_space))
+        elif initialisation_strategy_name == constants.RANDOM_NORMAL:
+            return np.random.normal(
+                loc=0, scale=0.1, size=(len(self._state_space), len(self._action_space))
+            )
+        elif initialisation_strategy_name == constants.RANDOM_NORMAL:
+            return np.random.normal(
+                loc=0, scale=0.1, size=(len(self._state_space), len(self._action_space))
+            )
+        elif initialisation_strategy_name == constants.ZEROS:
+            return np.zeros((len(self._state_space), len(self._action_space)))
+        elif initialisation_strategy_name == constants.ONES:
+            return np.ones((len(self._state_space), len(self._action_space)))
 
     def step(
         self,
@@ -95,13 +200,7 @@ class QLearner(tabular_learner.TabularLearner):
         initial_state_action_value = self._state_action_values[state_id][action]
 
         if new_state not in self._state_id_mapping and self._allow_state_instantiation:
-            self._state_id_mapping[new_state] = len(self._state_id_mapping)
-            self._id_state_mapping[len(self._id_state_mapping)] = new_state
-            imputed_values = self._impute_randomly().reshape(1, len(self._action_space))
-            self._state_action_values = np.vstack(
-                (self._state_action_values, imputed_values)
-            )
-            self._state_visitation_counts[new_state] = 0
+            self._impute_randomly(state=new_state, store_imputation=True)
 
         updated_state_action_value = (
             initial_state_action_value
