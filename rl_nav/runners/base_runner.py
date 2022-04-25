@@ -6,7 +6,7 @@ from typing import Any, Dict, Optional, Union
 import numpy as np
 from rl_nav import constants
 from rl_nav.environments import escape_env, visualisation_env
-from rl_nav.models import q_learning
+from rl_nav.models import q_learning, successor_representation
 from rl_nav.utils import model_utils
 from run_modes import base_runner
 
@@ -195,8 +195,8 @@ class BaseRunner(base_runner.BaseRunner):
 
     def _setup_model(self, config):
         """Instantiate model specified in configuration."""
+        initialisation_strategy = model_utils.get_initialisation_strategy(config)
         if config.model == constants.Q_LEARNING:
-            initialisation_strategy = model_utils.get_initialisation_strategy(config)
             model = q_learning.QLearner(
                 action_space=self._train_environment.action_space,
                 state_space=self._train_environment.state_space,
@@ -208,9 +208,16 @@ class BaseRunner(base_runner.BaseRunner):
                 imputation_method=config.imputation_method,
             )
         elif config.model == constants.SUCCESSOR_REP:
-            import pdb
-
-            pdb.set_trace()
+            model = successor_representation.SuccessorRepresentation(
+                action_space=self._train_environment.action_space,
+                state_space=self._train_environment.state_space,
+                behaviour=config.behaviour,
+                target=config.target,
+                initialisation_strategy=initialisation_strategy,
+                learning_rate=config.learning_rate,
+                gamma=config.discount_factor,
+                imputation_method=config.imputation_method,
+            )
         else:
             raise ValueError(f"Model {config.model} not recogised.")
         return model
