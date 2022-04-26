@@ -1,3 +1,4 @@
+import copy
 from typing import Dict, List, Tuple
 
 import numpy as np
@@ -47,10 +48,14 @@ class SuccessorRepresentation(tabular_learner.TabularLearner):
             loc=0,
             scale=0.1,
             size=(len(action_space), len(state_space), len(state_space)),
-        )
+        ).astype(dtype="float16")
         self._reward_function = np.random.normal(
             loc=0, scale=0.1, size=(len(state_space))
-        )
+        ).astype(dtype="float16")
+
+        self._sr_change: bool
+
+        self._compute_state_action_values()
 
         self._one_hot_matrix = np.eye(len(state_space))
 
@@ -91,7 +96,15 @@ class SuccessorRepresentation(tabular_learner.TabularLearner):
 
     @property
     def _state_action_values(self):
-        return np.matmul(self._successor_matrix, self._reward_function).T
+        if self._sr_change:
+            self._compute_state_action_values()
+        return self.__state_action_values
+
+    def _compute_state_action_values(self):
+        self.__state_action_values = np.matmul(
+            self._successor_matrix, self._reward_function
+        ).T
+        self._sr_change = False
 
     @property
     def state_action_values(self):
@@ -161,6 +174,8 @@ class SuccessorRepresentation(tabular_learner.TabularLearner):
             self._state_visitation_counts[state] = 0
             self._one_hot_matrix = np.eye(len(self._reward_function))
 
+            self._sr_change = True
+
             return self._state_action_values[-1]
         else:
             return np.random.normal(size=len(self._action_space))
@@ -219,6 +234,8 @@ class SuccessorRepresentation(tabular_learner.TabularLearner):
         )
         self._reward_function[state_id] = updated_reward_estimate
 
+        self._sr_change = True
+
     def _step_successor_matrix(
         self,
         state_id,
@@ -241,3 +258,5 @@ class SuccessorRepresentation(tabular_learner.TabularLearner):
         )
 
         self._successor_matrix[action][state_id] = new_successor_estimate
+
+        self._sr_change = True
