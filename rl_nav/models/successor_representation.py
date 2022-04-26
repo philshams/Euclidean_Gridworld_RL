@@ -59,6 +59,36 @@ class SuccessorRepresentation(tabular_learner.TabularLearner):
             for i, action_values in enumerate(self._state_action_values)
         }
 
+    def _action_policy(self):
+        return {
+            state: np.argmax(self._state_action_values[state_id, :])
+            for state_id, state in self._id_state_mapping.items()
+        }
+
+    def get_place_field(self, state):
+        policy = self._action_policy()
+        successor_matrix = self.successor_matrix
+        return {
+            pre_state: successor_matrix[state][action][
+                self._state_id_mapping[pre_state]
+            ]
+            for pre_state, action in policy.items()
+        }
+
+    @property
+    def reward_function(self):
+        return {
+            state: self._reward_function[state_id]
+            for state_id, state in self._id_state_mapping.items()
+        }
+
+    @property
+    def successor_matrix(self):
+        return {
+            state: self._successor_matrix[:, state_id, :]
+            for state_id, state in self._id_state_mapping.items()
+        }
+
     @property
     def _state_action_values(self):
         return np.matmul(self._successor_matrix, self._reward_function).T
@@ -115,7 +145,6 @@ class SuccessorRepresentation(tabular_learner.TabularLearner):
             successor_matrix_column_entry = np.random.normal(
                 size=(len(self._action_space), len(self._reward_function) + 1, 1)
             )
-            reward_function_entry = np.random.normal()
 
             # add row
             self._successor_matrix = np.hstack(
@@ -126,7 +155,7 @@ class SuccessorRepresentation(tabular_learner.TabularLearner):
                 (self._successor_matrix, successor_matrix_column_entry)
             )
             self._reward_function = np.hstack(
-                (self._reward_function, reward_function_entry)
+                (self._reward_function, np.random.normal())
             )
 
             self._state_visitation_counts[state] = 0
