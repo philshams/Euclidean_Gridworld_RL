@@ -21,6 +21,9 @@ class LifelongQLearningRunner(lifelong_runner.LifelongRunner):
 
         return new_state, reward
 
+    def _runner_specific_visualisations(self):
+        pass
+
 
 class EpisodicQLearningRunner(episodic_runner.EpisodicRunner):
     def __init__(self, config, unique_id: str):
@@ -41,3 +44,6 @@ class EpisodicQLearningRunner(episodic_runner.EpisodicRunner):
         )
 
         return new_state, reward
+
+    def _runner_specific_visualisations(self):
+        pass
