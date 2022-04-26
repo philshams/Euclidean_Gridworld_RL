@@ -271,6 +271,8 @@ class BaseRunner(base_runner.BaseRunner):
             ),
         )
 
+        self._runner_specific_visualisations()
+
     def _test_rollout(self, save_name_base: str):
         for i, (map_name, test_env) in enumerate(self._test_environments.items()):
             test_env.visualise_episode_history(
