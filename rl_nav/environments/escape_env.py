@@ -101,6 +101,10 @@ class EscapeEnv(base_env.BaseEnvironment):
         # states are zero, -1 removes walls from counts.
         self._visitation_counts = -1 * copy.deepcopy(self._map)
 
+    @property
+    def reward_positions(self):
+        return self._reward_positions
+
     def _env_skeleton(
         self,
         rewards: Union[None, str, Tuple[int]] = "state",
