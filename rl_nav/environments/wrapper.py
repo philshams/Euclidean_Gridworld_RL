@@ -36,6 +36,10 @@ class Wrapper(base_env.BaseEnvironment):
         return self._env.agent_position
 
     @property
+    def reward_positions(self) -> Tuple[int, int]:
+        return self._env.reward_positions
+
+    @property
     def action_space(self) -> List[int]:
         return self._env.ACTION_SPACE
 
