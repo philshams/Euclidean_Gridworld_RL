@@ -23,7 +23,12 @@ class RLNavConfigTemplate:
                     name=constants.MODEL,
                     types=[str],
                     requirements=[
-                        lambda x: x in [constants.Q_LEARNING, constants.SUCCESSOR_REP]
+                        lambda x: x
+                        in [
+                            constants.Q_LEARNING,
+                            constants.SUCCESSOR_REP,
+                            constants.DYNA,
+                        ]
                     ],
                 ),
                 config_field.Field(
@@ -59,6 +64,11 @@ class RLNavConfigTemplate:
                     requirements=[
                         lambda x: x in [constants.NEAR_NEIGHBOURS, constants.RANDOM]
                     ],
+                ),
+                config_field.Field(
+                    name=constants.PLAN_STEPS_PER_UPDATE,
+                    types=[int],
+                    requirements=[lambda x: x > 0],
                 ),
             ],
             level=[constants.TRAINING],
