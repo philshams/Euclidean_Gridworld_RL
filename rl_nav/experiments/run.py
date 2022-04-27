@@ -3,7 +3,7 @@ import os
 
 from rl_nav import constants, runners
 from rl_nav.experiments import rl_nav_config
-from rl_nav.runners import q_learning_runner, successor_rep_runner
+from rl_nav.runners import dyna_runner, q_learning_runner, successor_rep_runner
 from run_modes import cluster_run, parallel_run, serial_run, single_run, utils
 
 MAIN_FILE_PATH = os.path.dirname(os.path.realpath(__file__))
@@ -67,6 +67,16 @@ if __name__ == "__main__":
         else:
             runner_class = successor_rep_runner.EpisodicSRRunner
             runner_class_name = "EpisodicSRRunner"
+
+    elif config.model == constants.DYNA:
+        runner_module_name = "dyna_runner"
+        runner_module_path = os.path.join(runners_module_path, "dyna_runner.py")
+        if config.train_episode_timeout is None:
+            runner_class = dyna_runner.LifelongDynaRunner
+            runner_class_name = "LifelongDynaRunner"
+        else:
+            runner_class = dyna_runner.EpisodicDynaRunner
+            runner_class_name = "EpisodicDynaRunner"
 
     else:
         raise ValueError(f"Model specified in config: {config.model} not recongnised.")
