@@ -6,7 +6,7 @@ from typing import Any, Dict, Optional, Union
 import numpy as np
 from rl_nav import constants
 from rl_nav.environments import escape_env, visualisation_env
-from rl_nav.models import q_learning, successor_representation
+from rl_nav.models import dyna, q_learning, successor_representation
 from rl_nav.utils import model_utils
 from run_modes import base_runner
 
@@ -217,6 +217,18 @@ class BaseRunner(base_runner.BaseRunner):
                 learning_rate=config.learning_rate,
                 gamma=config.discount_factor,
                 imputation_method=config.imputation_method,
+            )
+        elif config.model == constants.DYNA:
+            model = dyna.Dyna(
+                action_space=self._train_environment.action_space,
+                state_space=self._train_environment.state_space,
+                behaviour=config.behaviour,
+                target=config.target,
+                initialisation_strategy=initialisation_strategy,
+                learning_rate=config.learning_rate,
+                gamma=config.discount_factor,
+                imputation_method=config.imputation_method,
+                plan_steps_per_update=config.plan_steps_per_update,
             )
         else:
             raise ValueError(f"Model {config.model} not recogised.")
