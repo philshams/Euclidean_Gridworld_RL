@@ -32,6 +32,17 @@ class EscapeEnvDiagonal(base_env.BaseEnvironment):
         7: np.array([-1, -1]),
     }
 
+    DELTAS_ = {
+        (-1, 0): 0,
+        (0, 1): 1,
+        (1, 0): 2,
+        (0, -1): 3,
+        (-1, 1): 4,
+        (1, 1): 5,
+        (1, -1): 6,
+        (-1, -1): 7,
+    }
+
     def __init__(
         self,
         training: bool,
@@ -116,6 +127,10 @@ class EscapeEnvDiagonal(base_env.BaseEnvironment):
     @property
     def action_deltas(self) -> Dict[int, np.ndarray]:
         return EscapeEnvDiagonal.DELTAS
+
+    @property
+    def delta_actions(self) -> Dict[Tuple[int], int]:
+        return EscapeEnvDiagonal.DELTAS_
 
     def _env_skeleton(
         self,
