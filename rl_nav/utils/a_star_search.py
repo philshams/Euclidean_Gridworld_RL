@@ -89,21 +89,18 @@ def search(transition_matrix, start_state, reward_states):
         lowest_cost_index = np.argmin(node_costs)
         selected_node_pos = open_list[lowest_cost_index]
         open_list.remove(selected_node_pos)
+        closed_list.append(selected_node_pos)
         selected_node = nodes[selected_node_pos]
         if selected_node.position in reward_states:
             path = resolve_path(selected_node)
             return path
-        if selected_node.position in transition_matrix:
-            adjacent_nodes = transition_matrix[selected_node.position]
-        else:
-            adjacent_nodes = []
-        for adj_node_pos in adjacent_nodes:
+        for adj_node_pos in transition_matrix[selected_node.position]:
+            adj_node_cost = selected_node.g + 1
             if adj_node_pos in nodes:
                 adj_node = nodes[adj_node_pos]
             else:
                 adj_node = Node(adj_node_pos)
                 nodes[adj_node_pos] = adj_node
-            adj_node_cost = selected_node.g + 1
             if nodes[adj_node_pos].position in open_list:
                 if adj_node_cost <= nodes[adj_node_pos].g:
                     open_list.remove(nodes[adj_node_pos].position)
