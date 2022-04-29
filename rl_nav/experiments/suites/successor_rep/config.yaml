@@ -71,3 +71,7 @@ logging:
     rollout_frequency: 100000
     test_frequency: 5000
     checkpoint_frequency: 50000
+
+    visualisations: 
+        - visitation_counts
+        - value_function
