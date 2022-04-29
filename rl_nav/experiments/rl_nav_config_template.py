@@ -28,6 +28,7 @@ class RLNavConfigTemplate:
                             constants.Q_LEARNING,
                             constants.SUCCESSOR_REP,
                             constants.DYNA,
+                            constants.A_STAR,
                         ]
                     ],
                 ),
@@ -176,7 +177,10 @@ class RLNavConfigTemplate:
                 config_field.Field(
                     name=constants.ENV_NAME,
                     types=[str],
-                    requirements=[lambda x: x in [constants.ESCAPE_ENV]],
+                    requirements=[
+                        lambda x: x
+                        in [constants.ESCAPE_ENV, constants.ESCAPE_ENV_DIAGONAL]
+                    ],
                 ),
                 config_field.Field(name=constants.MAP_PATH, types=[str]),
                 config_field.Field(
@@ -210,7 +214,10 @@ class RLNavConfigTemplate:
                 config_field.Field(
                     name=constants.ENV_NAME,
                     types=[str],
-                    requirements=[lambda x: x in [constants.ESCAPE_ENV]],
+                    requirements=[
+                        lambda x: x
+                        in [constants.ESCAPE_ENV, constants.ESCAPE_ENV_DIAGONAL]
+                    ],
                 ),
                 config_field.Field(name=constants.MAP_PATHS, types=[list]),
                 config_field.Field(
