@@ -46,11 +46,14 @@ class AStar(base_learner.BaseLearner):
         pass
 
     def plan(self, state):
-        path = a_star_search.search(
-            transition_matrix=self._transition_matrix,
-            start_state=state,
-            reward_states=self._reward_states,
-        )
+        if len(self._reward_states):
+            path = a_star_search.search(
+                transition_matrix=self._transition_matrix,
+                start_state=state,
+                reward_states=self._reward_states,
+            )
+        else:
+            path = None
         return path
 
     def select_behaviour_action(
