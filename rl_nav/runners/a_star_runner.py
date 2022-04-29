@@ -9,6 +9,8 @@ class LifelongAStarRunner(lifelong_runner.LifelongRunner):
         self._deltas = self._train_environment.action_deltas
         self._model.deltas = self._deltas
 
+        self._planner = True
+
     def _model_train_step(self, state) -> float:
         """Perform single training step."""
         action = self._model.select_behaviour_action(state, epsilon=1)
@@ -32,6 +34,11 @@ class EpisodicAStarRunner(episodic_runner.EpisodicRunner):
     def __init__(self, config, unique_id: str):
 
         super().__init__(config=config, unique_id=unique_id)
+
+        self._deltas = self._train_environment.action_deltas
+        self._model.deltas = self._deltas
+
+        self._planner = True
 
     def _model_train_step(self, state) -> float:
         """Perform single training step."""
