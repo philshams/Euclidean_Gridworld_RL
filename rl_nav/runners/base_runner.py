@@ -463,16 +463,19 @@ class BaseRunner(base_runner.BaseRunner):
         state = test_env.reset_environment(retain_history=retain_history)
         planned_path = test_model.plan(state)
 
-        planned_path_deltas = [
-            tuple(delta)
-            for delta in (np.array(planned_path[1:]) - np.array(planned_path[:-1]))
-        ]
-        planned_path_actions = [test_env.delta_actions[d] for d in planned_path_deltas]
+        if planned_path is not None:
+            planned_path_deltas = [
+                tuple(delta)
+                for delta in (np.array(planned_path[1:]) - np.array(planned_path[:-1]))
+            ]
+            planned_path_actions = [
+                test_env.delta_actions[d] for d in planned_path_deltas
+            ]
 
-        for action in planned_path_actions:
+            for action in planned_path_actions:
 
-            reward, state = test_env.step(action)
+                reward, state = test_env.step(action)
 
-            episode_reward += reward
+                episode_reward += reward
 
         return episode_reward, test_env.episode_step_count
