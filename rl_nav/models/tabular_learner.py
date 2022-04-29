@@ -60,10 +60,11 @@ class TabularLearner(base_learner.BaseLearner):
     def eval(self):
         """set model to evaluation mode."""
         self._training = False
-        self._latest_state_action_values = {
-            self._id_state_mapping[i]: action_values
-            for i, action_values in enumerate(self._state_action_values)
-        }
+        if hasattr(self, "_latest_state_action_values"):
+            self._latest_state_action_values = {
+                self._id_state_mapping[i]: action_values
+                for i, action_values in enumerate(self._state_action_values)
+            }
 
     @property
     def action_space(self) -> List[int]:
