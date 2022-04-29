@@ -111,3 +111,5 @@ DYNA = "dyna"
 A_STAR = "a_star"
 FOUR_DELTAS = [[0, 1], [0, -1], [1, 0], [-1, 0]]
 ESCAPE_ENV_DIAGONAL = "escape_env_diagonal"
+VISITATION_COUNTS = "visitation_counts"
+VALUE_FUNCTION = "value_function"
