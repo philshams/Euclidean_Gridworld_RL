@@ -114,6 +114,11 @@ class AStar(base_learner.BaseLearner):
             self._state_visitation_counts[state] += 1
 
     @property
+    def state_visitation_counts(self) -> Dict[Tuple[int, int], int]:
+        """number of times each state has been visited."""
+        return self._state_visitation_counts
+
+    @property
     def allow_state_instantiation(self):
         return self._allow_state_instantiation
 
