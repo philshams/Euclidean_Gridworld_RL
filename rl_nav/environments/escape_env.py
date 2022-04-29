@@ -24,6 +24,8 @@ class EscapeEnv(base_env.BaseEnvironment):
         3: np.array([0, -1]),
     }
 
+    DELTAS_ = {(-1, 0): 0, (0, 1): 1, (1, 0): 2, (0, -1): 3}
+
     def __init__(
         self,
         training: bool,
@@ -104,6 +106,14 @@ class EscapeEnv(base_env.BaseEnvironment):
     @property
     def reward_positions(self):
         return self._reward_positions
+
+    @property
+    def action_deltas(self) -> Dict[int, np.ndarray]:
+        return EscapeEnv.DELTAS
+
+    @property
+    def delta_actions(self) -> Dict[Tuple[int], int]:
+        return EscapeEnv.DELTAS_
 
     def _env_skeleton(
         self,
