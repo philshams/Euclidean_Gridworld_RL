@@ -93,7 +93,11 @@ def search(transition_matrix, start_state, reward_states):
         if selected_node.position in reward_states:
             path = resolve_path(selected_node)
             return path
-        for adj_node_pos in transition_matrix[selected_node.position]:
+        if selected_node.position in transition_matrix:
+            adjacent_nodes = transition_matrix[selected_node.position]
+        else:
+            adjacent_nodes = []
+        for adj_node_pos in adjacent_nodes:
             if adj_node_pos in nodes:
                 adj_node = nodes[adj_node_pos]
             else:
@@ -120,3 +124,6 @@ def search(transition_matrix, start_state, reward_states):
                 nodes[adj_node_pos].parent = selected_node
 
         closed_list.append(selected_node.position)
+
+    # what is the right behaviour if path cannot be found?
+    return None
