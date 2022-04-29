@@ -36,6 +36,8 @@ class TabularLearner(base_learner.BaseLearner):
                 for states not present during training,
                 e.g. near_neighbours or random.
         """
+        super().__init__()
+
         self._action_space = action_space
         self._state_space = state_space
 
@@ -53,18 +55,16 @@ class TabularLearner(base_learner.BaseLearner):
         self._imputation_method = imputation_method
         self._allow_state_instantiation = False
 
-    def train(self):
+    def _train(self):
         """set model to train mode."""
-        self._training = True
+        pass
 
-    def eval(self):
+    def _eval(self):
         """set model to evaluation mode."""
-        self._training = False
-        if hasattr(self, "_latest_state_action_values"):
-            self._latest_state_action_values = {
-                self._id_state_mapping[i]: action_values
-                for i, action_values in enumerate(self._state_action_values)
-            }
+        self._latest_state_action_values = {
+            self._id_state_mapping[i]: action_values
+            for i, action_values in enumerate(self._state_action_values)
+        }
 
     @property
     def action_space(self) -> List[int]:
