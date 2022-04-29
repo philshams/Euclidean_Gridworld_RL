@@ -5,8 +5,9 @@ from typing import Any, Dict, Optional, Union
 
 import numpy as np
 from rl_nav import constants
-from rl_nav.environments import escape_env, visualisation_env
-from rl_nav.models import dyna, q_learning, successor_representation
+from rl_nav.environments import (escape_env, escape_env_diagonal,
+                                 visualisation_env)
+from rl_nav.models import a_star, dyna, q_learning, successor_representation
 from rl_nav.utils import model_utils
 from run_modes import base_runner
 
@@ -44,6 +45,8 @@ class BaseRunner(base_runner.BaseRunner):
         self._visualisation_frequency = config.visualisation_frequency
         self._test_frequency = config.test_frequency
         self._checkpoint_frequency = config.checkpoint_frequency
+
+        self._visualisations = config.visualisations
 
         # logging setup
         self._rollout_folder_path = os.path.join(
@@ -102,7 +105,8 @@ class BaseRunner(base_runner.BaseRunner):
             self._generate_visualisations()
         if self._step_count % self._test_frequency == 0:
             logging_dict = self._perform_tests(
-                rollout=(self._step_count % self._rollout_frequency == 0)
+                rollout=(self._step_count % self._rollout_frequency == 0),
+                planning=self._planner,
             )
 
         state, reward = self._model_train_step(state)
@@ -120,6 +124,8 @@ class BaseRunner(base_runner.BaseRunner):
 
         if config.train_env_name == constants.ESCAPE_ENV:
             environment = escape_env.EscapeEnv(**environment_args)
+        elif config.train_env_name == constants.ESCAPE_ENV_DIAGONAL:
+            environment = escape_env_diagonal.EscapeEnvDiagonal(**environment_args)
 
         environment = visualisation_env.VisualisationEnv(environment)
 
@@ -138,6 +144,12 @@ class BaseRunner(base_runner.BaseRunner):
                 environment_args[constants.MAP_PATH] = map_path
                 environment = escape_env.EscapeEnv(**environment_args)
                 environments[map_name] = visualisation_env.VisualisationEnv(environment)
+        if config.test_env_name == constants.ESCAPE_ENV_DIAGONAL:
+            for map_path in list(set(config.test_map_paths + [config.train_map_path])):
+                map_name = map_path.split("/")[-1].rstrip(".txt")
+                environment_args[constants.MAP_PATH] = map_path
+                environment = escape_env_diagonal.EscapeEnvDiagonal(**environment_args)
+                environments[map_name] = visualisation_env.VisualisationEnv(environment)
 
         return environments
 
@@ -150,7 +162,7 @@ class BaseRunner(base_runner.BaseRunner):
             env_name = config.test_env_name
             config_key_prefix = constants.TEST
 
-        if env_name == constants.ESCAPE_ENV:
+        if env_name in [constants.ESCAPE_ENV, constants.ESCAPE_ENV_DIAGONAL]:
             env_args = {
                 constants.TRAINING: train,
                 constants.REPRESENTATION: getattr(
@@ -230,6 +242,11 @@ class BaseRunner(base_runner.BaseRunner):
                 imputation_method=config.imputation_method,
                 plan_steps_per_update=config.plan_steps_per_update,
             )
+        elif config.model == constants.A_STAR:
+            model = a_star.AStar(
+                action_space=self._train_environment.action_space,
+                state_space=self._train_environment.state_space,
+            )
         else:
             raise ValueError(f"Model {config.model} not recogised.")
         return model
@@ -256,32 +273,33 @@ class BaseRunner(base_runner.BaseRunner):
             self._write_scalar(tag=tag, step=step, scalar=scalar)
 
     def _generate_visualisations(self):
-        averaged_values = self._train_environment.average_values_over_positional_states(
-            self._model.state_action_values
-        )
-        averaged_visitation_counts = (
-            self._train_environment.average_values_over_positional_states(
-                self._model.state_visitation_counts
+        if constants.VALUE_FUNCTION in self._visualisations:
+            averaged_values = (
+                self._train_environment.average_values_over_positional_states(
+                    self._model.state_action_values
+                )
             )
-        )
-
-        averaged_max_values = {p: max(v) for p, v in averaged_values.items()}
-
-        self._train_environment.plot_heatmap_over_env(
-            heatmap=averaged_max_values,
-            save_name=os.path.join(
-                self._visualisations_folder_path,
-                f"{self._step_count}_{constants.VALUES_PDF}",
-            ),
-        )
-
-        self._train_environment.plot_heatmap_over_env(
-            heatmap=averaged_visitation_counts,
-            save_name=os.path.join(
-                self._visualisations_folder_path,
-                f"{self._step_count}_{constants.VISITATION_COUNTS_PDF}",
-            ),
-        )
+            averaged_max_values = {p: max(v) for p, v in averaged_values.items()}
+            self._train_environment.plot_heatmap_over_env(
+                heatmap=averaged_max_values,
+                save_name=os.path.join(
+                    self._visualisations_folder_path,
+                    f"{self._step_count}_{constants.VALUES_PDF}",
+                ),
+            )
+        if constants.VISITATION_COUNTS in self._visualisations:
+            averaged_visitation_counts = (
+                self._train_environment.average_values_over_positional_states(
+                    self._model.state_visitation_counts
+                )
+            )
+            self._train_environment.plot_heatmap_over_env(
+                heatmap=averaged_visitation_counts,
+                save_name=os.path.join(
+                    self._visualisations_folder_path,
+                    f"{self._step_count}_{constants.VISITATION_COUNTS_PDF}",
+                ),
+            )
 
         self._runner_specific_visualisations()
 
@@ -301,13 +319,17 @@ class BaseRunner(base_runner.BaseRunner):
                 )
             )
 
-    def _perform_tests(self, rollout: bool):
-        find_reward_logging_dict = self._find_reward_test(rollout=rollout)
-        plain_logging_dict = self._test(test_model=self._model, rollout=rollout)
+    def _perform_tests(self, rollout: bool, planning: bool):
+        find_reward_logging_dict = self._find_reward_test(
+            rollout=rollout, planning=planning
+        )
+        plain_logging_dict = self._test(
+            test_model=self._model, rollout=rollout, planning=planning
+        )
         logging_dict = {**plain_logging_dict, **find_reward_logging_dict}
         return logging_dict
 
-    def _find_reward_test(self, rollout: bool):
+    def _find_reward_test(self, rollout: bool, planning: bool):
         """Allow agent one more 'period' of exploration to find the reward
         (in the test environment), before test rollout."""
         test_logging_dict = {}
@@ -344,12 +366,20 @@ class BaseRunner(base_runner.BaseRunner):
             model_copy.allow_state_instantiation = False
             model_copy.eval()
 
-            reward, length = self._single_test(
-                test_model=model_copy,
-                test_env=test_env,
-                excess_state_mapping=self._excess_state_mapping[i],
-                retain_history=True,
-            )
+            if planning:
+                reward, length = self._single_planning_test(
+                    test_model=model_copy,
+                    test_env=test_env,
+                    excess_state_mapping=self._excess_state_mapping[i],
+                    retain_history=True,
+                )
+            else:
+                reward, length = self._single_test(
+                    test_model=model_copy,
+                    test_env=test_env,
+                    excess_state_mapping=self._excess_state_mapping[i],
+                    retain_history=True,
+                )
 
             test_logging_dict[
                 f"{constants.TEST_EPISODE_REWARD}_{map_name}_{constants.FINAL_REWARD_RUN}"
@@ -365,7 +395,7 @@ class BaseRunner(base_runner.BaseRunner):
 
         return test_logging_dict
 
-    def _test(self, test_model, rollout: bool):
+    def _test(self, test_model, rollout: bool, planning: bool):
         """Test rollout."""
         test_model.eval()
 
@@ -373,11 +403,19 @@ class BaseRunner(base_runner.BaseRunner):
 
         for i, (map_name, test_env) in enumerate(self._test_environments.items()):
 
-            reward, length = self._single_test(
-                test_model=test_model,
-                test_env=test_env,
-                excess_state_mapping=self._excess_state_mapping[i],
-            )
+            if planning:
+                reward, length = self._single_planning_test(
+                    test_model=test_model,
+                    test_env=test_env,
+                    excess_state_mapping=self._excess_state_mapping[i],
+                )
+
+            else:
+                reward, length = self._single_test(
+                    test_model=test_model,
+                    test_env=test_env,
+                    excess_state_mapping=self._excess_state_mapping[i],
+                )
 
             test_logging_dict[f"{constants.TEST_EPISODE_REWARD}_{map_name}"] = reward
             test_logging_dict[f"{constants.TEST_EPISODE_LENGTH}_{map_name}"] = length
@@ -406,6 +444,33 @@ class BaseRunner(base_runner.BaseRunner):
             action = test_model.select_target_action(
                 state, excess_state_mapping=excess_state_mapping
             )
+            reward, state = test_env.step(action)
+
+            episode_reward += reward
+
+        return episode_reward, test_env.episode_step_count
+
+    def _single_planning_test(
+        self,
+        test_model,
+        test_env,
+        excess_state_mapping,
+        retain_history: Optional[bool] = False,
+    ):
+        """Test rollout with single model on single environment."""
+        episode_reward = 0
+
+        state = test_env.reset_environment(retain_history=retain_history)
+        planned_path = test_model.plan(state)
+
+        planned_path_deltas = [
+            tuple(delta)
+            for delta in (np.array(planned_path[1:]) - np.array(planned_path[:-1]))
+        ]
+        planned_path_actions = [test_env.delta_actions[d] for d in planned_path_deltas]
+
+        for action in planned_path_actions:
+
             reward, state = test_env.step(action)
 
             episode_reward += reward
