@@ -83,6 +83,14 @@ class Wrapper(base_env.BaseEnvironment):
     def test_episode_position_history(self) -> np.ndarray:
         return self._env.test_episode_position_history
 
+    @property
+    def action_deltas(self) -> Dict[int, np.ndarray]:
+        return self._env.action_deltas
+
+    @property
+    def delta_actions(self) -> Dict[Tuple[int], int]:
+        return self._env.delta_actions
+
     def get_state_representation(self, tuple_state: Optional[Tuple] = None):
         return self._env.get_state_representation(tuple_state=tuple_state)
 
