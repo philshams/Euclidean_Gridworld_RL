@@ -8,13 +8,23 @@ class BaseLearner(abc.ABC):
     def __init__(self):
         pass
 
-    @abc.abstractmethod
+    def train(self) -> None:
+        """set model to train mode."""
+        self._training = True
+        self._train()
+
     def eval(self) -> None:
+        """set model to evaluation mode."""
+        self._training = False
+        self._eval()
+
+    @abc.abstractmethod
+    def _eval(self) -> None:
         """set model to evaluation mode."""
         pass
 
     @abc.abstractmethod
-    def train(self) -> None:
+    def _train(self) -> None:
         """set model to train mode."""
         pass
 
