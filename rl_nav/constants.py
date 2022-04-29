@@ -108,3 +108,6 @@ SR_REWARD_FUNCTION_PDF = "sr_reward_function.pdf"
 SR_REWARD_POS_PLACE_FIELD_PDF = "sr_reward_pos_place_field.pdf"
 PLAN_STEPS_PER_UPDATE = "plan_steps_per_update"
 DYNA = "dyna"
+A_STAR = "a_star"
+FOUR_DELTAS = [[0, 1], [0, -1], [1, 0], [-1, 0]]
+ESCAPE_ENV_DIAGONAL = "escape_env_diagonal"
