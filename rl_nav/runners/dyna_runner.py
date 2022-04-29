@@ -6,6 +6,8 @@ class LifelongDynaRunner(lifelong_runner.LifelongRunner):
 
         super().__init__(config=config, unique_id=unique_id)
 
+        self._planner = False
+
     def _model_train_step(self, state) -> float:
         """Perform single training step."""
         action = self._model.select_behaviour_action(state, epsilon=self._epsilon)
@@ -29,6 +31,8 @@ class EpisodicDynaRunner(episodic_runner.EpisodicRunner):
     def __init__(self, config, unique_id: str):
 
         super().__init__(config=config, unique_id=unique_id)
+
+        self._planner = False
 
     def _model_train_step(self, state) -> float:
         """Perform single training step."""
