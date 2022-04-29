@@ -28,6 +28,9 @@ class AStar(base_learner.BaseLearner):
         self._action_space = action_space
         self._state_space = state_space
 
+        self._state_id_mapping = {state: i for i, state in enumerate(self._state_space)}
+        self._id_state_mapping = {i: state for i, state in enumerate(self._state_space)}
+
         self._allow_state_instantiation = False
         self._state_visitation_counts = {s: 0 for s in self._state_space}
 
@@ -54,6 +57,10 @@ class AStar(base_learner.BaseLearner):
             )
         else:
             path = None
+        if self._allow_state_instantiation:
+            import pdb
+
+            pdb.set_trace()
         return path
 
     def select_behaviour_action(
@@ -95,7 +102,10 @@ class AStar(base_learner.BaseLearner):
             new_state: next state.
             active: whether episode is still ongoing.
         """
-        self._model[state] = 1
+        if new_state not in self._state_id_mapping and self._allow_state_instantiation:
+            self._state_id_mapping[state] = len(self._state_id_mapping)
+            self._id_state_mapping[len(self._id_state_mapping)] = state
+            self._state_visitation_counts[state] = 0
 
         if reward > 0 and new_state not in self._reward_states:
             self._reward_states.append(copy.deepcopy(new_state))
@@ -103,18 +113,30 @@ class AStar(base_learner.BaseLearner):
         if state not in self._transition_matrix:
             self._transition_matrix[state] = []
 
-        for action_available in self._action_space:
-            delta = self._deltas[action_available]
-            next_state = tuple(np.array(state) + delta)
-            if next_state in self._state_space:
-                self._model[next_state] = 1
-                if next_state not in self._transition_matrix[state]:
-                    self._transition_matrix[state].append(next_state)
-            else:
-                self._model[next_state] = 0
+        if new_state not in self._transition_matrix[state]:
+            self._transition_matrix[state].append(new_state)
+
+        # for action_available in self._action_space:
+        #     delta = self._deltas[action_available]
+        #     next_state = tuple(np.array(state) + delta)
+        #     if next_state in self._state_space:
+        #         if next_state not in self._transition_matrix[state]:
+        #             self._transition_matrix[state].append(next_state)
 
         if not self._allow_state_instantiation:
             self._state_visitation_counts[state] += 1
+
+    @property
+    def state_id_mapping(self) -> Dict:
+        """one way mapping from states to indices for states;
+        inverse mapping of _id_state_mapping."""
+        return self._state_id_mapping
+
+    @property
+    def id_state_mapping(self) -> Dict:
+        """one way mapping from indices for states to states;
+        inverse mapping of _state_id_mapping."""
+        return self._id_state_mapping
 
     @property
     def state_visitation_counts(self) -> Dict[Tuple[int, int], int]:
