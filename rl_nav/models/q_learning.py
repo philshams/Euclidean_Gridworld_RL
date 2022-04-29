@@ -113,6 +113,7 @@ class QLearner(tabular_learner.TabularLearner):
     def _store_imputation(self, state, imputation):
         self._state_id_mapping[state] = len(self._state_id_mapping)
         self._id_state_mapping[len(self._id_state_mapping)] = state
+        self._state_space.append(state)
 
         self._state_action_values = np.vstack(
             (self._state_action_values, imputation.reshape(1, len(self._action_space)))
