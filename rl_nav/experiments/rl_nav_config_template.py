@@ -268,6 +268,11 @@ class RLNavConfigTemplate:
                     types=[int],
                     requirements=[lambda x: x > 0],
                 ),
+                config_field.Field(
+                    name=constants.VISUALISATIONS,
+                    types=[list],
+                    requirements=[lambda x: all([isinstance(y, str) for y in x])],
+                ),
             ],
             level=[constants.LOGGING],
         )
