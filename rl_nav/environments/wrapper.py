@@ -16,11 +16,15 @@ class Wrapper(base_env.BaseEnvironment):
         map_yaml_path: Optional[str] = None,
         episode_timeout: Optional[int] = None,
         retain_history: Optional[bool] = False,
+        start_position: Optional[Tuple[int]] = None,
+        reward_availability: Optional[str] = None,
     ) -> Tuple[int, int, int]:
         return self._env.reset_environment(
             map_yaml_path=map_yaml_path,
             episode_timeout=episode_timeout,
             retain_history=retain_history,
+            start_position=start_position,
+            reward_availability=reward_availability,
         )
 
     @property
@@ -34,6 +38,10 @@ class Wrapper(base_env.BaseEnvironment):
     @property
     def agent_position(self) -> Tuple[int, int]:
         return self._env.agent_position
+
+    @property
+    def starting_xy(self) -> Tuple[int]:
+        return self._env.starting_xy
 
     @property
     def reward_positions(self) -> Tuple[int, int]:
