@@ -113,3 +113,4 @@ FOUR_DELTAS = [[0, 1], [0, -1], [1, 0], [-1, 0]]
 ESCAPE_ENV_DIAGONAL = "escape_env_diagonal"
 VISITATION_COUNTS = "visitation_counts"
 VALUE_FUNCTION = "value_function"
+FIND_SHELTER_RUN = "find_shelter_run"
