@@ -1,6 +1,7 @@
 import abc
 import copy
 import os
+import random
 from typing import Any, Dict, Optional, Union
 
 import numpy as np
@@ -81,6 +82,12 @@ class BaseRunner(base_runner.BaseRunner):
             )
             columns.append(
                 f"{constants.TEST_EPISODE_LENGTH}_{map_name}_{constants.FINAL_REWARD_RUN}"
+            )
+            columns.append(
+                f"{constants.TEST_EPISODE_REWARD}_{map_name}_{constants.FIND_SHELTER_RUN}"
+            )
+            columns.append(
+                f"{constants.TEST_EPISODE_LENGTH}_{map_name}_{constants.FIND_SHELTER_RUN}"
             )
 
         return columns + self._get_runner_specific_data_columns()
@@ -320,13 +327,20 @@ class BaseRunner(base_runner.BaseRunner):
             )
 
     def _perform_tests(self, rollout: bool, planning: bool):
+        find_shelter_logging_dict = self._find_shelter_test(
+            rollout=rollout, planning=planning
+        )
         find_reward_logging_dict = self._find_reward_test(
             rollout=rollout, planning=planning
         )
         plain_logging_dict = self._test(
             test_model=self._model, rollout=rollout, planning=planning
         )
-        logging_dict = {**plain_logging_dict, **find_reward_logging_dict}
+        logging_dict = {
+            **plain_logging_dict,
+            **find_reward_logging_dict,
+            **find_shelter_logging_dict,
+        }
         return logging_dict
 
     def _find_reward_test(self, rollout: bool, planning: bool):
@@ -391,6 +405,74 @@ class BaseRunner(base_runner.BaseRunner):
         if rollout:
             self._test_rollout(
                 save_name_base=f"{constants.INDIVIDUAL_TEST_RUN}_{constants.FINAL_REWARD_RUN}"
+            )
+
+        return test_logging_dict
+
+    def _find_shelter_test(self, rollout: bool, planning: bool):
+        """Agent starts in shelter and explores/learns in the time until it first reaches
+        the threat zone at which point a test rollout is triggered."""
+        test_logging_dict = {}
+
+        for i, (map_name, test_env) in enumerate(self._test_environments.items()):
+
+            temporary_start_state = random.choice(test_env.reward_positions)
+            state = test_env.reset_environment(
+                episode_timeout=np.inf,
+                start_position=temporary_start_state,
+                reward_availability=constants.INFINITE,
+            )
+
+            model_copy = copy.deepcopy(self._model)
+            model_copy.allow_state_instantiation = True
+
+            while state != tuple(test_env.starting_xy):
+
+                # TODO: unclear which behaviour policy to use here...
+                action = model_copy.select_behaviour_action(
+                    state,
+                    epsilon=self._epsilon,
+                    excess_state_mapping=self._excess_state_mapping[i],
+                )
+                reward, new_state = test_env.step(action)
+
+                model_copy.step(
+                    state=state,
+                    action=action,
+                    reward=reward,
+                    new_state=new_state,
+                    active=test_env.active,
+                )
+                state = new_state
+
+            model_copy.allow_state_instantiation = False
+            model_copy.eval()
+
+            if planning:
+                reward, length = self._single_planning_test(
+                    test_model=model_copy,
+                    test_env=test_env,
+                    excess_state_mapping=self._excess_state_mapping[i],
+                    retain_history=True,
+                )
+            else:
+                reward, length = self._single_test(
+                    test_model=model_copy,
+                    test_env=test_env,
+                    excess_state_mapping=self._excess_state_mapping[i],
+                    retain_history=True,
+                )
+
+            test_logging_dict[
+                f"{constants.TEST_EPISODE_REWARD}_{map_name}_{constants.FIND_SHELTER_RUN}"
+            ] = reward
+            test_logging_dict[
+                f"{constants.TEST_EPISODE_LENGTH}_{map_name}_{constants.FIND_SHELTER_RUN}"
+            ] = length
+
+        if rollout:
+            self._test_rollout(
+                save_name_base=f"{constants.INDIVIDUAL_TEST_RUN}_{constants.FIND_SHELTER_RUN}"
             )
 
         return test_logging_dict
