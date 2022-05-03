@@ -64,6 +64,9 @@ def plot_trajectories(folder_path, exp_names):
             reward_positions = config[constants.TEST_ENVIRONMENTS][
                 constants.REWARD_POSITIONS
             ]
+            start_position = config[constants.TEST_ENVIRONMENTS][
+                constants.START_POSITION
+            ]
 
         envs = {
             f[: -len(f"_{constants.ENV_SKELETON}.npy")]: np.load(
@@ -80,6 +83,10 @@ def plot_trajectories(folder_path, exp_names):
 
             final_reward_pattern = re.compile(
                 f"{constants.INDIVIDUAL_TEST_RUN}_{constants.FINAL_REWARD_RUN}_{env_name}_[0-9]*.npy"
+            )
+
+            find_shelter_pattern = re.compile(
+                f"{constants.INDIVIDUAL_TEST_RUN}_{constants.FIND_SHELTER_RUN}_{env_name}_[0-9]*.npy"
             )
 
             _plot_trajectories(
@@ -104,4 +111,17 @@ def plot_trajectories(folder_path, exp_names):
                     f"{env_name}_{constants.FINAL_REWARD_RUN}_{constants.TRAJECTORIES}.pdf",
                 ),
                 split_by=reward_positions,
+            )
+
+            _plot_trajectories(
+                exp_path=exp_path,
+                seed_folders=seed_folders,
+                env_name=env_name,
+                env=env,
+                pattern=find_shelter_pattern,
+                save_path=os.path.join(
+                    exp_path,
+                    f"{env_name}_{constants.FIND_SHELTER_RUN}_{constants.TRAJECTORIES}.pdf",
+                ),
+                split_by=[start_position],
             )
