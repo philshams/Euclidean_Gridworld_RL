@@ -97,14 +97,18 @@ def setup_rewards(reward_positions, reward_attributes) -> Dict[Tuple, Callable]:
             self._original_availability = availability
             self._reset_availability()
 
-        def _reset_availability(self):
-            if self._original_availability == constants.INFINITE:
+        def _reset_availability(self, availability: Optional[Union[str, int]] = None):
+            if availability is not None:
+                use_availability = availability
+            else:
+                use_availability = self._original_availability
+            if use_availability == constants.INFINITE:
                 self._availability = np.inf
             else:
                 self._availability = self._original_availability
 
-        def reset(self):
-            self._reset_availability()
+        def reset(self, availability: Optional[Union[str, int]] = None):
+            self._reset_availability(availability=availability)
 
         @property
         def availability(self):
