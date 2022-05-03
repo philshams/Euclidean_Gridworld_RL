@@ -121,6 +121,10 @@ class EscapeEnvDiagonal(base_env.BaseEnvironment):
         self._visitation_counts = -1 * copy.deepcopy(self._map)
 
     @property
+    def starting_xy(self) -> Tuple[int]:
+        return self._starting_xy
+
+    @property
     def reward_positions(self):
         return self._reward_positions
 
@@ -450,6 +454,8 @@ class EscapeEnvDiagonal(base_env.BaseEnvironment):
         map_yaml_path: Optional[str] = None,
         episode_timeout: Optional[int] = None,
         retain_history: Optional[bool] = False,
+        start_position: Optional[Tuple[int]] = None,
+        reward_availability: Optional[str] = None,
     ) -> Tuple[int, int, int]:
         """Reset environment.
 
@@ -468,7 +474,9 @@ class EscapeEnvDiagonal(base_env.BaseEnvironment):
 
         self._active = True
         self._episode_step_count = 0
-        if self._starting_xy is not None:
+        if start_position is not None:
+            self._agent_position = np.array(start_position)
+        elif self._starting_xy is not None:
             self._agent_position = np.array(self._starting_xy)
         else:
             random_position_index = np.random.choice(len(self._positional_state_space))
@@ -477,7 +485,15 @@ class EscapeEnvDiagonal(base_env.BaseEnvironment):
             )
 
         for reward in self._rewards.values():
-            reward.reset()
+            reward.reset(availability=reward_availability)
+
+        availability = (
+            reward_availability or self._reward_attributes[constants.AVAILABILITY]
+        )
+        if availability == constants.INFINITE:
+            self._total_rewards_available = np.inf
+        else:
+            self._total_rewards_available = availability * len(self._rewards)
 
         self._reward_received = 0
         self._num_rewards_sampled = 0
