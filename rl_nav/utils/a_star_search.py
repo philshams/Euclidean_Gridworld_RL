@@ -95,7 +95,11 @@ def search(transition_matrix, start_state, reward_states):
             path = resolve_path(selected_node)
             return path
         for adj_node_pos in transition_matrix[selected_node.position]:
-            adj_node_cost = selected_node.g + 1
+            step_cost = np.sqrt(
+                (adj_node_pos[0] - selected_node.position[0]) ** 2
+                + (adj_node_pos[1] - selected_node.position[1]) ** 2
+            )
+            adj_node_cost = selected_node.g + step_cost
             if adj_node_pos in nodes:
                 adj_node = nodes[adj_node_pos]
             else:
