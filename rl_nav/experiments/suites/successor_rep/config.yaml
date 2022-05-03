@@ -13,6 +13,8 @@ training:
 
     imputation_method: random
 
+    plan_steps_per_update: 10
+
 initialisation:
     type: random_normal
 
