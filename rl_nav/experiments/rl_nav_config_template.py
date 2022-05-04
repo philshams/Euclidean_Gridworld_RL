@@ -55,6 +55,11 @@ class RLNavConfigTemplate:
                     requirements=[lambda x: x > 0 and x <= 1],
                 ),
                 config_field.Field(
+                    name=constants.STEP_COST_FACTOR,
+                    types=[float, int],
+                    requirements=[lambda x: x >= 0],
+                ),
+                config_field.Field(
                     name=constants.EPSILON,
                     types=[float, int],
                     requirements=[lambda x: x >= 0 and x <= 1],
