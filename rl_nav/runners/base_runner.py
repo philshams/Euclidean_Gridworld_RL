@@ -46,6 +46,7 @@ class BaseRunner(base_runner.BaseRunner):
         self._visualisation_frequency = config.visualisation_frequency
         self._test_frequency = config.test_frequency
         self._checkpoint_frequency = config.checkpoint_frequency
+        self._one_dim_blocks = config.one_dim_blocks
 
         self._visualisations = config.visualisations
 
@@ -355,7 +356,8 @@ class BaseRunner(base_runner.BaseRunner):
             state = test_env.reset_environment(episode_timeout=np.inf)
 
             model_copy = copy.deepcopy(self._model)
-            model_copy.allow_state_instantiation = True
+            if not self._one_dim_blocks:
+                model_copy.allow_state_instantiation = True
 
             while final_period_reward < test_env.total_rewards_available:
 
@@ -424,7 +426,8 @@ class BaseRunner(base_runner.BaseRunner):
             )
 
             model_copy = copy.deepcopy(self._model)
-            model_copy.allow_state_instantiation = True
+            if not self._one_dim_blocks:
+                model_copy.allow_state_instantiation = True
 
             while state != tuple(test_env.starting_xy):
 
