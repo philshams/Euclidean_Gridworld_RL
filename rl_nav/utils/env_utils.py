@@ -153,7 +153,9 @@ def setup_rewards(reward_positions, reward_attributes) -> Dict[Tuple, Callable]:
     return rewards
 
 
-def configure_state_space(map_outline, reward_positions: Optional):
+def configure_state_space(
+    map_outline, reward_positions: Optional, one_dim_blocks: bool = True
+):
     """Get state space for the environment from the parsed map.
     Further split state space into walls, valid positions, key possessions etc.
     """
@@ -164,13 +166,19 @@ def configure_state_space(map_outline, reward_positions: Optional):
     wall_indices = np.where(map_outline == 1)
     k_block_indices = np.where(map_outline == 0.6)
     h_block_indices = np.where(map_outline == 0.4)
+    b_block_indices = np.where(map_outline == 0.5)
 
     empty_state_space = list(zip(state_indices[1], state_indices[0]))
     wall_state_space = list(zip(wall_indices[1], wall_indices[0]))
     k_block_state_space = list(zip(k_block_indices[1], k_block_indices[0]))
     h_block_state_space = list(zip(h_block_indices[1], h_block_indices[0]))
+    b_block_state_space = list(zip(b_block_indices[1], b_block_indices[0]))
 
     positional_state_space = empty_state_space
+
+    if one_dim_blocks:
+        positional_state_space.extend(b_block_state_space)
+        state_space_dictionary[constants.B_BLOCK_STATE_SPACE] = b_block_state_space
 
     if len(k_block_state_space):
         positional_state_space.extend(k_block_state_space)
