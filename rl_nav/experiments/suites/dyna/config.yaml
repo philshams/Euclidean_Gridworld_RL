@@ -10,7 +10,10 @@ training:
     learning_rate: 0.1
     discount_factor: 0.9
     epsilon: 0.99
+    step_cost_factor: 0.01
+    epsilon: 0.99
 
+    one_dim_blocks: True
     imputation_method: random
 
     plan_steps_per_update: 10
