@@ -6,7 +6,7 @@ from typing import Any, Dict, Optional, Union
 
 import numpy as np
 from rl_nav import constants
-from rl_nav.environments import (escape_env, escape_env_diagonal,
+from rl_nav.environments import (escape_env_cardinal, escape_env_diagonal,
                                  visualisation_env)
 from rl_nav.models import a_star, dyna, q_learning, successor_representation
 from rl_nav.utils import model_utils
@@ -131,7 +131,7 @@ class BaseRunner(base_runner.BaseRunner):
         environment_args = self._get_environment_args(config=config, train=True)
 
         if config.train_env_name == constants.ESCAPE_ENV:
-            environment = escape_env.EscapeEnv(**environment_args)
+            environment = escape_env_cardinal.EscapeEnvCardinal(**environment_args)
         elif config.train_env_name == constants.ESCAPE_ENV_DIAGONAL:
             environment = escape_env_diagonal.EscapeEnvDiagonal(**environment_args)
 
@@ -150,7 +150,7 @@ class BaseRunner(base_runner.BaseRunner):
             for map_path in list(set(config.test_map_paths + [config.train_map_path])):
                 map_name = map_path.split("/")[-1].rstrip(".txt")
                 environment_args[constants.MAP_PATH] = map_path
-                environment = escape_env.EscapeEnv(**environment_args)
+                environment = escape_env_cardinal.EscapeEnvCardinal(**environment_args)
                 environments[map_name] = visualisation_env.VisualisationEnv(environment)
         if config.test_env_name == constants.ESCAPE_ENV_DIAGONAL:
             for map_path in list(set(config.test_map_paths + [config.train_map_path])):
@@ -179,6 +179,7 @@ class BaseRunner(base_runner.BaseRunner):
                 constants.REWARD_POSITIONS: getattr(
                     config, f"{config_key_prefix}_{constants.REWARD_POSITIONS}"
                 ),
+                constants.STEP_COST_FACTOR: getattr(config, constants.STEP_COST_FACTOR),
                 constants.START_POSITION: getattr(
                     config, f"{config_key_prefix}_{constants.START_POSITION}"
                 ),
@@ -351,15 +352,13 @@ class BaseRunner(base_runner.BaseRunner):
 
         for i, (map_name, test_env) in enumerate(self._test_environments.items()):
 
-            final_period_reward = 0
-
             state = test_env.reset_environment(episode_timeout=np.inf)
 
             model_copy = copy.deepcopy(self._model)
             if not self._one_dim_blocks:
                 model_copy.allow_state_instantiation = True
 
-            while final_period_reward < test_env.total_rewards_available:
+            while test_env.active:
 
                 # TODO: unclear which behaviour policy to use here...
                 action = model_copy.select_behaviour_action(
@@ -377,7 +376,6 @@ class BaseRunner(base_runner.BaseRunner):
                     active=test_env.active,
                 )
                 state = new_state
-                final_period_reward += reward
 
             model_copy.allow_state_instantiation = False
             model_copy.eval()
