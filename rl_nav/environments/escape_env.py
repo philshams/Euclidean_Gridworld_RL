@@ -1,3 +1,4 @@
+import abc
 import copy
 from typing import Dict, List, Optional, Tuple, Union
 
@@ -6,25 +7,10 @@ from rl_nav import constants
 from rl_nav.environments import base_env
 
 
-class EscapeEnv(base_env.BaseEnvironment):
+class EscapeEnv(base_env.BaseEnvironment, abc.ABC):
     """Grid world environment with multiple rooms.
     Between each room is a door, that requires a key to unlock.
     """
-
-    ACTION_SPACE = [0, 1, 2, 3]
-    # 0: LEFT
-    # 1: UP
-    # 2: RIGHT
-    # 3: DOWN
-
-    DELTAS = {
-        0: np.array([-1, 0]),
-        1: np.array([0, 1]),
-        2: np.array([1, 0]),
-        3: np.array([0, -1]),
-    }
-
-    DELTAS_ = {(-1, 0): 0, (0, 1): 1, (1, 0): 2, (0, -1): 3}
 
     def __init__(
         self,
@@ -33,12 +19,11 @@ class EscapeEnv(base_env.BaseEnvironment):
         representation: str,
         reward_positions: List[Tuple[int]],
         reward_attributes: List[Dict],
+        step_cost_factor: Union[float, int],
         start_position: Optional[Tuple[int]] = None,
         episode_timeout: Optional[Union[int, None]] = None,
         one_dim_blocks: Optional[bool] = True,
         scaling: Optional[int] = 1,
-        field_x: Optional[int] = 1,
-        field_y: Optional[int] = 1,
         grayscale: bool = True,
         batch_dimension: bool = True,
         torch_axes: bool = True,
@@ -53,16 +38,12 @@ class EscapeEnv(base_env.BaseEnvironment):
             reward_positions: list of positions in which reward is located.
             reward_attributes: list of attributes each reward exhibits
                 (e.g. statistics).
+            step_cost_factor: cost of each step (multplied by euclidean
+                distance travelled)
             start_position: coordinate start position of agent.
             episode_timeout: number of steps before episode automatically terminates.
             scaling: optional integer (for use with pixel representations)
                 specifying how much to expand state by.
-            field_x: integer (required for use with partial observability
-                in pixel representations) specifying how many pixels in each x
-                direction the agent can see.
-            field_y: integer (required for use with partial observability
-                in pixel representations) specifying how many pixels in each y
-                direction the agent can see.
             grayscale: whether to keep rgb channels or compress to grayscale.
             batch_dimension: (for use with certain techniques);
                 numer of examples per optimisation step.
@@ -76,6 +57,7 @@ class EscapeEnv(base_env.BaseEnvironment):
         self._reward_positions = [tuple(p) for p in reward_positions]
         self._reward_attributes = reward_attributes
         self._starting_xy = start_position
+        self._step_cost_factor = step_cost_factor
 
         self._agent_position: np.ndarray
         self._rewards_state: np.ndarray
@@ -93,8 +75,6 @@ class EscapeEnv(base_env.BaseEnvironment):
         self._episode_timeout = episode_timeout or np.inf
         self._standard_episode_timeout = episode_timeout or np.inf
         self._scaling = scaling
-        self._field_x = field_x
-        self._field_y = field_y
         self._grayscale = grayscale
         self._batch_dimension = batch_dimension
         self._torch_axes = torch_axes
@@ -114,12 +94,14 @@ class EscapeEnv(base_env.BaseEnvironment):
         return self._reward_positions
 
     @property
+    @abc.abstractmethod
     def action_deltas(self) -> Dict[int, np.ndarray]:
-        return EscapeEnv.DELTAS
+        pass
 
     @property
+    @abc.abstractmethod
     def delta_actions(self) -> Dict[Tuple[int], int]:
-        return EscapeEnv.DELTAS_
+        pass
 
     def _env_skeleton(
         self,
@@ -202,74 +184,6 @@ class EscapeEnv(base_env.BaseEnvironment):
         env_skeleton = self._env_skeleton(agent=None, rewards=constants.STATIONARY)
         np.save(save_path, env_skeleton)
 
-    def _partial_observation(self, state, agent_position):
-
-        height = state.shape[0]
-        width = state.shape[1]
-
-        # out of bounds needs to be different from wall pixels
-        OUT_OF_BOUNDS_PIXEL = 0.2 * np.ones(3)
-
-        # nominal bounds on field of view (pre-edge cases)
-        x_min = agent_position[1] - self._field_x
-        x_max = agent_position[1] + self._field_x
-        y_min = agent_position[0] - self._field_y
-        y_max = agent_position[0] + self._field_y
-
-        state = state[
-            max(0, x_min) : min(x_max, width) + 1,
-            max(0, y_min) : min(y_max, height) + 1,
-            :,
-        ]
-
-        # edge case contingencies
-        if 0 > x_min:
-            append_left = 0 - x_min
-
-            fill = np.kron(
-                OUT_OF_BOUNDS_PIXEL,
-                np.ones((append_left, state.shape[1], 1)),
-            )
-            state = np.concatenate(
-                (fill, state),
-                axis=0,
-            )
-        if x_max >= width:
-            append_right = x_max + 1 - width
-
-            fill = np.kron(
-                OUT_OF_BOUNDS_PIXEL,
-                np.ones((append_right, state.shape[1], 1)),
-            )
-            state = np.concatenate(
-                (state, fill),
-                axis=0,
-            )
-        if 0 > y_min:
-            append_below = 0 - y_min
-
-            fill = np.kron(
-                OUT_OF_BOUNDS_PIXEL,
-                np.ones((state.shape[0], append_below, 1)),
-            )
-            state = np.concatenate(
-                (fill, state),
-                axis=1,
-            )
-        if y_max >= height:
-            append_above = y_max + 1 - height
-
-            fill = np.kron(
-                OUT_OF_BOUNDS_PIXEL,
-                np.ones((state.shape[0], append_above, 1)),
-            )
-            state = np.concatenate(
-                (state, fill),
-                axis=1,
-            )
-
-        return state
-
     def get_state_representation(
         self,
         tuple_state: Optional[Tuple] = None,
@@ -312,56 +226,10 @@ class EscapeEnv(base_env.BaseEnvironment):
 
             return state
 
+    @abc.abstractmethod
     def _move_agent(self, delta: np.ndarray) -> float:
         """Move agent. If provisional new position is a wall, no-op."""
-        provisional_new_position = self._agent_position + delta
-
-        moving_into_wall = tuple(provisional_new_position) in self._wall_state_space
-
-        moving_into_k_block = (
-            (self._k_block_state_space is not None)
-            and (tuple(provisional_new_position) in self._k_block_state_space)
-            and (
-                np.array_equal(delta, self.DELTAS[2])
-                or np.array_equal(delta, self.DELTAS[3])
-            )
-        )
-
-        moving_into_h_block = (
-            (self._h_block_state_space is not None)
-            and (tuple(provisional_new_position) in self._h_block_state_space)
-            and (
-                np.array_equal(delta, self.DELTAS[0])
-                or np.array_equal(delta, self.DELTAS[3])
-            )
-        )
-
-        moving_into_b_block = (
-            (self._b_block_state_space is not None)
-            and (tuple(provisional_new_position) in self._b_block_state_space)
-            and (np.array_equal(delta, self.DELTAS[3]))
-        )
-
-        moving_from_b_block = (
-            (self._b_block_state_space is not None)
-            and (tuple(self._agent_position) in self._b_block_state_space)
-            and (np.array_equal(delta, self.DELTAS[1]))
-        )
-
-        move_permissible = all(
-            [
-                not moving_into_wall,
-                not moving_into_k_block,
-                not moving_into_h_block,
-                not moving_into_b_block,
-                not moving_from_b_block,
-            ]
-        )
-
-        if move_permissible:
-            self._agent_position = provisional_new_position
-
-        return self._compute_reward()
+        pass
 
     def step(self, action: int) -> Tuple[float, Tuple[int, int]]:
         """Take step in environment according to action of agent.
@@ -411,9 +279,12 @@ class EscapeEnv(base_env.BaseEnvironment):
 
         return reward, new_state
 
-    def _compute_reward(self) -> float:
+    def _compute_reward(self, delta: np.ndarray) -> float:
         """Check for reward, i.e. whether agent position is equal to a reward position.
-        If reward is found, add to rewards received log.
+        If reward is found, add to rewards received log. Step cost factor added as penalty.
+
+        Args:
+            delta: distance travelled in x, y directions.
         """
         reward = 0.0
         if tuple(self._agent_position) in self._rewards:
@@ -429,6 +300,9 @@ class EscapeEnv(base_env.BaseEnvironment):
                         tuple(self._agent_position)
                     )
                     self._rewards_state[reward_index] = 1
+
+        # step cost
+        reward -= self._step_cost_factor * np.sqrt(np.sum(delta**2))
 
         return reward
 
