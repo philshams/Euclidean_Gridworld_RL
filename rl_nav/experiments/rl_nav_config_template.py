@@ -59,6 +59,7 @@ class RLNavConfigTemplate:
                     types=[float, int],
                     requirements=[lambda x: x >= 0 and x <= 1],
                 ),
+                config_field.Field(name=constants.ONE_DIM_BLOCKS, types=[bool]),
                 config_field.Field(
                     name=constants.IMPUTATION_METHOD,
                     types=[str],
