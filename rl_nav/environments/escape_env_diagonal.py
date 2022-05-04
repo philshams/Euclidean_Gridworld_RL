@@ -52,6 +52,7 @@ class EscapeEnvDiagonal(base_env.BaseEnvironment):
         reward_attributes: List[Dict],
         start_position: Optional[Tuple[int]] = None,
         episode_timeout: Optional[Union[int, None]] = None,
+        one_dim_blocks: Optional[bool] = True,
         scaling: Optional[int] = 1,
         field_x: Optional[int] = 1,
         field_y: Optional[int] = 1,
@@ -105,6 +106,7 @@ class EscapeEnvDiagonal(base_env.BaseEnvironment):
             self._train_episode_partial_history: List[np.ndarray]
             self._test_episode_partial_history: List[np.ndarray]
 
+        self._one_dim_blocks = one_dim_blocks
         self._episode_timeout = episode_timeout or np.inf
         self._standard_episode_timeout = episode_timeout or np.inf
         self._scaling = scaling
@@ -170,6 +172,9 @@ class EscapeEnvDiagonal(base_env.BaseEnvironment):
         # make k blocks, h blocks silver
         skeleton[self._map == 0.4] = 0.75 * np.ones(3)
         skeleton[self._map == 0.6] = 0.75 * np.ones(3)
+
+        # make b blocks black
+        skeleton[self._map == 0.5] = np.zeros(3)
 
         if rewards is not None:
             if isinstance(rewards, str):
@@ -350,8 +355,34 @@ class EscapeEnvDiagonal(base_env.BaseEnvironment):
             )
         )
 
+        moving_into_b_block = (
+            (self._b_block_state_space is not None)
+            and (tuple(provisional_new_position) in self._b_block_state_space)
+            and (
+                np.array_equal(delta, self.DELTAS[3])
+                or np.array_equal(delta, self.DELTAS[6])
+                or np.array_equal(delta, self.DELTAS[7])
+            )
+        )
+
+        moving_from_b_block = (
+            (self._b_block_state_space is not None)
+            and (tuple(self._agent_position) in self._b_block_state_space)
+            and (
+                np.array_equal(delta, self.DELTAS[1])
+                or np.array_equal(delta, self.DELTAS[4])
+                or np.array_equal(delta, self.DELTAS[5])
+            )
+        )
+
         move_permissible = all(
-            [not moving_into_wall, not moving_into_k_block, not moving_into_h_block]
+            [
+                not moving_into_wall,
+                not moving_into_k_block,
+                not moving_into_h_block,
+                not moving_into_b_block,
+                not moving_from_b_block,
+            ]
         )
 
         if move_permissible:
