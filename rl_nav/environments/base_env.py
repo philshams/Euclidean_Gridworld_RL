@@ -21,6 +21,7 @@ class BaseEnvironment(abc.ABC):
         constants.OPEN_CHARACTER: 0,
         constants.START_CHARACTER: 0,
         constants.REWARD_CHARACTER: 0,
+        constants.B_BLOCK_CHARACTER: 0.5,
     }
 
     def __init__(self, training: bool):
@@ -56,7 +57,9 @@ class BaseEnvironment(abc.ABC):
         else:
             reward_position_arg = None
         state_space_dictionary = env_utils.configure_state_space(
-            map_outline=self._map, reward_positions=reward_position_arg
+            map_outline=self._map,
+            reward_positions=reward_position_arg,
+            one_dim_blocks=self._one_dim_blocks,
         )
 
         self._positional_state_space = state_space_dictionary.get(
@@ -72,6 +75,9 @@ class BaseEnvironment(abc.ABC):
         )
         self._h_block_state_space = state_space_dictionary.get(
             constants.H_BLOCK_STATE_SPACE
+        )
+        self._b_block_state_space = state_space_dictionary.get(
+            constants.B_BLOCK_STATE_SPACE
         )
 
     def average_values_over_positional_states(
