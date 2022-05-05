@@ -66,6 +66,7 @@ class EscapeEnvCardinal(escape_env.EscapeEnv):
             representation=representation,
             reward_positions=reward_positions,
             reward_attributes=reward_attributes,
+            step_cost_factor=step_cost_factor,
             start_position=start_position,
             episode_timeout=episode_timeout,
             one_dim_blocks=one_dim_blocks,
