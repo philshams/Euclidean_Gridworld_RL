@@ -251,6 +251,19 @@ class BaseRunner(base_runner.BaseRunner):
                 imputation_method=config.imputation_method,
                 plan_steps_per_update=config.plan_steps_per_update,
             )
+        elif config.model == constants.DIRECTED_DYNA:
+            model = dyna.Dyna(
+                action_space=self._train_environment.action_space,
+                state_space=self._train_environment.state_space,
+                behaviour=config.behaviour,
+                target=config.target,
+                initialisation_strategy=initialisation_strategy,
+                learning_rate=config.learning_rate,
+                gamma=config.discount_factor,
+                imputation_method=config.imputation_method,
+                plan_steps_per_update=config.plan_steps_per_update,
+                inverse_actions=self._train_environment.inverse_action_mapping,
+            )
         elif config.model == constants.A_STAR:
             model = a_star.AStar(
                 action_space=self._train_environment.action_space,
