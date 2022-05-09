@@ -41,6 +41,8 @@ class EscapeEnvDiagonal(escape_env.EscapeEnv):
         (-1, -1): 7,
     }
 
+    INVERSE_ACTION_MAPPING = {0: 2, 1: 3, 2: 0, 3: 1, 4: 6, 5: 7, 6: 4, 7: 5}
+
     def __init__(
         self,
         training: bool,
@@ -100,6 +102,10 @@ class EscapeEnvDiagonal(escape_env.EscapeEnv):
     @property
     def delta_actions(self) -> Dict[Tuple[int], int]:
         return EscapeEnvDiagonal.DELTAS_
+
+    @property
+    def inverse_action_mapping(self) -> Dict[int, int]:
+        return EscapeEnvDiagonal.INVERSE_ACTION_MAPPING
 
     def _move_agent(self, delta: np.ndarray) -> float:
         """Move agent. If provisional new position is a wall, no-op."""

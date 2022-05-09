@@ -24,6 +24,8 @@ class EscapeEnvCardinal(escape_env.EscapeEnv):
 
     DELTAS_ = {(-1, 0): 0, (0, 1): 1, (1, 0): 2, (0, -1): 3}
 
+    INVERSE_ACTION_MAPPING = {0: 2, 1: 3, 2: 0, 3: 1}
+
     def __init__(
         self,
         training: bool,
@@ -83,6 +85,10 @@ class EscapeEnvCardinal(escape_env.EscapeEnv):
     @property
     def delta_actions(self) -> Dict[Tuple[int], int]:
         return EscapeEnvCardinal.DELTAS_
+
+    @property
+    def inverse_action_mapping(self) -> Dict[int, int]:
+        return EscapeEnvCardinal.INVERSE_ACTION_MAPPING
 
     def _move_agent(self, delta: np.ndarray) -> float:
         """Move agent. If provisional new position is a wall, no-op."""
