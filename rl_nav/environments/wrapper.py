@@ -99,6 +99,10 @@ class Wrapper(base_env.BaseEnvironment):
     def delta_actions(self) -> Dict[Tuple[int], int]:
         return self._env.delta_actions
 
+    @property
+    def inverse_action_mapping(self) -> Dict[int, int]:
+        return self._env.inverse_action_mapping
+
     def get_state_representation(self, tuple_state: Optional[Tuple] = None):
         return self._env.get_state_representation(tuple_state=tuple_state)
 
