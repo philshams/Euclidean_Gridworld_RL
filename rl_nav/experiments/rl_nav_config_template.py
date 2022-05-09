@@ -28,6 +28,7 @@ class RLNavConfigTemplate:
                             constants.Q_LEARNING,
                             constants.SUCCESSOR_REP,
                             constants.DYNA,
+                            constants.DIRECTED_DYNA,
                             constants.A_STAR,
                         ]
                     ],
