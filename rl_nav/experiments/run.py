@@ -69,7 +69,7 @@ if __name__ == "__main__":
             runner_class = successor_rep_runner.EpisodicSRRunner
             runner_class_name = "EpisodicSRRunner"
 
-    elif config.model in [constants.DYNA, constants.DIRECTED_DYNA]:
+    elif config.model in [constants.DYNA, constants.UNDIRECTED_DYNA]:
         runner_module_name = "dyna_runner"
         runner_module_path = os.path.join(runners_module_path, "dyna_runner.py")
         if config.train_episode_timeout is None:

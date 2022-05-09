@@ -251,7 +251,7 @@ class BaseRunner(base_runner.BaseRunner):
                 imputation_method=config.imputation_method,
                 plan_steps_per_update=config.plan_steps_per_update,
             )
-        elif config.model == constants.DIRECTED_DYNA:
+        elif config.model == constants.UNDIRECTED_DYNA:
             model = dyna.Dyna(
                 action_space=self._train_environment.action_space,
                 state_space=self._train_environment.state_space,

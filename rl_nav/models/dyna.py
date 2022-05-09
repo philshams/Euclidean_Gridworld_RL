@@ -51,10 +51,10 @@ class Dyna(tabular_learner.TabularLearner):
 
         self._plan_steps_per_update = plan_steps_per_update
         if inverse_actions is not None:
-            self._directed = True
+            self._undirected = True
             self._inverse_actions = inverse_actions
         else:
-            self._directed = False
+            self._undirected = False
             self._inverse_actions = None
 
         self._state_action_values = self._initialise_values(
@@ -218,7 +218,7 @@ class Dyna(tabular_learner.TabularLearner):
             state_action = state + tuple([action])
             self._model[state_action] = (new_state, reward)
 
-            if self._directed:
+            if self._undirected:
                 reverse_action = self._inverse_actions[action]
                 reverse_state_action = new_state + tuple([reverse_action])
                 if reverse_state_action not in self._model:
