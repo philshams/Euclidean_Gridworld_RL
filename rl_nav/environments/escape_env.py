@@ -103,6 +103,11 @@ class EscapeEnv(base_env.BaseEnvironment, abc.ABC):
     def delta_actions(self) -> Dict[Tuple[int], int]:
         pass
 
+    @property
+    @abc.abstractmethod
+    def inverse_action_mapping(self) -> Dict[int, int]:
+        pass
+
     def _env_skeleton(
         self,
         rewards: Union[None, str, Tuple[int]] = "state",
