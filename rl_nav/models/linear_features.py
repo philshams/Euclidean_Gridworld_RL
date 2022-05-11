@@ -193,13 +193,6 @@ class LinearFeatureLearner(tabular_learner.TabularLearner):
         initial_state_action_value = self._state_action_values[state_id][action]
         state_action_features = self._state_action_features[state_id][action]
         q_target = self._max_state_action_value(state=new_state)
-        # sarsa_target = np.mean(
-        #     self._state_action_values[self._state_id_mapping[new_state]]
-        # )
         delta = reward + discount * q_target - initial_state_action_value
         self._weight_matrix += self._learning_rate * delta * state_action_features
         self._wm_change = True
-
-        # import pdb
-
-        # pdb.set_trace()
