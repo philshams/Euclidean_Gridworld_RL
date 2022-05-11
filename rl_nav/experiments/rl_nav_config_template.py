@@ -12,6 +12,33 @@ class RLNavConfigTemplate:
         self._initialise()
 
     def _initialise(self):
+
+        self._dyna_template = config_template.Template(
+            fields=[
+                config_field.Field(
+                    name=constants.PLAN_STEPS_PER_UPDATE,
+                    types=[int],
+                    requirements=[lambda x: x > 0],
+                ),
+            ],
+            level=[constants.TRAINING, constants.DYNA],
+            dependent_variables=[constants.MODEL],
+            dependent_variables_required_values=[[constants.DYNA]],
+        )
+
+        self._linear_features_template = config_template.Template(
+            fields=[
+                config_field.Field(
+                    name=constants.FEATURES,
+                    types=[list],
+                    requirements=[lambda x: all([isinstance(y, str) for y in x])],
+                ),
+            ],
+            level=[constants.TRAINING, constants.LINEAR_FEATURES],
+            dependent_variables=[constants.MODEL],
+            dependent_variables_required_values=[[constants.LINEAR_FEATURES]],
+        )
+
         self._training_template = config_template.Template(
             fields=[
                 config_field.Field(
@@ -30,6 +57,7 @@ class RLNavConfigTemplate:
                             constants.DYNA,
                             constants.UNDIRECTED_DYNA,
                             constants.A_STAR,
+                            constants.LINEAR_FEATURES,
                         ]
                     ],
                 ),
@@ -73,13 +101,9 @@ class RLNavConfigTemplate:
                         lambda x: x in [constants.NEAR_NEIGHBOURS, constants.RANDOM]
                     ],
                 ),
-                config_field.Field(
-                    name=constants.PLAN_STEPS_PER_UPDATE,
-                    types=[int],
-                    requirements=[lambda x: x > 0],
-                ),
             ],
             level=[constants.TRAINING],
+            nested_templates=[self._dyna_template, self._linear_features_template],
         )
 
         self._random_uniform_template = config_template.Template(
