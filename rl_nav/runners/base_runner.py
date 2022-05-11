@@ -8,7 +8,8 @@ import numpy as np
 from rl_nav import constants
 from rl_nav.environments import (escape_env_cardinal, escape_env_diagonal,
                                  visualisation_env)
-from rl_nav.models import a_star, dyna, q_learning, successor_representation
+from rl_nav.models import (a_star, dyna, linear_features, q_learning,
+                           successor_representation)
 from rl_nav.utils import model_utils
 from run_modes import base_runner
 
@@ -268,6 +269,18 @@ class BaseRunner(base_runner.BaseRunner):
             model = a_star.AStar(
                 action_space=self._train_environment.action_space,
                 state_space=self._train_environment.state_space,
+            )
+        elif config.model == constants.LINEAR_FEATURES:
+            model = linear_features.LinearFeatureLearner(
+                features=config.features,
+                action_space=self._train_environment.action_space,
+                state_space=self._train_environment.state_space,
+                behaviour=config.behaviour,
+                target=config.target,
+                initialisation_strategy=initialisation_strategy,
+                learning_rate=config.learning_rate,
+                gamma=config.discount_factor,
+                imputation_method=config.imputation_method,
             )
         else:
             raise ValueError(f"Model {config.model} not recogised.")
