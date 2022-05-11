@@ -3,8 +3,8 @@ import os
 
 from rl_nav import constants, runners
 from rl_nav.experiments import rl_nav_config
-from rl_nav.runners import (a_star_runner, dyna_runner, q_learning_runner,
-                            successor_rep_runner)
+from rl_nav.runners import (a_star_runner, dyna_runner, linear_feature_runner,
+                            q_learning_runner, successor_rep_runner)
 from run_modes import cluster_run, parallel_run, serial_run, single_run, utils
 
 MAIN_FILE_PATH = os.path.dirname(os.path.realpath(__file__))
@@ -88,6 +88,18 @@ if __name__ == "__main__":
         else:
             runner_class = a_star_runner.EpisodicAStarRunner
             runner_class_name = "EpisodicAStarRunner"
+
+    elif config.model == constants.LINEAR_FEATURES:
+        runner_module_name = "linear_feature_runner"
+        runner_module_path = os.path.join(
+            runners_module_path, "linear_feature_runner.py"
+        )
+        if config.train_episode_timeout is None:
+            runner_class = linear_feature_runner.LifelongLinearFeatureRunner
+            runner_class_name = "LifelongLinearFeatureRunner"
+        else:
+            runner_class = linear_feature_runner.EpisodicLinearFeatureRunner
+            runner_class_name = "EpisodicLinearFeatureRunner"
 
     else:
         raise ValueError(f"Model specified in config: {config.model} not recongnised.")
