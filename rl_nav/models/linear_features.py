@@ -1,5 +1,5 @@
 import itertools
-from typing import Dict, List, Tuple
+from typing import Any, Dict, List, Tuple
 
 import numpy as np
 from rl_nav import constants
@@ -12,7 +12,7 @@ class LinearFeatureLearner(tabular_learner.TabularLearner):
 
     def __init__(
         self,
-        features: List[str],
+        features: Dict[str, Dict[str, Any]],
         action_space: List[int],
         state_space: List[Tuple[int, int]],
         learning_rate: float,
@@ -57,14 +57,11 @@ class LinearFeatureLearner(tabular_learner.TabularLearner):
         (
             self._feature_extractors,
             self._feature_dim,
-        ) = feature_utils.setup_feature_extractors(
-            features=features, learner_class=self
-        )
-        self._weight_matrix = np.random.normal(scale=0.1, size=(self._feature_dim))
+        ) = self._setup_feature_extractors(features=features)
 
-        assert len(self._feature_extractors) == len(
-            features
-        ), "Incorrect number of feature extractors setup."
+        self._weight_matrix = self._initialise_values(
+            initialisation_strategy=initialisation_strategy
+        )
 
         self._state_action_features = np.zeros(
             (len(self._state_space), len(self._action_space), self._feature_dim)
@@ -100,8 +97,30 @@ class LinearFeatureLearner(tabular_learner.TabularLearner):
         else:
             return self._latest_state_action_values
 
+    def _setup_feature_extractors(self, features: Dict[str, Dict[str, Any]]):
+        if constants.STATE_ID in features:
+            features[constants.STATE_ID][
+                constants.STATE_ACTION_ID_MAPPING
+            ] = self._state_action_id_mapping
+
+        if constants.COARSE_CODING in features:
+            features[constants.COARSE_CODING][constants.STATE_SPACE] = self._state_space
+            if features[constants.COARSE_CODING][constants.AUGMENT_ACTIONS]:
+                features[constants.COARSE_CODING][
+                    constants.AUGMENT_ACTIONS
+                ] = self._action_space
+            else:
+                features[constants.COARSE_CODING][constants.AUGMENT_ACTIONS] = None
+
+        if constants.ACTION_ONE_HOT in features:
+            features[constants.ACTION_ONE_HOT][
+                constants.ACTION_SPACE
+            ] = self._action_space
+
+        return feature_utils.get_feature_extractors(features=features)
+
     def _extract_features(self, state: Tuple[int, int]):
-        feature_vector = np.array(
+        feature_vector = np.concatenate(
             [extractor(state) for extractor in self._feature_extractors]
         )
         return feature_vector
@@ -123,23 +142,15 @@ class LinearFeatureLearner(tabular_learner.TabularLearner):
         """
         initialisation_strategy_name = list(initialisation_strategy.keys())[0]
         if isinstance(initialisation_strategy_name, (int, float)):
-            return initialisation_strategy_name * np.ones(
-                (len(self._state_space), len(self._action_space))
-            )
+            return initialisation_strategy_name * np.ones(self._feature_dim)
         elif initialisation_strategy_name == constants.RANDOM_UNIFORM:
-            return np.random.rand(len(self._state_space), len(self._action_space))
+            return np.random.rand(len(self._feature_dim))
         elif initialisation_strategy_name == constants.RANDOM_NORMAL:
-            return np.random.normal(
-                loc=0, scale=0.1, size=(len(self._state_space), len(self._action_space))
-            )
-        elif initialisation_strategy_name == constants.RANDOM_NORMAL:
-            return np.random.normal(
-                loc=0, scale=0.1, size=(len(self._state_space), len(self._action_space))
-            )
+            return np.random.normal(loc=0, scale=0.1, size=(self._feature_dim))
         elif initialisation_strategy_name == constants.ZEROS:
-            return np.zeros((len(self._state_space), len(self._action_space)))
+            return np.zeros(self._feature_dim)
         elif initialisation_strategy_name == constants.ONES:
-            return np.ones((len(self._state_space), len(self._action_space)))
+            return np.ones(self._feature_dim)
 
     def step(
         self,
