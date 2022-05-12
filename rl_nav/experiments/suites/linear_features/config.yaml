@@ -1,0 +1,90 @@
+seed: 0
+
+training:
+    num_steps: 200000
+    model: linear_features
+
+    behaviour: epsilon_greedy
+    target: greedy
+
+    learning_rate: 0.1
+    discount_factor: 0.9
+    step_cost_factor: 0.01
+    epsilon: 0.99
+
+    one_dim_blocks: True
+    imputation_method: random
+
+    linear_features:
+        features:
+            - coarse_coding
+            - state_id
+
+        coarse_coding:
+            coding_widths: [2]
+            coding_heights: [2]
+            augment_actions: False
+
+initialisation:
+    type: random_normal
+
+    random_uniform:
+        lower_bound: 0
+        upper_bound: 1
+
+    random_normal:
+        mean: 0
+        variance: 0.1
+
+train_environment: 
+
+    env_name: escape_env_diagonal
+    map_path: ../maps/square_escape_map.txt
+
+    episode_timeout: 
+    representation: agent_position
+    start_position:
+    reward_positions:
+        - [7, 1]
+
+    # provide either one set of attributes (used for all rewards)
+    # or one set for each reward
+    reward_attributes:
+        availability: infinite # integer specifying number available or "infinite"
+        statistics: gaussian
+        gaussian:
+            mean: 1
+            variance: 0
+
+test_environments:
+
+    env_name: escape_env_diagonal
+    map_paths: 
+        - ../maps/square_escape_test_map.txt
+        - ../maps/square_escape_map.txt
+
+    episode_timeout: 500
+    representation: agent_position
+    start_position: [7, 12]
+    reward_positions:
+        - [7, 1]
+
+    # provide either one set of attributes (used for all rewards)
+    # or one set for each reward
+    reward_attributes:
+        availability: 1 # integer specifying number available or "infinite"
+        statistics: gaussian
+        gaussian:
+            mean: 1
+            variance: 0
+
+logging:
+    visualisation_frequency: 50000
+    rollout_frequency: 100000
+    test_frequency: 5000
+    checkpoint_frequency: 50000
+
+    visualisations: 
+        - visitation_counts
+        - value_function
+
