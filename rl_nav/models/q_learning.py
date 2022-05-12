@@ -140,10 +140,6 @@ class QLearner(tabular_learner.TabularLearner):
             return np.random.normal(
                 loc=0, scale=0.1, size=(len(self._state_space), len(self._action_space))
             )
-        elif initialisation_strategy_name == constants.RANDOM_NORMAL:
-            return np.random.normal(
-                loc=0, scale=0.1, size=(len(self._state_space), len(self._action_space))
-            )
         elif initialisation_strategy_name == constants.ZEROS:
             return np.zeros((len(self._state_space), len(self._action_space)))
         elif initialisation_strategy_name == constants.ONES:
