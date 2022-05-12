@@ -16,6 +16,20 @@ training:
     one_dim_blocks: True
     imputation_method: random
 
+    dyna:
+        plan_steps_per_update: 10
+
+    linear_features:
+        features:
+            - coarse_coding
+            - state_id
+
+        coarse_coding:
+            coding_widths: [2]
+            coding_heights: [2]
+            augment_actions: False
+
+
 initialisation:
     type: random_normal
 
