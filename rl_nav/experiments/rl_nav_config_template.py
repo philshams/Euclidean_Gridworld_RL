@@ -26,6 +26,31 @@ class RLNavConfigTemplate:
             dependent_variables_required_values=[[constants.DYNA]],
         )
 
+        self._coarse_coding_template = config_template.Template(
+            fields=[
+                config_field.Field(
+                    name=constants.CODING_WIDTHS,
+                    types=[list],
+                    requirements=[
+                        lambda x: all([isinstance(y, int) and y > 0 for y in x])
+                    ],
+                ),
+                config_field.Field(
+                    name=constants.CODING_HEIGHTS,
+                    types=[list],
+                    requirements=[
+                        lambda x: all([isinstance(y, int) and y > 0 for y in x])
+                    ],
+                ),
+                config_field.Field(name=constants.AUGMENT_ACTIONS, types=[bool]),
+            ],
+            level=[
+                constants.TRAINING,
+                constants.LINEAR_FEATURES,
+                constants.COARSE_CODING,
+            ],
+        )
+
         self._linear_features_template = config_template.Template(
             fields=[
                 config_field.Field(
@@ -37,6 +62,7 @@ class RLNavConfigTemplate:
             level=[constants.TRAINING, constants.LINEAR_FEATURES],
             dependent_variables=[constants.MODEL],
             dependent_variables_required_values=[[constants.LINEAR_FEATURES]],
+            nested_templates=[self._coarse_coding_template],
         )
 
         self._training_template = config_template.Template(
