@@ -1,8 +1,8 @@
 seed: 0
 
 training:
-    num_steps: 100000
-    model: dyna
+    num_steps: 1000000
+    model: linear_features
 
     behaviour: epsilon_greedy
     target: greedy
@@ -10,7 +10,7 @@ training:
     learning_rate: 0.1
     discount_factor: 0.9
     step_cost_factor: 0.01
-    epsilon: 0.99
+    epsilon: 0.9
 
     one_dim_blocks: True
     imputation_method: random
@@ -20,7 +20,13 @@ training:
 
     linear_features:
         features:
+            - coarse_coding
             - state_id
+
+        coarse_coding:
+            coding_widths: [2]
+            coding_heights: [2]
+            augment_actions: False
 
 initialisation:
     type: random_normal
