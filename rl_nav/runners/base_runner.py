@@ -271,8 +271,21 @@ class BaseRunner(base_runner.BaseRunner):
                 state_space=self._train_environment.state_space,
             )
         elif config.model == constants.LINEAR_FEATURES:
+            features_dict = {feature: {} for feature in config.features}
+
+            if constants.COARSE_CODING in config.features:
+                features_dict[constants.COARSE_CODING][
+                    constants.CODING_WIDTHS
+                ] = config.coding_widths
+                features_dict[constants.COARSE_CODING][
+                    constants.CODING_HEIGHTS
+                ] = config.coding_heights
+                features_dict[constants.COARSE_CODING][
+                    constants.AUGMENT_ACTIONS
+                ] = config.augment_actions
+
             model = linear_features.LinearFeatureLearner(
-                features=config.features,
+                features=features_dict,
                 action_space=self._train_environment.action_space,
                 state_space=self._train_environment.state_space,
                 behaviour=config.behaviour,
