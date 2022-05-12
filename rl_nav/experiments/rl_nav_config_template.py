@@ -21,9 +21,11 @@ class RLNavConfigTemplate:
                     requirements=[lambda x: x > 0],
                 ),
             ],
-            level=[constants.TRAINING, constants.DYNA],
             dependent_variables=[constants.MODEL],
-            dependent_variables_required_values=[[constants.DYNA]],
+            dependent_variables_required_values=[
+                [constants.DYNA, constants.UNDIRECTED_DYNA]
+            ],
+            level=[constants.TRAINING, constants.DYNA],
         )
 
         self._coarse_coding_template = config_template.Template(
