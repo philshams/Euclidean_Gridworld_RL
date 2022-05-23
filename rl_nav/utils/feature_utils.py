@@ -12,9 +12,24 @@ def get_feature_extractors(features: Dict[str, Dict[str, Any]]):
 
     for feature, feature_args in features.items():
 
-        if feature == constants.STATE_ID:
+        if feature == constants.STATE_ACTION_ID:
 
             state_action_id_mapping = feature_args[constants.STATE_ACTION_ID_MAPPING]
+
+            def action_id_feature(state: Tuple[int, int, int]):
+
+                state_action_id = state_action_id_mapping[state]
+                one_hot = np.zeros(len(state_action_id_mapping))
+                one_hot[state_action_id] = 1
+
+                return one_hot
+
+            full_feature_dim += len(state_action_id_mapping)
+            extractors.append(action_id_feature)
+
+        elif feature == constants.STATE_ID:
+
+            state_action_id_mapping = feature_args[constants.STATE_ID_MAPPING]
 
             def id_feature(state: Tuple[int, int, int]):
 
