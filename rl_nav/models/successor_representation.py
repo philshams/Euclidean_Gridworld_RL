@@ -49,9 +49,9 @@ class SuccessorRepresentation(tabular_learner.TabularLearner):
             scale=0.1,
             size=(len(action_space), len(state_space), len(state_space)),
         ).astype(dtype="float16")
-        self._reward_function = np.random.normal(
-            loc=0, scale=0.1, size=(len(state_space))
-        ).astype(dtype="float16")
+        self._reward_function = np.random.zeros(len(state_space)).astype(
+            dtype="float16"
+        )
 
         self._sr_change: bool
 
