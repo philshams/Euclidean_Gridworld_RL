@@ -103,6 +103,10 @@ class Wrapper(base_env.BaseEnvironment):
     def inverse_action_mapping(self) -> Dict[int, int]:
         return self._env.inverse_action_mapping
 
+    @property
+    def transition_matrix(self) -> Dict:
+        return self._env.transition_matrix
+
     def get_state_representation(self, tuple_state: Optional[Tuple] = None):
         return self._env.get_state_representation(tuple_state=tuple_state)
 
