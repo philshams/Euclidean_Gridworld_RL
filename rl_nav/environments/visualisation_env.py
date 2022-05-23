@@ -20,6 +20,7 @@ except ModuleNotFoundError:
 class VisualisationEnv(wrapper.Wrapper):
 
     COLORMAP = cm.get_cmap("plasma")
+    NORMALISE = True
 
     def __init__(self, env):
         super().__init__(env=env)
@@ -131,12 +132,18 @@ class VisualisationEnv(wrapper.Wrapper):
         current_max_value = np.max(all_values)
         current_min_value = np.min(all_values)
 
-        for position, value in heatmap.items():
-            # remove alpha from rgba in colormap return
-            # normalise value for color mapping
-            environment_map[position[::-1]] = self.COLORMAP(
-                (value - current_min_value) / (current_max_value - current_min_value)
-            )[:-1]
+        if VisualisationEnv.NORMALISE:
+            for position, value in heatmap.items():
+                # remove alpha from rgba in colormap return
+                # normalise value for color mapping
+                environment_map[position[::-1]] = self.COLORMAP(
+                    (value - current_min_value)
+                    / (current_max_value - current_min_value)
+                )[:-1]
+        else:
+            for position, value in heatmap.items():
+                # remove alpha from rgba in colormap return
+                environment_map[position[::-1]] = self.COLORMAP(value)[:-1]
 
         fig = plt.figure()
         if save_name is not None:
