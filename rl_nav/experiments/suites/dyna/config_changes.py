@@ -63,4 +63,18 @@ CONFIG_CHANGES = {
             },
         }
     ],
+    "condition_7": [
+        {
+            "train_environment": {
+                "map_path": "../maps/square_escape_map.txt",
+            },
+            "test_environments": {
+                "map_paths": [
+                    "../maps/moved_reward_map.txt",
+                    "../maps/square_escape_map.txt",
+                ],
+                "reward_positions": [7, 6],
+            },
+        }
+    ],
 }
