@@ -1,12 +1,23 @@
 import abc
-from typing import Any
+from typing import Any, Dict
 
 
 class BaseLearner(abc.ABC):
     """Base class for learners."""
 
     def __init__(self):
-        pass
+        self._env_transition_matrix = None
+
+    @property
+    def env_transition_matrix(self):
+        return self._env_transition_matrix
+
+    @env_transition_matrix.setter
+    def env_transition_matrix(self, transition_matrix: Dict):
+        # ensures transition matrix is information available
+        # only if explicitly permitted.
+        if self._env_transition_matrix is not None:
+            self._env_transition_matrix = transition_matrix
 
     def train(self) -> None:
         """set model to train mode."""
