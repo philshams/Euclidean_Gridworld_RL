@@ -98,8 +98,8 @@ class LinearFeatureLearner(tabular_learner.TabularLearner):
             return self._latest_state_action_values
 
     def _setup_feature_extractors(self, features: Dict[str, Dict[str, Any]]):
-        if constants.STATE_ID in features:
-            features[constants.STATE_ID][
+        if constants.STATE_ACTION_ID in features:
+            features[constants.STATE_ACTION_ID][
                 constants.STATE_ACTION_ID_MAPPING
             ] = self._state_action_id_mapping
 
