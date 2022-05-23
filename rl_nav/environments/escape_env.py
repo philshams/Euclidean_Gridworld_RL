@@ -85,6 +85,16 @@ class EscapeEnv(base_env.BaseEnvironment, abc.ABC):
         # states are zero, -1 removes walls from counts.
         self._visitation_counts = -1 * copy.deepcopy(self._map)
 
+        self._transition_matrix = {
+            state: {
+                action: self._move_agent(
+                    delta=self.action_deltas[action], phantom_position=np.array(state)
+                )
+                for action in self.ACTION_SPACE
+            }
+            for state in self._state_space
+        }
+
     @property
     def starting_xy(self) -> Tuple[int]:
         return self._starting_xy
@@ -107,6 +117,10 @@ class EscapeEnv(base_env.BaseEnvironment, abc.ABC):
     @abc.abstractmethod
     def inverse_action_mapping(self) -> Dict[int, int]:
         pass
+
+    @property
+    def transition_matrix(self) -> Dict:
+        return self._transition_matrix
 
     def _env_skeleton(
         self,
