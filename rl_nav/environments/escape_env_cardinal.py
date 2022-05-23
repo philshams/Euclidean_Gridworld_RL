@@ -90,9 +90,16 @@ class EscapeEnvCardinal(escape_env.EscapeEnv):
     def inverse_action_mapping(self) -> Dict[int, int]:
         return EscapeEnvCardinal.INVERSE_ACTION_MAPPING
 
-    def _move_agent(self, delta: np.ndarray) -> float:
+    def _move_agent(
+        self, delta: np.ndarray, phantom_position: Optional[np.ndarray] = None
+    ) -> float:
         """Move agent. If provisional new position is a wall, no-op."""
-        provisional_new_position = self._agent_position + delta
+
+        if phantom_position is None:
+            current_position = self._agent_position
+        else:
+            current_position = phantom_position
+        provisional_new_position = current_position + delta
 
         moving_into_wall = tuple(provisional_new_position) in self._wall_state_space
 
@@ -122,7 +129,7 @@ class EscapeEnvCardinal(escape_env.EscapeEnv):
 
         moving_from_b_block = (
             (self._b_block_state_space is not None)
-            and (tuple(self._agent_position) in self._b_block_state_space)
+            and (tuple(current_position) in self._b_block_state_space)
             and (np.array_equal(delta, self.DELTAS[1]))
         )
 
@@ -136,7 +143,13 @@ class EscapeEnvCardinal(escape_env.EscapeEnv):
             ]
         )
 
-        if move_permissible:
-            self._agent_position = provisional_new_position
+        if phantom_position is not None:
+            if move_permissible:
+                return tuple(provisional_new_position)
+            else:
+                return tuple(current_position)
+        else:
+            if move_permissible:
+                self._agent_position = provisional_new_position
 
-        return self._compute_reward(delta=delta)
+            return self._compute_reward(delta=delta)
