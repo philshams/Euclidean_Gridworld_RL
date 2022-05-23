@@ -12,6 +12,8 @@ class LifelongRunner(base_runner.BaseRunner):
 
     def train(self):
 
+        self._model.env_transition_matrix = self._train_environment.transition_matrix
+
         state = self._train_environment.reset_environment()
         train_reward = 0
 
