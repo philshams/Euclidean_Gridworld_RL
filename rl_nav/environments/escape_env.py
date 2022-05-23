@@ -246,7 +246,9 @@ class EscapeEnv(base_env.BaseEnvironment, abc.ABC):
             return state
 
     @abc.abstractmethod
-    def _move_agent(self, delta: np.ndarray) -> float:
+    def _move_agent(
+        self, delta: np.ndarray, phantom_position: Optional[np.ndarray] = None
+    ) -> float:
         """Move agent. If provisional new position is a wall, no-op."""
         pass
 
