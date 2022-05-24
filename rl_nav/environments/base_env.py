@@ -22,6 +22,7 @@ class BaseEnvironment(abc.ABC):
         constants.START_CHARACTER: 0,
         constants.REWARD_CHARACTER: 0,
         constants.B_BLOCK_CHARACTER: 0.5,
+        constants.NO_START_BLOCK_CHAR: 0.55,
     }
 
     def __init__(self, training: bool):
@@ -78,6 +79,12 @@ class BaseEnvironment(abc.ABC):
         )
         self._b_block_state_space = state_space_dictionary.get(
             constants.B_BLOCK_STATE_SPACE
+        )
+        self._c_block_state_space = state_space_dictionary.get(
+            constants.C_BLOCK_STATE_SPACE
+        )
+        self._start_state_space = list(
+            set(self._positional_state_space) - set(self._c_block_state_space)
         )
 
     def average_values_over_positional_states(
