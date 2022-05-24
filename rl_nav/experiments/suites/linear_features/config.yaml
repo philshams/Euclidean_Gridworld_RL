@@ -25,8 +25,8 @@ training:
             - state_id
 
         coarse_coding:
-            coding_widths: [2]
-            coding_heights: [2]
+            coding_widths: [2, 4, 5]
+            coding_heights: [2, 4, 5]
             augment_actions: False
 
 initialisation:
