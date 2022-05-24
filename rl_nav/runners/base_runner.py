@@ -9,7 +9,7 @@ from rl_nav import constants
 from rl_nav.environments import (escape_env_cardinal, escape_env_diagonal,
                                  visualisation_env)
 from rl_nav.models import (a_star, dyna, linear_features, q_learning,
-                           successor_representation)
+                           state_linear_features, successor_representation)
 from rl_nav.utils import model_utils
 from run_modes import base_runner
 
@@ -41,6 +41,7 @@ class BaseRunner(base_runner.BaseRunner):
         super().__init__(config=config, unique_id=unique_id)
 
         self._epsilon = config.epsilon
+        self._test_epsilon = config.test_epsilon
         self._num_steps = config.num_steps
         self._step_count = 0
         self._rollout_frequency = config.rollout_frequency
@@ -148,13 +149,13 @@ class BaseRunner(base_runner.BaseRunner):
         environments = {}
 
         if config.test_env_name == constants.ESCAPE_ENV:
-            for map_path in list(set(config.test_map_paths + [config.train_map_path])):
+            for map_path in config.test_map_paths:
                 map_name = map_path.split("/")[-1].rstrip(".txt")
                 environment_args[constants.MAP_PATH] = map_path
                 environment = escape_env_cardinal.EscapeEnvCardinal(**environment_args)
                 environments[map_name] = visualisation_env.VisualisationEnv(environment)
         if config.test_env_name == constants.ESCAPE_ENV_DIAGONAL:
-            for map_path in list(set(config.test_map_paths + [config.train_map_path])):
+            for map_path in config.test_map_paths:
                 map_name = map_path.split("/")[-1].rstrip(".txt")
                 environment_args[constants.MAP_PATH] = map_path
                 environment = escape_env_diagonal.EscapeEnvDiagonal(**environment_args)
@@ -207,7 +208,10 @@ class BaseRunner(base_runner.BaseRunner):
                         config, f"{config_key_prefix}_{constants.GAUSSIAN_VARIANCE}"
                     ),
                 }
-            reward_attr_dict[constants.PARAMETERS] = reward_attr_parameter_dict
+            reward_attr_dict[constants.PARAMETERS] = getattr(
+                config, f"{config_key_prefix}_{constants.STATISTICS}"
+            )
+            # reward_attr_dict[constants.PARAMETERS] = reward_attr_parameter_dict
             env_args[constants.REWARD_ATTRIBUTES] = reward_attr_dict
 
         if train:
@@ -270,7 +274,10 @@ class BaseRunner(base_runner.BaseRunner):
                 action_space=self._train_environment.action_space,
                 state_space=self._train_environment.state_space,
             )
-        elif config.model == constants.LINEAR_FEATURES:
+        elif config.model in [
+            constants.LINEAR_FEATURES,
+            constants.STATE_LINEAR_FEATURES,
+        ]:
             features_dict = {feature: {} for feature in config.features}
 
             if constants.COARSE_CODING in config.features:
@@ -284,17 +291,30 @@ class BaseRunner(base_runner.BaseRunner):
                     constants.AUGMENT_ACTIONS
                 ] = config.augment_actions
 
-            model = linear_features.LinearFeatureLearner(
-                features=features_dict,
-                action_space=self._train_environment.action_space,
-                state_space=self._train_environment.state_space,
-                behaviour=config.behaviour,
-                target=config.target,
-                initialisation_strategy=initialisation_strategy,
-                learning_rate=config.learning_rate,
-                gamma=config.discount_factor,
-                imputation_method=config.imputation_method,
-            )
+            if config.model == constants.LINEAR_FEATURES:
+                model = linear_features.LinearFeatureLearner(
+                    features=features_dict,
+                    action_space=self._train_environment.action_space,
+                    state_space=self._train_environment.state_space,
+                    behaviour=config.behaviour,
+                    target=config.target,
+                    initialisation_strategy=initialisation_strategy,
+                    learning_rate=config.learning_rate,
+                    gamma=config.discount_factor,
+                    imputation_method=config.imputation_method,
+                )
+            elif config.model == constants.STATE_LINEAR_FEATURES:
+                model = state_linear_features.StateLinearFeatureLearner(
+                    features=features_dict,
+                    action_space=self._train_environment.action_space,
+                    state_space=self._train_environment.state_space,
+                    behaviour=config.behaviour,
+                    target=config.target,
+                    initialisation_strategy=initialisation_strategy,
+                    learning_rate=config.learning_rate,
+                    gamma=config.discount_factor,
+                    imputation_method=config.imputation_method,
+                )
         else:
             raise ValueError(f"Model {config.model} not recogised.")
         return model
@@ -322,19 +342,24 @@ class BaseRunner(base_runner.BaseRunner):
 
     def _generate_visualisations(self):
         if constants.VALUE_FUNCTION in self._visualisations:
-            averaged_values = (
-                self._train_environment.average_values_over_positional_states(
-                    self._model.state_action_values
+            try:
+                averaged_values = (
+                    self._train_environment.average_values_over_positional_states(
+                        self._model.state_action_values
+                    )
                 )
-            )
-            averaged_max_values = {p: max(v) for p, v in averaged_values.items()}
+                plot_values = {p: max(v) for p, v in averaged_values.items()}
+            except AttributeError:
+                plot_values = self._model.state_values
+
             self._train_environment.plot_heatmap_over_env(
-                heatmap=averaged_max_values,
+                heatmap=plot_values,
                 save_name=os.path.join(
                     self._visualisations_folder_path,
                     f"{self._step_count}_{constants.VALUES_PDF}",
                 ),
             )
+
         if constants.VISITATION_COUNTS in self._visualisations:
             averaged_visitation_counts = (
                 self._train_environment.average_values_over_positional_states(
@@ -382,6 +407,7 @@ class BaseRunner(base_runner.BaseRunner):
             **find_reward_logging_dict,
             **find_shelter_logging_dict,
         }
+        self._model.env_transition_matrix = self._train_environment.transition_matrix
         return logging_dict
 
     def _find_reward_test(self, rollout: bool, planning: bool):
@@ -394,6 +420,8 @@ class BaseRunner(base_runner.BaseRunner):
             state = test_env.reset_environment(episode_timeout=np.inf)
 
             model_copy = copy.deepcopy(self._model)
+            model_copy.env_transition_matrix = test_env.transition_matrix
+
             if not self._one_dim_blocks:
                 model_copy.allow_state_instantiation = True
 
@@ -402,7 +430,7 @@ class BaseRunner(base_runner.BaseRunner):
                 # TODO: unclear which behaviour policy to use here...
                 action = model_copy.select_behaviour_action(
                     state,
-                    epsilon=self._epsilon,
+                    epsilon=self._test_epsilon,
                     excess_state_mapping=self._excess_state_mapping[i],
                 )
                 reward, new_state = test_env.step(action)
@@ -463,6 +491,8 @@ class BaseRunner(base_runner.BaseRunner):
             )
 
             model_copy = copy.deepcopy(self._model)
+            model_copy.env_transition_matrix = test_env.transition_matrix
+
             if not self._one_dim_blocks:
                 model_copy.allow_state_instantiation = True
 
@@ -471,7 +501,7 @@ class BaseRunner(base_runner.BaseRunner):
                 # TODO: unclear which behaviour policy to use here...
                 action = model_copy.select_behaviour_action(
                     state,
-                    epsilon=self._epsilon,
+                    epsilon=self._test_epsilon,
                     excess_state_mapping=self._excess_state_mapping[i],
                 )
                 reward, new_state = test_env.step(action)
@@ -524,6 +554,8 @@ class BaseRunner(base_runner.BaseRunner):
         test_logging_dict = {}
 
         for i, (map_name, test_env) in enumerate(self._test_environments.items()):
+
+            test_model.env_transition_matrix = test_env.transition_matrix
 
             if planning:
                 reward, length = self._single_planning_test(
