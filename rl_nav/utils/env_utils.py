@@ -122,8 +122,8 @@ def setup_rewards(reward_positions, reward_attributes) -> Dict[Tuple, Callable]:
         def __call__(self):
             if self._availability > 0:
                 reward = np.random.normal(
-                    loc=reward_parameters[constants.MEAN],
-                    scale=reward_parameters[constants.VARIANCE],
+                    loc=self._reward_parameters[constants.MEAN],
+                    scale=self._reward_parameters[constants.VARIANCE],
                 )
                 self._availability -= 1
             else:
@@ -139,16 +139,18 @@ def setup_rewards(reward_positions, reward_attributes) -> Dict[Tuple, Callable]:
                 availability=availability, reward_parameters=reward_parameters
             )
 
-    reward_availability = reward_attributes[constants.AVAILABILITY]
-    reward_type = reward_attributes[constants.TYPE]
-    reward_parameters = reward_attributes[constants.PARAMETERS]
+    rewards = {}
 
-    rewards = {
-        reward_position: _get_reward_function(
-            reward_availability, reward_type, reward_parameters
+    for reward_position, reward_availability, reward_specifications in zip(
+        reward_positions,
+        reward_attributes[constants.AVAILABILITY],
+        reward_attributes[constants.PARAMETERS],
+    ):
+        reward_type, reward_parameters = zip(*reward_specifications.items())
+
+        rewards[reward_position] = _get_reward_function(
+            reward_availability, reward_type[0], reward_parameters[0]
         )
-        for reward_position in reward_positions
-    }
 
     return rewards
 
@@ -167,12 +169,14 @@ def configure_state_space(
     k_block_indices = np.where(map_outline == 0.6)
     h_block_indices = np.where(map_outline == 0.4)
     b_block_indices = np.where(map_outline == 0.5)
+    c_block_indices = np.where(map_outline == 0.55)
 
     empty_state_space = list(zip(state_indices[1], state_indices[0]))
     wall_state_space = list(zip(wall_indices[1], wall_indices[0]))
     k_block_state_space = list(zip(k_block_indices[1], k_block_indices[0]))
     h_block_state_space = list(zip(h_block_indices[1], h_block_indices[0]))
     b_block_state_space = list(zip(b_block_indices[1], b_block_indices[0]))
+    c_block_state_space = list(zip(c_block_indices[1], c_block_indices[0]))
 
     positional_state_space = empty_state_space
 
@@ -186,6 +190,11 @@ def configure_state_space(
     if len(h_block_state_space):
         positional_state_space.extend(h_block_state_space)
         state_space_dictionary[constants.H_BLOCK_STATE_SPACE] = h_block_state_space
+    if len(c_block_state_space):
+        positional_state_space.extend(c_block_state_space)
+        state_space_dictionary[constants.C_BLOCK_STATE_SPACE] = c_block_state_space
+    else:
+        state_space_dictionary[constants.C_BLOCK_STATE_SPACE] = []
 
     state_space_dictionary[constants.WALL_STATE_SPACE] = wall_state_space
     state_space_dictionary[constants.POSITIONAL_STATE_SPACE] = positional_state_space
