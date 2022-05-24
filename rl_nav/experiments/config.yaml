@@ -6,6 +6,7 @@ training:
 
     behaviour: epsilon_greedy
     target: greedy
+    test_epsilon: 0.99
 
     learning_rate: 0.1
     discount_factor: 0.9
@@ -24,9 +25,9 @@ training:
             - state_id
 
         coarse_coding:
-            coding_widths: [2]
-            coding_heights: [2]
-            augment_actions: False
+            coding_widths: [2, 4, 5]
+            coding_heights: [2, 4, 5]
+            augment_actions: True
 
 initialisation:
     type: random_normal
@@ -53,15 +54,18 @@ train_environment:
     # provide either one set of attributes (used for all rewards)
     # or one set for each reward
     reward_attributes:
-        availability: infinite # integer specifying number available or "infinite"
-        statistics: gaussian
-        gaussian:
-            mean: 1
-            variance: 0
+        availability: [infinite, infinite] # integer specifying number available or "infinite"
+        statistics:
+            - gaussian:
+                mean: 1
+                variance: 0
+            - gaussian:
+                mean: 0.1
+                variance: 0
 
 test_environments:
 
-    env_name: escape_env
+    env_name: escape_env_diagonal
     map_paths: 
         - ../maps/square_escape_test_map.txt
         - ../maps/square_escape_map.txt
@@ -75,11 +79,11 @@ test_environments:
     # provide either one set of attributes (used for all rewards)
     # or one set for each reward
     reward_attributes:
-        availability: 1 # integer specifying number available or "infinite"
-        statistics: gaussian
-        gaussian:
-            mean: 1
-            variance: 0
+        availability: [1] # integer specifying number available or "infinite"
+        statistics:
+            - gaussian:
+                mean: 1
+                variance: 0
 
 logging:
     visualisation_frequency: 50000
