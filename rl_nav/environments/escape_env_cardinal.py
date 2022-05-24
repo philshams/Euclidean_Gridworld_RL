@@ -133,6 +133,10 @@ class EscapeEnvCardinal(escape_env.EscapeEnv):
             and (np.array_equal(delta, self.DELTAS[1]))
         )
 
+        moving_into_c_block = (self._c_block_state_space is not None) and (
+            tuple(provisional_new_position) in self._c_block_state_space
+        )
+
         move_permissible = all(
             [
                 not moving_into_wall,
@@ -140,6 +144,7 @@ class EscapeEnvCardinal(escape_env.EscapeEnv):
                 not moving_into_h_block,
                 not moving_into_b_block,
                 not moving_from_b_block,
+                not moving_into_c_block,
             ]
         )
 
