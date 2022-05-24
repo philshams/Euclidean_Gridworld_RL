@@ -136,23 +136,21 @@ def get_feature_extractors(features: Dict[str, Dict[str, Any]]):
             y_min = min(y_)
             y_max = max(y_)
 
-            square_width = x_max - x_min
-            square_height = y_max - y_min
-
             tiles = []
 
             for width, height in zip(coding_widths, coding_heights):
                 for x in range(x_min, x_max - width + 2):
                     for y in range(y_min, y_max - height + 2):
                         if augment_actions:
-                            tile = [
-                                (x + xi, y + yi, a)
-                                for a, xi, yi in itertools.product(
-                                    action_space,
-                                    range(width),
-                                    range(height),
-                                )
-                            ]
+                            for a in action_space:
+                                tile = [
+                                    (x + xi, y + yi, a)
+                                    for xi, yi in itertools.product(
+                                        range(width),
+                                        range(height),
+                                    )
+                                ]
+                                tiles.append(tile)
                         else:
                             tile = [
                                 (x + xi, y + yi)
@@ -161,7 +159,7 @@ def get_feature_extractors(features: Dict[str, Dict[str, Any]]):
                                     range(height),
                                 )
                             ]
-                        tiles.append(tile)
+                            tiles.append(tile)
 
             def cc_feature(state: Tuple[int, int, int]):
                 if augment_actions:
