@@ -153,8 +153,9 @@ class EscapeEnv(base_env.BaseEnvironment, abc.ABC):
         # make walls black
         skeleton[self._map == 1] = np.zeros(3)
 
-        # make b blocks black
+        # make b, c blocks black
         skeleton[self._map == 0.5] = np.zeros(3)
+        skeleton[self._map == 0.55] = np.zeros(3)
 
         # make k blocks, h blocks silver
         skeleton[self._map == 0.4] = 0.75 * np.ones(3)
@@ -378,9 +379,9 @@ class EscapeEnv(base_env.BaseEnvironment, abc.ABC):
         elif self._starting_xy is not None:
             self._agent_position = np.array(self._starting_xy)
         else:
-            random_position_index = np.random.choice(len(self._positional_state_space))
+            random_position_index = np.random.choice(len(self._start_state_space))
             self._agent_position = np.array(
-                self._positional_state_space[random_position_index]
+                self._start_state_space[random_position_index]
             )
 
         for reward in self._rewards.values():
@@ -389,10 +390,10 @@ class EscapeEnv(base_env.BaseEnvironment, abc.ABC):
         availability = (
             reward_availability or self._reward_attributes[constants.AVAILABILITY]
         )
-        if availability == constants.INFINITE:
+        if constants.INFINITE in availability:
             self._total_rewards_available = np.inf
         else:
-            self._total_rewards_available = availability * len(self._rewards)
+            self._total_rewards_available = sum(availability) * len(self._rewards)
 
         self._reward_received = 0
         self._num_rewards_sampled = 0
