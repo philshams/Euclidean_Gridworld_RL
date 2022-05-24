@@ -63,7 +63,9 @@ class RLNavConfigTemplate:
             ],
             level=[constants.TRAINING, constants.LINEAR_FEATURES],
             dependent_variables=[constants.MODEL],
-            dependent_variables_required_values=[[constants.LINEAR_FEATURES]],
+            dependent_variables_required_values=[
+                [constants.LINEAR_FEATURES, constants.STATE_LINEAR_FEATURES]
+            ],
             nested_templates=[self._coarse_coding_template],
         )
 
@@ -86,13 +88,16 @@ class RLNavConfigTemplate:
                             constants.UNDIRECTED_DYNA,
                             constants.A_STAR,
                             constants.LINEAR_FEATURES,
+                            constants.STATE_LINEAR_FEATURES,
                         ]
                     ],
                 ),
                 config_field.Field(
                     name=constants.BEHAVIOUR,
                     types=[str],
-                    requirements=[lambda x: x in [constants.EPSILON_GREEDY]],
+                    requirements=[
+                        lambda x: x in [constants.EPSILON_GREEDY, constants.GREEDY]
+                    ],
                 ),
                 config_field.Field(
                     name=constants.TARGET,
@@ -100,6 +105,11 @@ class RLNavConfigTemplate:
                     requirements=[
                         lambda x: x in [constants.GREEDY, constants.GREEDY_SAMPLE]
                     ],
+                ),
+                config_field.Field(
+                    name=constants.TEST_EPSILON,
+                    types=[float, int],
+                    requirements=[lambda x: x >= 0 and x <= 1],
                 ),
                 config_field.Field(
                     name=constants.LEARNING_RATE,
@@ -179,46 +189,20 @@ class RLNavConfigTemplate:
             ],
         )
 
-        self._gaussian_statistics_template = config_template.Template(
-            fields=[
-                config_field.Field(
-                    name=constants.MEAN, key=constants.GAUSSIAN_MEAN, types=[float, int]
-                ),
-                config_field.Field(
-                    name=constants.VARIANCE,
-                    key=constants.GAUSSIAN_VARIANCE,
-                    types=[float, int],
-                    requirements=[lambda x: x >= 0],
-                ),
-            ],
-            level=[
-                {
-                    constants.TRAIN: constants.TRAIN_ENVIRONMENT,
-                    constants.TEST: constants.TEST_ENVIRONMENTS,
-                },
-                constants.REWARD_ATTRIBUTES,
-                constants.GAUSSIAN,
-            ],
-            dependent_variables=[
-                [constants.TRAIN_STATISTICS, constants.TEST_STATISTICS]
-            ],
-            dependent_variables_required_values=[[constants.GAUSSIAN]],
-        )
-
         self._reward_template = config_template.Template(
             fields=[
                 config_field.Field(
                     name=constants.AVAILABILITY,
-                    types=[int, str],
+                    types=[list, int, str],
                     requirements=[
-                        lambda x: x == constants.INFINITE
+                        lambda x: isinstance(x, list)
+                        or x == constants.INFINITE
                         or (isinstance(x, int) and x > 0)
                     ],
                 ),
                 config_field.Field(
                     name=constants.STATISTICS,
-                    types=[str],
-                    requirements=[lambda x: x in [constants.GAUSSIAN]],
+                    types=[list],
                 ),
             ],
             level=[
@@ -228,7 +212,6 @@ class RLNavConfigTemplate:
                 },
                 constants.REWARD_ATTRIBUTES,
             ],
-            nested_templates=[self._gaussian_statistics_template],
         )
 
         self._train_environment_template = config_template.Template(
