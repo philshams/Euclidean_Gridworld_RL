@@ -22,12 +22,12 @@ training:
     linear_features:
         features:
             - coarse_coding
-            - state_id
+            # - state_id
 
         coarse_coding:
             coding_widths: [2, 4, 5]
             coding_heights: [2, 4, 5]
-            augment_actions: False
+            augment_actions: True
 
 initialisation:
     type: random_normal
