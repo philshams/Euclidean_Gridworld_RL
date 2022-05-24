@@ -73,7 +73,7 @@ CONFIG_CHANGES = {
                     "../maps/moved_reward_map.txt",
                     "../maps/square_escape_map.txt",
                 ],
-                "reward_positions": [7, 6],
+                "reward_positions": [[7, 6]],
             },
         }
     ],
