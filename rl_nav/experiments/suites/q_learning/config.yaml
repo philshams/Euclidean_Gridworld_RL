@@ -6,6 +6,7 @@ training:
 
     behaviour: epsilon_greedy
     target: greedy
+    test_epsilon: 0.99
 
     learning_rate: 0.1
     discount_factor: 0.9
@@ -40,11 +41,11 @@ train_environment:
     # provide either one set of attributes (used for all rewards)
     # or one set for each reward
     reward_attributes:
-        availability: infinite # integer specifying number available or "infinite"
-        statistics: gaussian
-        gaussian:
-            mean: 1
-            variance: 0
+        availability: [infinite] # integer specifying number available or "infinite"
+        statistics:
+            - gaussian:
+                mean: 1
+                variance: 0
 
 test_environments:
 
@@ -62,11 +63,11 @@ test_environments:
     # provide either one set of attributes (used for all rewards)
     # or one set for each reward
     reward_attributes:
-        availability: 1 # integer specifying number available or "infinite"
-        statistics: gaussian
-        gaussian:
-            mean: 1
-            variance: 0
+        availability: [1] # integer specifying number available or "infinite"
+        statistics: 
+            - gaussian:
+                mean: 1
+                variance: 0
 
 logging:
     visualisation_frequency: 50000
