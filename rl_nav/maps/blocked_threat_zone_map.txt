@@ -1,8 +1,8 @@
 ###############
+#   CCCCCCC   #
+#   CCCCCCC   #
 #    CCCCC    #
-#    CCCCC    #
-#    CCCCC    #
-#             #
+#     CCC     #
 #             #
 #   BBBBBBB   #
 #             #
