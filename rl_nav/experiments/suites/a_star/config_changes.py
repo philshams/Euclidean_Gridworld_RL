@@ -77,4 +77,17 @@ CONFIG_CHANGES = {
             },
         }
     ],
+    "condition_8": [
+        {
+            "train_environment": {
+                "map_path": "../maps/blocked_threat_zone_map.txt",
+            },
+            "test_environments": {
+                "map_paths": [
+                    "../maps/square_escape_test_map.txt",
+                    "../maps/square_escape_map.txt",
+                ],
+            },
+        }
+    ],
 }
