@@ -195,8 +195,9 @@ class EscapeEnv(base_env.BaseEnvironment, abc.ABC):
                     agent_position = self._starting_xy
             else:
                 agent_position = agent
-            # show agent
-            skeleton[tuple(agent_position[::-1])] = 0.5 * np.ones(3)
+            if agent_position is not None:
+                # show agent
+                skeleton[tuple(agent_position[::-1])] = 0.5 * np.ones(3)
 
         return skeleton
 
