@@ -22,7 +22,7 @@ class Dyna(tabular_learner.TabularLearner):
         target: str,
         imputation_method: str,
         plan_steps_per_update: int,
-        inverse_actions: Optional[Dict],
+        inverse_actions: Optional[Dict] = None,
     ):
         """Class constructor.
 
