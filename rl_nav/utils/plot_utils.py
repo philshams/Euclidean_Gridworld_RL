@@ -4,6 +4,7 @@ import re
 import matplotlib.pyplot as plt
 import numpy as np
 import yaml
+from matplotlib import cm
 from rl_nav import constants
 
 
@@ -73,6 +74,7 @@ def plot_trajectories(folder_path, exp_names):
                 os.path.join(seed_folders[0], constants.ENV_SKELETON, f)
             )
             for f in os.listdir(os.path.join(seed_folders[0], constants.ENV_SKELETON))
+            if f.endswith(".npy")
         }
 
         for env_name, env in envs.items():
@@ -125,3 +127,91 @@ def plot_trajectories(folder_path, exp_names):
                 ),
                 split_by=[start_position],
             )
+
+
+def plot_heatmaps(folder_path, exp_names):
+    def _plot_heatmap(save_path, heatmap):
+
+        x, y = zip(*heatmap.keys())
+
+        x_min = min(x)
+        x_max = max(x)
+        y_min = min(y)
+        y_max = max(y)
+
+        array_heatmap = np.zeros((y_max - y_min + 1, x_max - x_min + 1))
+
+        fig = plt.figure()
+        for state, value in heatmap.items():
+            x_ = state[0]
+            y_ = state[1]
+            array_heatmap[y_ - y_min][x_ - x_min] = value
+
+        heat_min = np.min(array_heatmap)
+        heat_max = np.max(array_heatmap)
+
+        array_heatmap = array_heatmap - heat_min / (heat_max - heat_min)
+
+        plt.imshow(array_heatmap, origin="lower", cmap=cm.get_cmap("plasma"))
+        plt.colorbar()
+
+        fig.savefig(save_path)
+
+    for exp_name in exp_names:
+        exp_path = os.path.join(folder_path, exp_name)
+        seed_folders = [
+            os.path.join(exp_path, p) for p in os.listdir(exp_path) if p.isdigit()
+        ]
+
+        pattern = re.compile(f"[0-9]*_{constants.VALUES}.npy")
+        pre_test_pattern = re.compile(f"[0-9]*_{constants.PRE_TEST}_{constants.VALUES}")
+
+        average_heatmap = {}
+        average_pre_test_heatmap = {}
+
+        for seed_folder in seed_folders:
+            all_heatmaps = [
+                os.path.join(seed_folder, constants.VISUALISATIONS, f)
+                for f in os.listdir(os.path.join(seed_folder, constants.VISUALISATIONS))
+                if pattern.match(f)
+            ]
+            all_pre_test_heatmaps = [
+                os.path.join(seed_folder, constants.VISUALISATIONS, f)
+                for f in os.listdir(os.path.join(seed_folder, constants.VISUALISATIONS))
+                if pre_test_pattern.match(f)
+            ]
+
+            final_heatmap = np.load(
+                sorted(
+                    all_heatmaps,
+                    key=lambda x: int(x.split("_values.npy")[0].split("/")[-1]),
+                )[-1],
+                allow_pickle=True,
+            )[()]
+            final_pre_test_heatmap = np.load(
+                sorted(
+                    all_pre_test_heatmaps,
+                    key=lambda x: int(
+                        x.split("_pre_test_values.npy")[0].split("/")[-1]
+                    ),
+                )[-1],
+                allow_pickle=True,
+            )[()]
+
+            for state, value in final_heatmap.items():
+                if state not in average_heatmap:
+                    average_heatmap[state] = 0
+                average_heatmap[state] += value / len(seed_folders)
+
+            for state, value in final_pre_test_heatmap.items():
+                if state not in average_pre_test_heatmap:
+                    average_pre_test_heatmap[state] = 0
+                average_pre_test_heatmap[state] += value / len(seed_folders)
+
+        _plot_heatmap(
+            os.path.join(exp_path, constants.AVERAGE_HEATMAP_PDF), average_heatmap
+        )
+        _plot_heatmap(
+            os.path.join(exp_path, constants.AVERAGE_PRETEST_HEATMAP_PDF),
+            average_pre_test_heatmap,
+        )
