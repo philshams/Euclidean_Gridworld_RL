@@ -33,6 +33,7 @@ CONFIG_CHANGES = {
                 "map_paths": [
                     "../maps/square_escape_test_map.txt",
                     "../maps/square_escape_map.txt",
+                    "../maps/vector_blocked_square_escape_map.txt",
                 ]
             },
         }
@@ -46,6 +47,7 @@ CONFIG_CHANGES = {
                 "map_paths": [
                     "../maps/square_escape_test_map.txt",
                     "../maps/square_escape_map.txt",
+                    "../maps/shelter_blocked_square_escape_map.txt",
                 ]
             },
         }
