@@ -12,9 +12,19 @@ parser.add_argument(
     "--results_folder", type=str, help="path to results folder to post-process."
 )
 parser.add_argument(
-    "--trajectories_only",
+    "--plot_trajectories",
     action="store_true",
-    help="whether to ignore scalar plots and plot trajectory summaries only.",
+    help="whether to plot trajectory summaries.",
+)
+parser.add_argument(
+    "--plot_heatmaps",
+    action="store_true",
+    help="whether to plot heatmap averages.",
+)
+parser.add_argument(
+    "--plot_scalars",
+    action="store_true",
+    help="whether to plot logged scalars.",
 )
 parser.add_argument(
     "--smoothing", type=int, help="window width for moving averaging.", default=40
@@ -61,9 +71,15 @@ if __name__ == "__main__":
 
             exp_names = [name for name in exp_names if name not in excluded_experiments]
 
-    plot_utils.plot_trajectories(folder_path=args.results_folder, exp_names=exp_names)
+    if args.plot_trajectories:
+        plot_utils.plot_trajectories(
+            folder_path=args.results_folder, exp_names=exp_names
+        )
 
-    if not args.trajectories_only:
+    if args.plot_heatmaps:
+        plot_utils.plot_heatmaps(folder_path=args.results_folder, exp_names=exp_names)
+
+    if args.plot_scalars:
 
         plot_functions.plot_all_multi_seed_multi_run(
             folder_path=args.results_folder,
