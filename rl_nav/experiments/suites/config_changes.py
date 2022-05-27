@@ -61,6 +61,7 @@ CONFIG_CHANGES = {
                 "map_paths": [
                     "../maps/square_escape_test_map.txt",
                     "../maps/square_escape_map.txt",
+                    "../maps/vector_threat_only_blocked_square_escape_map.txt",
                 ]
             },
         }
