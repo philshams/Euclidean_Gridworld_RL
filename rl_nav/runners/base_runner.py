@@ -72,6 +72,13 @@ class BaseRunner(base_runner.BaseRunner):
                     self._env_skeletons_path, f"{map_name}_{constants.ENV_SKELETON}"
                 )
             )
+            test_env.render(
+                save_path=os.path.join(
+                    self._env_skeletons_path,
+                    f"{map_name}_{constants.ENV_SKELETON}.{constants.PDF}",
+                ),
+                format="stationary",
+            )
 
     def _get_data_columns(self):
         columns = [
