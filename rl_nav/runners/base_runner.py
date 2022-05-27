@@ -352,6 +352,14 @@ class BaseRunner(base_runner.BaseRunner):
             except AttributeError:
                 plot_values = self._model.state_values
 
+            np.save(
+                os.path.join(
+                    self._visualisations_folder_path,
+                    f"{self._step_count}_{constants.VALUES}",
+                ),
+                plot_values,
+            )
+
             self._train_environment.plot_heatmap_over_env(
                 heatmap=plot_values,
                 save_name=os.path.join(
