@@ -306,6 +306,14 @@ class BaseRunner(base_runner.BaseRunner):
                     constants.AUGMENT_ACTIONS
                 ] = config.augment_actions
 
+            if constants.HARD_CODED_GEOMETRY in config.features:
+                features_dict[constants.HARD_CODED_GEOMETRY][
+                    constants.GEOMETRY_OUTLINE_PATH
+                ] = config.geometry_outline_path
+                features_dict[constants.HARD_CODED_GEOMETRY][
+                    constants.AUGMENT_ACTIONS
+                ] = config.hc_augment_actions
+
             if config.model == constants.LINEAR_FEATURES:
                 model = linear_features.LinearFeatureLearner(
                     features=features_dict,
