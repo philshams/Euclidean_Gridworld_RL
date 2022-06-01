@@ -6,7 +6,9 @@ import yaml
 from rl_nav import constants
 
 
-def parse_map_outline(map_file_path: str, mapping: Dict[str, int]) -> np.ndarray:
+def parse_map_outline(
+    map_file_path: str, mapping: Optional[Dict[str, int]] = None
+) -> np.ndarray:
     """Method to parse ascii map and map settings from yaml file.
 
     Args:
@@ -20,6 +22,9 @@ def parse_map_outline(map_file_path: str, mapping: Dict[str, int]) -> np.ndarray
 
     with open(map_file_path) as f:
         map_lines = f.read().splitlines()
+        mapping = mapping or {
+            item: i for i, item in enumerate(sorted(set("".join(map_lines))))
+        }
 
         # flip indices for x, y referencing
         for i, line in enumerate(map_lines[::-1]):
