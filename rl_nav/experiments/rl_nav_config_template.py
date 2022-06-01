@@ -53,6 +53,21 @@ class RLNavConfigTemplate:
             ],
         )
 
+        self._hard_coded_geometry_template = config_template.Template(
+            fields=[
+                config_field.Field(
+                    name=constants.GEOMETRY_OUTLINE_PATH,
+                    types=[str],
+                ),
+                config_field.Field(name=constants.HC_AUGMENT_ACTIONS, types=[bool]),
+            ],
+            level=[
+                constants.TRAINING,
+                constants.LINEAR_FEATURES,
+                constants.HARD_CODED_GEOMETRY,
+            ],
+        )
+
         self._linear_features_template = config_template.Template(
             fields=[
                 config_field.Field(
@@ -66,7 +81,10 @@ class RLNavConfigTemplate:
             dependent_variables_required_values=[
                 [constants.LINEAR_FEATURES, constants.STATE_LINEAR_FEATURES]
             ],
-            nested_templates=[self._coarse_coding_template],
+            nested_templates=[
+                self._coarse_coding_template,
+                self._hard_coded_geometry_template,
+            ],
         )
 
         self._training_template = config_template.Template(
