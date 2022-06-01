@@ -29,6 +29,10 @@ training:
             coding_heights: [2, 4, 5]
             augment_actions: True
 
+        hard_coded_geometry:
+            geometry_outline_path: ../maps/geometry.txt
+            hc_augment_actions: True
+
 initialisation:
     type: random_normal
 
