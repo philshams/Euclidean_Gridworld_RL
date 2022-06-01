@@ -112,6 +112,16 @@ class LinearFeatureLearner(tabular_learner.TabularLearner):
             else:
                 features[constants.COARSE_CODING][constants.AUGMENT_ACTIONS] = None
 
+        if constants.HARD_CODED_GEOMETRY in features:
+            if features[constants.HARD_CODED_GEOMETRY][constants.AUGMENT_ACTIONS]:
+                features[constants.HARD_CODED_GEOMETRY][
+                    constants.AUGMENT_ACTIONS
+                ] = self._action_space
+            else:
+                features[constants.HARD_CODED_GEOMETRY][
+                    constants.AUGMENT_ACTIONS
+                ] = None
+
         if constants.ACTION_ONE_HOT in features:
             features[constants.ACTION_ONE_HOT][
                 constants.ACTION_SPACE
