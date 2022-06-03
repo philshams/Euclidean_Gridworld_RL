@@ -8,8 +8,9 @@ import numpy as np
 from rl_nav import constants
 from rl_nav.environments import (escape_env_cardinal, escape_env_diagonal,
                                  visualisation_env)
-from rl_nav.models import (a_star, dyna, linear_features, q_learning,
-                           state_linear_features, successor_representation)
+from rl_nav.models import (a_star, dyna, dyna_linear_features, linear_features,
+                           q_learning, state_linear_features,
+                           successor_representation)
 from rl_nav.utils import model_utils
 from run_modes import base_runner
 
@@ -292,6 +293,8 @@ class BaseRunner(base_runner.BaseRunner):
         elif config.model in [
             constants.LINEAR_FEATURES,
             constants.STATE_LINEAR_FEATURES,
+            constants.DYNA_LINEAR_FEATURES,
+            constants.UNDIRECTED_DYNA_LINEAR_FEATURES,
         ]:
             features_dict = {feature: {} for feature in config.features}
 
@@ -337,6 +340,33 @@ class BaseRunner(base_runner.BaseRunner):
                     learning_rate=config.learning_rate,
                     gamma=config.discount_factor,
                     imputation_method=config.imputation_method,
+                )
+            elif config.model == constants.DYNA_LINEAR_FEATURES:
+                model = dyna_linear_features.DynaLinearFeatureLearner(
+                    features=features_dict,
+                    action_space=self._train_environment.action_space,
+                    state_space=self._train_environment.state_space,
+                    behaviour=config.behaviour,
+                    target=config.target,
+                    initialisation_strategy=initialisation_strategy,
+                    learning_rate=config.learning_rate,
+                    gamma=config.discount_factor,
+                    imputation_method=config.imputation_method,
+                    plan_steps_per_update=config.plan_steps_per_update,
+                )
+            elif config.model == constants.UNDIRECTED_DYNA_LINEAR_FEATURES:
+                model = dyna_linear_features.DynaLinearFeatureLearner(
+                    features=features_dict,
+                    action_space=self._train_environment.action_space,
+                    state_space=self._train_environment.state_space,
+                    behaviour=config.behaviour,
+                    target=config.target,
+                    initialisation_strategy=initialisation_strategy,
+                    learning_rate=config.learning_rate,
+                    gamma=config.discount_factor,
+                    imputation_method=config.imputation_method,
+                    plan_steps_per_update=config.plan_steps_per_update,
+                    inverse_actions=self._train_environment.inverse_action_mapping,
                 )
         else:
             raise ValueError(f"Model {config.model} not recogised.")
