@@ -3,7 +3,8 @@ import os
 
 from rl_nav import constants, runners
 from rl_nav.experiments import rl_nav_config
-from rl_nav.runners import (a_star_runner, dyna_runner, linear_feature_runner,
+from rl_nav.runners import (a_star_runner, dyna_linear_feature_runner,
+                            dyna_runner, linear_feature_runner,
                             q_learning_runner, successor_rep_runner)
 from run_modes import cluster_run, parallel_run, serial_run, single_run, utils
 
@@ -78,6 +79,21 @@ if __name__ == "__main__":
         else:
             runner_class = dyna_runner.EpisodicDynaRunner
             runner_class_name = "EpisodicDynaRunner"
+
+    elif config.model in [
+        constants.DYNA_LINEAR_FEATURES,
+        constants.UNDIRECTED_DYNA_LINEAR_FEATURES,
+    ]:
+        runner_module_name = "dyna_linear_feature_runner"
+        runner_module_path = os.path.join(
+            runners_module_path, "dyna_linear_feature_runner.py"
+        )
+        if config.train_episode_timeout is None:
+            runner_class = dyna_linear_feature_runner.LifelongDynaLinearFeatureRunner
+            runner_class_name = "LifelongDynaLinearFeatureRunner"
+        else:
+            runner_class = dyna_linear_feature_runner.EpisodicDynaLinearFeatureRunner
+            runner_class_name = "EpisodicDynaLinearFeatureRunner"
 
     elif config.model == constants.A_STAR:
         runner_module_name = "a_star_runner"
