@@ -23,7 +23,12 @@ class RLNavConfigTemplate:
             ],
             dependent_variables=[constants.MODEL],
             dependent_variables_required_values=[
-                [constants.DYNA, constants.UNDIRECTED_DYNA]
+                [
+                    constants.DYNA,
+                    constants.UNDIRECTED_DYNA,
+                    constants.DYNA_LINEAR_FEATURES,
+                    constants.UNDIRECTED_DYNA_LINEAR_FEATURES,
+                ]
             ],
             level=[constants.TRAINING, constants.DYNA],
         )
@@ -79,7 +84,12 @@ class RLNavConfigTemplate:
             level=[constants.TRAINING, constants.LINEAR_FEATURES],
             dependent_variables=[constants.MODEL],
             dependent_variables_required_values=[
-                [constants.LINEAR_FEATURES, constants.STATE_LINEAR_FEATURES]
+                [
+                    constants.LINEAR_FEATURES,
+                    constants.STATE_LINEAR_FEATURES,
+                    constants.DYNA_LINEAR_FEATURES,
+                    constants.UNDIRECTED_DYNA_LINEAR_FEATURES,
+                ]
             ],
             nested_templates=[
                 self._coarse_coding_template,
@@ -103,6 +113,8 @@ class RLNavConfigTemplate:
                             constants.Q_LEARNING,
                             constants.SUCCESSOR_REP,
                             constants.DYNA,
+                            constants.DYNA_LINEAR_FEATURES,
+                            constants.UNDIRECTED_DYNA_LINEAR_FEATURES,
                             constants.UNDIRECTED_DYNA,
                             constants.A_STAR,
                             constants.LINEAR_FEATURES,
