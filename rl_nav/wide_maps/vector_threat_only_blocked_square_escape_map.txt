@@ -1,8 +1,8 @@
 #######################
 #                     #
-#      H       K      #
-#      HH     KK      #
-#       HH   KK       #
+#       H      K      #
+#       HH    KK      #
+#        HH  KK       #
 #                     #
 #     BBBBBBBBBBB     #
 #                     #
