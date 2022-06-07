@@ -150,7 +150,7 @@ def plot_heatmaps(folder_path, exp_names):
         heat_min = np.min(array_heatmap)
         heat_max = np.max(array_heatmap)
 
-        array_heatmap = array_heatmap - heat_min / (heat_max - heat_min)
+        array_heatmap = (array_heatmap - heat_min) / (heat_max - heat_min)
 
         plt.imshow(array_heatmap, origin="lower", cmap=cm.get_cmap("plasma"))
         plt.colorbar()
