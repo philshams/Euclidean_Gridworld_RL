@@ -23,6 +23,7 @@ class BaseEnvironment(abc.ABC):
         constants.REWARD_CHARACTER: 0,
         constants.B_BLOCK_CHARACTER: 0.5,
         constants.D_BLOCK_CHARACTER: 0.51,
+        constants.E_BLOCK_CHARACTER: 0.52,
         constants.NO_START_BLOCK_CHAR: 0.55,
     }
 
@@ -80,6 +81,9 @@ class BaseEnvironment(abc.ABC):
         )
         self._d_block_state_space = state_space_dictionary.get(
             constants.D_BLOCK_STATE_SPACE
+        )
+        self._e_block_state_space = state_space_dictionary.get(
+            constants.E_BLOCK_STATE_SPACE
         )
         self._b_block_state_space = state_space_dictionary.get(
             constants.B_BLOCK_STATE_SPACE
