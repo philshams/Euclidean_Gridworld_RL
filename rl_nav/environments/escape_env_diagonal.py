@@ -149,6 +149,18 @@ class EscapeEnvDiagonal(escape_env.EscapeEnv):
             )
         )
 
+        moving_into_e_block = (
+            (self._e_block_state_space is not None)
+            and (tuple(provisional_new_position) in self._e_block_state_space)
+            and (
+                np.array_equal(delta, self.DELTAS[0])
+                or np.array_equal(delta, self.DELTAS[2])
+                or np.array_equal(delta, self.DELTAS[3])
+                or np.array_equal(delta, self.DELTAS[6])
+                or np.array_equal(delta, self.DELTAS[7])
+            )
+        )
+
         moving_into_b_block = (
             (self._b_block_state_space is not None)
             and (tuple(provisional_new_position) in self._b_block_state_space)
@@ -179,6 +191,7 @@ class EscapeEnvDiagonal(escape_env.EscapeEnv):
                 not moving_into_k_block,
                 not moving_into_h_block,
                 not moving_into_d_block,
+                not moving_into_e_block,
                 not moving_into_b_block,
                 not moving_from_b_block,
                 not moving_into_c_block,
