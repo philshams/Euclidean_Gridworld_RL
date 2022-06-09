@@ -276,10 +276,10 @@ class EscapeEnv(base_env.BaseEnvironment, abc.ABC):
             self._active
         ), "Environment not active. call reset_environment() to reset environment and make it active."
         assert (
-            action in self.ACTION_SPACE
+            action in self._action_space
         ), f"Action given as {action}; must be 0: left, 1: up, 2: right or 3: down."
 
-        reward = self._move_agent(delta=self.DELTAS[action])
+        reward = self._move_agent(delta=self._deltas[action])
         new_state = self.get_state_representation()
         skeleton = self._env_skeleton()
 
