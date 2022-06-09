@@ -413,7 +413,10 @@ class BaseRunner(base_runner.BaseRunner):
             self._write_scalar(tag=tag, step=step, scalar=scalar)
 
     def _generate_visualisations(self):
-        if constants.VALUE_FUNCTION in self._visualisations:
+        if (
+            self._visualisations is not None
+            and constants.VALUE_FUNCTION in self._visualisations
+        ):
             try:
                 averaged_values = (
                     self._train_environment.average_values_over_positional_states(
@@ -440,7 +443,10 @@ class BaseRunner(base_runner.BaseRunner):
                 ),
             )
 
-        if constants.VISITATION_COUNTS in self._visualisations:
+        if (
+            self._visualisations is not None
+            and constants.VISITATION_COUNTS in self._visualisations
+        ):
             averaged_visitation_counts = (
                 self._train_environment.average_values_over_positional_states(
                     self._model.state_visitation_counts
@@ -451,6 +457,19 @@ class BaseRunner(base_runner.BaseRunner):
                 save_name=os.path.join(
                     self._visualisations_folder_path,
                     f"{self._step_count}_{constants.VISITATION_COUNTS_PDF}",
+                ),
+            )
+
+        if (
+            self._visualisations is not None
+            and constants.NUMBERED_VALUE_FUNCTION in self._visualisations
+        ):
+            network_values = self._model.state_action_values
+            self._train_environment.plot_numbered_values_over_env(
+                values=network_values,
+                save_name=os.path.join(
+                    self._visualisations_folder_path,
+                    f"{self._step_count}_{constants.NUMBERED_VALUES_PDF}",
                 ),
             )
 
@@ -620,7 +639,10 @@ class BaseRunner(base_runner.BaseRunner):
                 f"{constants.TEST_EPISODE_LENGTH}_{map_name}_{constants.FIND_SHELTER_RUN}"
             ] = length
 
-            if constants.VALUE_FUNCTION in self._visualisations:
+            if (
+                self._visualisations is not None
+                and constants.VALUE_FUNCTION in self._visualisations
+            ):
                 try:
                     averaged_values = (
                         self._train_environment.average_values_over_positional_states(
