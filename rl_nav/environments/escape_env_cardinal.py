@@ -9,23 +9,6 @@ class EscapeEnvCardinal(escape_env.EscapeEnv):
     Between each room is a door, that requires a key to unlock.
     """
 
-    ACTION_SPACE = [0, 1, 2, 3]
-    # 0: LEFT
-    # 1: UP
-    # 2: RIGHT
-    # 3: DOWN
-
-    DELTAS = {
-        0: np.array([-1, 0]),
-        1: np.array([0, 1]),
-        2: np.array([1, 0]),
-        3: np.array([0, -1]),
-    }
-
-    DELTAS_ = {(-1, 0): 0, (0, 1): 1, (1, 0): 2, (0, -1): 3}
-
-    INVERSE_ACTION_MAPPING = {0: 2, 1: 3, 2: 0, 3: 1}
-
     def __init__(
         self,
         training: bool,
@@ -62,6 +45,23 @@ class EscapeEnvCardinal(escape_env.EscapeEnv):
             torch_axes: whether to use torch or tf paradigm of axis ordering.
         """
 
+        self._deltas = {
+            0: np.array([-1, 0]),
+            1: np.array([0, 1]),
+            2: np.array([1, 0]),
+            3: np.array([0, -1]),
+        }
+
+        self._deltas_ = {(-1, 0): 0, (0, 1): 1, (1, 0): 2, (0, -1): 3}
+
+        self._action_space = [0, 1, 2, 3]
+        # 0: LEFT
+        # 1: UP
+        # 2: RIGHT
+        # 3: DOWN
+
+        self._inverse_action_mapping = {0: 2, 1: 3, 2: 0, 3: 1}
+
         super().__init__(
             training=training,
             map_path=map_path,
@@ -80,11 +80,11 @@ class EscapeEnvCardinal(escape_env.EscapeEnv):
 
     @property
     def action_deltas(self) -> Dict[int, np.ndarray]:
-        return EscapeEnvCardinal.DELTAS
+        return self._deltas
 
     @property
     def delta_actions(self) -> Dict[Tuple[int], int]:
-        return EscapeEnvCardinal.DELTAS_
+        return self._deltas_
 
     @property
     def inverse_action_mapping(self) -> Dict[int, int]:
