@@ -49,7 +49,7 @@ class Wrapper(base_env.BaseEnvironment):
 
     @property
     def action_space(self) -> List[int]:
-        return self._env.ACTION_SPACE
+        return self._env.action_space
 
     @property
     def state_space(self) -> List[Tuple[int, int]]:
