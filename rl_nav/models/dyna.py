@@ -11,6 +11,8 @@ from rl_nav.models import tabular_learner
 class Dyna(tabular_learner.TabularLearner):
     """Dyna (Sutton '91)."""
 
+    MAXSIZE = 5
+
     def __init__(
         self,
         action_space: List[int],
@@ -214,12 +216,17 @@ class Dyna(tabular_learner.TabularLearner):
         if not self._allow_state_instantiation:
             if state not in self._states_visited:
                 self._states_visited.append(state)
+            if len(self._action_history[state]) == Dyna.MAXSIZE:
+                _ = self._action_history[state].pop(0)
             self._action_history[state].append(action)
             state_action = state + tuple([action])
             self._model[state_action] = (new_state, reward)
 
             if self._undirected:
-                reverse_action = self._inverse_actions[action]
+                if any([isinstance(k, dict) for k in self._inverse_actions.values()]):
+                    reverse_action = self._inverse_actions[state][action]
+                else:
+                    reverse_action = self._inverse_actions[action]
                 reverse_state_action = new_state + tuple([reverse_action])
                 if reverse_state_action not in self._model:
                     self._model[reverse_state_action] = (state, 0)
