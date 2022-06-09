@@ -244,6 +244,20 @@ class RLNavConfigTemplate:
             ],
         )
 
+        self._train_hierarchy_template = config_template.Template(
+            fields=[
+                config_field.Field(
+                    name=constants.TRANSITION_STRUCTURE_PATH, types=[str]
+                )
+            ],
+            level=[
+                constants.TRAIN_ENVIRONMENT,
+                f"{constants.TRAIN}_{constants.HIERARCHY_NETWORK}",
+            ],
+            dependent_variables=[[f"{constants.TRAIN}_{constants.ENV_NAME}"]],
+            dependent_variables_required_values=[[constants.HIERARCHY_NETWORK]],
+        )
+
         self._train_environment_template = config_template.Template(
             fields=[
                 config_field.Field(
@@ -251,7 +265,11 @@ class RLNavConfigTemplate:
                     types=[str],
                     requirements=[
                         lambda x: x
-                        in [constants.ESCAPE_ENV, constants.ESCAPE_ENV_DIAGONAL]
+                        in [
+                            constants.ESCAPE_ENV,
+                            constants.ESCAPE_ENV_DIAGONAL,
+                            constants.HIERARCHY_NETWORK,
+                        ]
                     ],
                 ),
                 config_field.Field(name=constants.MAP_PATH, types=[str]),
@@ -277,8 +295,22 @@ class RLNavConfigTemplate:
                 ),
             ],
             level=[constants.TRAIN_ENVIRONMENT],
-            nested_templates=[self._reward_template],
+            nested_templates=[self._reward_template, self._train_hierarchy_template],
             key_prefix=constants.TRAIN,
+        )
+
+        self._test_hierarchy_template = config_template.Template(
+            fields=[
+                config_field.Field(
+                    name=constants.TRANSITION_STRUCTURE_PATHS, types=[list]
+                )
+            ],
+            level=[
+                constants.TEST_ENVIRONMENTS,
+                f"{constants.TEST}_{constants.HIERARCHY_NETWORK}",
+            ],
+            dependent_variables=[[f"{constants.TEST}_{constants.ENV_NAME}"]],
+            dependent_variables_required_values=[[constants.HIERARCHY_NETWORK]],
         )
 
         self._test_environments_template = config_template.Template(
@@ -288,7 +320,11 @@ class RLNavConfigTemplate:
                     types=[str],
                     requirements=[
                         lambda x: x
-                        in [constants.ESCAPE_ENV, constants.ESCAPE_ENV_DIAGONAL]
+                        in [
+                            constants.ESCAPE_ENV,
+                            constants.ESCAPE_ENV_DIAGONAL,
+                            constants.HIERARCHY_NETWORK,
+                        ]
                     ],
                 ),
                 config_field.Field(name=constants.MAP_PATHS, types=[list]),
@@ -314,7 +350,7 @@ class RLNavConfigTemplate:
                 ),
             ],
             level=[constants.TEST_ENVIRONMENTS],
-            nested_templates=[self._reward_template],
+            nested_templates=[self._reward_template, self._test_hierarchy_template],
             key_prefix=constants.TEST,
         )
 
@@ -342,8 +378,10 @@ class RLNavConfigTemplate:
                 ),
                 config_field.Field(
                     name=constants.VISUALISATIONS,
-                    types=[list],
-                    requirements=[lambda x: all([isinstance(y, str) for y in x])],
+                    types=[list, type(None)],
+                    requirements=[
+                        lambda x: x is None or all([isinstance(y, str) for y in x])
+                    ],
                 ),
             ],
             level=[constants.LOGGING],
