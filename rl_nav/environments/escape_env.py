@@ -1,5 +1,6 @@
 import abc
 import copy
+import random
 from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
@@ -27,6 +28,7 @@ class EscapeEnv(base_env.BaseEnvironment, abc.ABC):
         grayscale: bool = True,
         batch_dimension: bool = True,
         torch_axes: bool = True,
+        transition_matrix: Optional[bool] = True,
     ) -> None:
         """Class constructor.
 
@@ -85,15 +87,19 @@ class EscapeEnv(base_env.BaseEnvironment, abc.ABC):
         # states are zero, -1 removes walls from counts.
         self._visitation_counts = -1 * copy.deepcopy(self._map)
 
-        self._transition_matrix = {
-            state: {
-                action: self._move_agent(
-                    delta=self.action_deltas[action], phantom_position=np.array(state)
-                )
-                for action in self.ACTION_SPACE
+        if transition_matrix:
+            self._transition_matrix = {
+                state: {
+                    action: self._move_agent(
+                        delta=self.action_deltas[action],
+                        phantom_position=np.array(state),
+                    )
+                    for action in self.action_space
+                }
+                for state in self._state_space
             }
-            for state in self._state_space
-        }
+        else:
+            self._transition_matrix = {}
 
     @property
     def starting_xy(self) -> Tuple[int]:
