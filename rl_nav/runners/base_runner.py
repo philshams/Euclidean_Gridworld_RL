@@ -7,7 +7,7 @@ from typing import Any, Dict, Optional, Union
 import numpy as np
 from rl_nav import constants
 from rl_nav.environments import (escape_env_cardinal, escape_env_diagonal,
-                                 visualisation_env)
+                                 hierarchy_network, visualisation_env)
 from rl_nav.models import (a_star, dyna, dyna_linear_features, linear_features,
                            q_learning, state_linear_features,
                            successor_representation)
@@ -152,6 +152,8 @@ class BaseRunner(base_runner.BaseRunner):
             environment = escape_env_cardinal.EscapeEnvCardinal(**environment_args)
         elif config.train_env_name == constants.ESCAPE_ENV_DIAGONAL:
             environment = escape_env_diagonal.EscapeEnvDiagonal(**environment_args)
+        elif config.train_env_name == constants.HIERARCHY_NETWORK:
+            environment = hierarchy_network.HierarchyNetwork(**environment_args)
 
         environment = visualisation_env.VisualisationEnv(environment)
 
@@ -176,6 +178,17 @@ class BaseRunner(base_runner.BaseRunner):
                 environment_args[constants.MAP_PATH] = map_path
                 environment = escape_env_diagonal.EscapeEnvDiagonal(**environment_args)
                 environments[map_name] = visualisation_env.VisualisationEnv(environment)
+        if config.test_env_name == constants.HIERARCHY_NETWORK:
+            for map_path, transition_structure_path in zip(
+                config.test_map_paths, config.transition_structure_paths
+            ):
+                map_name = map_path.split("/")[-1].rstrip(".txt")
+                environment_args[constants.MAP_PATH] = map_path
+                environment_args[
+                    constants.TRANSITION_STRUCTURE
+                ] = transition_structure_path
+                environment = hierarchy_network.HierarchyNetwork(**environment_args)
+                environments[map_name] = visualisation_env.VisualisationEnv(environment)
 
         return environments
 
@@ -188,22 +201,33 @@ class BaseRunner(base_runner.BaseRunner):
             env_name = config.test_env_name
             config_key_prefix = constants.TEST
 
-        if env_name in [constants.ESCAPE_ENV, constants.ESCAPE_ENV_DIAGONAL]:
+        env_args = {}
+
+        if env_name in [
+            constants.ESCAPE_ENV,
+            constants.ESCAPE_ENV_DIAGONAL,
+            constants.HIERARCHY_NETWORK,
+        ]:
             env_args = {
-                constants.TRAINING: train,
-                constants.REPRESENTATION: getattr(
-                    config, f"{config_key_prefix}_{constants.REPRESENTATION}"
-                ),
-                constants.REWARD_POSITIONS: getattr(
-                    config, f"{config_key_prefix}_{constants.REWARD_POSITIONS}"
-                ),
-                constants.STEP_COST_FACTOR: getattr(config, constants.STEP_COST_FACTOR),
-                constants.START_POSITION: getattr(
-                    config, f"{config_key_prefix}_{constants.START_POSITION}"
-                ),
-                constants.EPISODE_TIMEOUT: getattr(
-                    config, f"{config_key_prefix}_{constants.EPISODE_TIMEOUT}"
-                ),
+                **env_args,
+                **{
+                    constants.TRAINING: train,
+                    constants.REPRESENTATION: getattr(
+                        config, f"{config_key_prefix}_{constants.REPRESENTATION}"
+                    ),
+                    constants.REWARD_POSITIONS: getattr(
+                        config, f"{config_key_prefix}_{constants.REWARD_POSITIONS}"
+                    ),
+                    constants.STEP_COST_FACTOR: getattr(
+                        config, constants.STEP_COST_FACTOR
+                    ),
+                    constants.START_POSITION: getattr(
+                        config, f"{config_key_prefix}_{constants.START_POSITION}"
+                    ),
+                    constants.EPISODE_TIMEOUT: getattr(
+                        config, f"{config_key_prefix}_{constants.EPISODE_TIMEOUT}"
+                    ),
+                },
             }
 
             reward_attr_dict = {
@@ -216,22 +240,17 @@ class BaseRunner(base_runner.BaseRunner):
                 == constants.GAUSSIAN
             ):
                 reward_attr_dict[constants.TYPE] = constants.GAUSSIAN
-                reward_attr_parameter_dict = {
-                    constants.MEAN: getattr(
-                        config, f"{config_key_prefix}_{constants.GAUSSIAN_MEAN}"
-                    ),
-                    constants.VARIANCE: getattr(
-                        config, f"{config_key_prefix}_{constants.GAUSSIAN_VARIANCE}"
-                    ),
-                }
             reward_attr_dict[constants.PARAMETERS] = getattr(
                 config, f"{config_key_prefix}_{constants.STATISTICS}"
             )
-            # reward_attr_dict[constants.PARAMETERS] = reward_attr_parameter_dict
             env_args[constants.REWARD_ATTRIBUTES] = reward_attr_dict
 
         if train:
             env_args[constants.MAP_PATH] = config.train_map_path
+            if env_name == constants.HIERARCHY_NETWORK:
+                env_args[
+                    constants.TRANSITION_STRUCTURE
+                ] = config.transition_structure_path
 
         return env_args
 
