@@ -9,8 +9,18 @@ from rl_nav import constants
 
 
 def plot_trajectories(folder_path, exp_names):
+
+    cmap = cm.get_cmap("winter")
+
     def _plot_trajectories(
-        exp_path, seed_folders, env_name, env, pattern, save_path, split_by=None
+        exp_path,
+        seed_folders,
+        env_name,
+        env,
+        pattern,
+        save_path,
+        split_by=None,
+        gradient=False,
     ):
         fig = plt.figure()
 
@@ -40,12 +50,33 @@ def plot_trajectories(folder_path, exp_names):
                     split_indices.append(split_index)
 
                 split_index = min(split_indices)
-                plt.plot(
-                    x[split_index + 1 :],
-                    y[split_index + 1 :],
-                    color="skyblue",
-                    alpha=0.6,
-                )
+
+                if gradient:
+                    for xi, xi_, yi, yi_ in zip(
+                        x[split_index + 1 : -1],
+                        x[split_index + 2 :],
+                        y[split_index + 1 : -1],
+                        y[split_index + 2 :],
+                    ):
+                        xi_space = np.linspace(xi, xi_, 30)
+                        yi_space = [
+                            yi + i * (yi_ - yi) / len(xi_space)
+                            for i in range(len(xi_space))
+                        ]
+                        color = [cmap(i / len(xi_space)) for i in range(len(xi_space))]
+                        plt.scatter(
+                            xi_space,
+                            yi_space,
+                            c=color,
+                            alpha=0.6,
+                        )
+                else:
+                    plt.plot(
+                        x[split_index + 1 :],
+                        y[split_index + 1 :],
+                        color="skyblue",
+                        alpha=0.6,
+                    )
             else:
                 plt.plot(x, y, color="skyblue", alpha=0.6)
 
