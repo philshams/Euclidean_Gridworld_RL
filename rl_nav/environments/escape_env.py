@@ -386,7 +386,10 @@ class EscapeEnv(base_env.BaseEnvironment, abc.ABC):
         if start_position is not None:
             self._agent_position = np.array(start_position)
         elif self._starting_xy is not None:
-            self._agent_position = np.array(self._starting_xy)
+            if any(isinstance(pos, list) for pos in self._starting_xy):
+                self._agent_position = np.array(random.choice(self._starting_xy))
+            else:
+                self._agent_position = np.array(self._starting_xy)
         else:
             random_position_index = np.random.choice(len(self._start_state_space))
             self._agent_position = np.array(
