@@ -156,3 +156,42 @@ class VisualisationEnv(wrapper.Wrapper):
             im = ax.imshow(environment_map, origin="lower", cmap=self.COLORMAP)
             fig.colorbar(im, ax=ax, cax=cax, orientation="vertical")
         plt.close()
+
+    def plot_numbered_values_over_env(
+        self, values: Dict[Tuple[int], np.ndarray], save_name: str
+    ):
+        fig = plt.figure()
+        environment_map = self._env._env_skeleton(
+            rewards=None,
+            agent=None,
+        )
+        plt.imshow(environment_map, origin="lower", cmap=self.COLORMAP)
+        all_states = list(values.keys())
+        for state, action_values in values.items():
+            for i, action_value in enumerate(action_values):
+                if all_states[i] != state:
+                    xytext = np.array(state) + 0.2 * (
+                        np.array(all_states[i]) - np.array(state)
+                    )
+                    plt.annotate(
+                        f"{i}: {round(action_value, 2)}",
+                        xy=state,
+                        xytext=xytext,
+                        arrowprops={
+                            "headlength": 2,
+                            "headwidth": 2,
+                            "width": 0.5,
+                            "linewidth": 0.1,
+                        },
+                        color="y",
+                        size=5,
+                    )
+                else:
+                    plt.annotate(
+                        i,
+                        xy=state,
+                        color="g",
+                        size=5,
+                    )
+        fig.savefig(save_name, dpi=60)
+        plt.close()
