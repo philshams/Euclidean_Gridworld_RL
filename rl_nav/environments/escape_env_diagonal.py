@@ -9,40 +9,6 @@ class EscapeEnvDiagonal(escape_env.EscapeEnv):
     Between each room is a door, that requires a key to unlock.
     """
 
-    ACTION_SPACE = [0, 1, 2, 3, 4, 5, 6, 7]
-    # 0: LEFT
-    # 1: UP
-    # 2: RIGHT
-    # 3: DOWN
-    # 4: LEFT-UP
-    # 5: RIGHT-UP
-    # 6: RIGHT-DOWN
-    # 7: LEFT-DOWN
-
-    DELTAS = {
-        0: np.array([-1, 0]),
-        1: np.array([0, 1]),
-        2: np.array([1, 0]),
-        3: np.array([0, -1]),
-        4: np.array([-1, 1]),
-        5: np.array([1, 1]),
-        6: np.array([1, -1]),
-        7: np.array([-1, -1]),
-    }
-
-    DELTAS_ = {
-        (-1, 0): 0,
-        (0, 1): 1,
-        (1, 0): 2,
-        (0, -1): 3,
-        (-1, 1): 4,
-        (1, 1): 5,
-        (1, -1): 6,
-        (-1, -1): 7,
-    }
-
-    INVERSE_ACTION_MAPPING = {0: 2, 1: 3, 2: 0, 3: 1, 4: 6, 5: 7, 6: 4, 7: 5}
-
     def __init__(
         self,
         training: bool,
@@ -79,6 +45,40 @@ class EscapeEnvDiagonal(escape_env.EscapeEnv):
             torch_axes: whether to use torch or tf paradigm of axis ordering.
         """
 
+        self._deltas = {
+            0: np.array([-1, 0]),
+            1: np.array([0, 1]),
+            2: np.array([1, 0]),
+            3: np.array([0, -1]),
+            4: np.array([-1, 1]),
+            5: np.array([1, 1]),
+            6: np.array([1, -1]),
+            7: np.array([-1, -1]),
+        }
+
+        self._deltas_ = {
+            (-1, 0): 0,
+            (0, 1): 1,
+            (1, 0): 2,
+            (0, -1): 3,
+            (-1, 1): 4,
+            (1, 1): 5,
+            (1, -1): 6,
+            (-1, -1): 7,
+        }
+
+        self._action_space = [0, 1, 2, 3, 4, 5, 6, 7]
+        # 0: LEFT
+        # 1: UP
+        # 2: RIGHT
+        # 3: DOWN
+        # 4: LEFT-UP
+        # 5: RIGHT-UP
+        # 6: RIGHT-DOWN
+        # 7: LEFT-DOWN
+
+        self._inverse_action_mapping = {0: 2, 1: 3, 2: 0, 3: 1, 4: 6, 5: 7, 6: 4, 7: 5}
+
         super().__init__(
             training=training,
             map_path=map_path,
@@ -94,18 +94,6 @@ class EscapeEnvDiagonal(escape_env.EscapeEnv):
             batch_dimension=batch_dimension,
             torch_axes=torch_axes,
         )
-
-    @property
-    def action_deltas(self) -> Dict[int, np.ndarray]:
-        return EscapeEnvDiagonal.DELTAS
-
-    @property
-    def delta_actions(self) -> Dict[Tuple[int], int]:
-        return EscapeEnvDiagonal.DELTAS_
-
-    @property
-    def inverse_action_mapping(self) -> Dict[int, int]:
-        return EscapeEnvDiagonal.INVERSE_ACTION_MAPPING
 
     def _move_agent(
         self, delta: np.ndarray, phantom_position: Optional[np.ndarray] = None
@@ -123,9 +111,9 @@ class EscapeEnvDiagonal(escape_env.EscapeEnv):
             (self._k_block_state_space is not None)
             and (tuple(provisional_new_position) in self._k_block_state_space)
             and (
-                np.array_equal(delta, self.DELTAS[2])
-                or np.array_equal(delta, self.DELTAS[3])
-                or np.array_equal(delta, self.DELTAS[6])
+                np.array_equal(delta, self._deltas[2])
+                or np.array_equal(delta, self._deltas[3])
+                or np.array_equal(delta, self._deltas[6])
             )
         )
 
@@ -133,9 +121,9 @@ class EscapeEnvDiagonal(escape_env.EscapeEnv):
             (self._h_block_state_space is not None)
             and (tuple(provisional_new_position) in self._h_block_state_space)
             and (
-                np.array_equal(delta, self.DELTAS[0])
-                or np.array_equal(delta, self.DELTAS[3])
-                or np.array_equal(delta, self.DELTAS[7])
+                np.array_equal(delta, self._deltas[0])
+                or np.array_equal(delta, self._deltas[3])
+                or np.array_equal(delta, self._deltas[7])
             )
         )
 
@@ -143,9 +131,9 @@ class EscapeEnvDiagonal(escape_env.EscapeEnv):
             (self._d_block_state_space is not None)
             and (tuple(provisional_new_position) in self._d_block_state_space)
             and (
-                np.array_equal(delta, self.DELTAS[3])
-                or np.array_equal(delta, self.DELTAS[6])
-                or np.array_equal(delta, self.DELTAS[7])
+                np.array_equal(delta, self._deltas[3])
+                or np.array_equal(delta, self._deltas[6])
+                or np.array_equal(delta, self._deltas[7])
             )
         )
 
@@ -153,11 +141,11 @@ class EscapeEnvDiagonal(escape_env.EscapeEnv):
             (self._e_block_state_space is not None)
             and (tuple(provisional_new_position) in self._e_block_state_space)
             and (
-                np.array_equal(delta, self.DELTAS[0])
-                or np.array_equal(delta, self.DELTAS[2])
-                or np.array_equal(delta, self.DELTAS[3])
-                or np.array_equal(delta, self.DELTAS[6])
-                or np.array_equal(delta, self.DELTAS[7])
+                np.array_equal(delta, self._deltas[0])
+                or np.array_equal(delta, self._deltas[2])
+                or np.array_equal(delta, self._deltas[3])
+                or np.array_equal(delta, self._deltas[6])
+                or np.array_equal(delta, self._deltas[7])
             )
         )
 
@@ -165,9 +153,9 @@ class EscapeEnvDiagonal(escape_env.EscapeEnv):
             (self._b_block_state_space is not None)
             and (tuple(provisional_new_position) in self._b_block_state_space)
             and (
-                np.array_equal(delta, self.DELTAS[3])
-                or np.array_equal(delta, self.DELTAS[6])
-                or np.array_equal(delta, self.DELTAS[7])
+                np.array_equal(delta, self._deltas[3])
+                or np.array_equal(delta, self._deltas[6])
+                or np.array_equal(delta, self._deltas[7])
             )
         )
 
@@ -175,9 +163,9 @@ class EscapeEnvDiagonal(escape_env.EscapeEnv):
             (self._b_block_state_space is not None)
             and (tuple(current_position) in self._b_block_state_space)
             and (
-                np.array_equal(delta, self.DELTAS[1])
-                or np.array_equal(delta, self.DELTAS[4])
-                or np.array_equal(delta, self.DELTAS[5])
+                np.array_equal(delta, self._deltas[1])
+                or np.array_equal(delta, self._deltas[4])
+                or np.array_equal(delta, self._deltas[5])
             )
         )
 

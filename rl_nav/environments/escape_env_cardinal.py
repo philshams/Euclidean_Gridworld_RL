@@ -78,18 +78,6 @@ class EscapeEnvCardinal(escape_env.EscapeEnv):
             torch_axes=torch_axes,
         )
 
-    @property
-    def action_deltas(self) -> Dict[int, np.ndarray]:
-        return self._deltas
-
-    @property
-    def delta_actions(self) -> Dict[Tuple[int], int]:
-        return self._deltas_
-
-    @property
-    def inverse_action_mapping(self) -> Dict[int, int]:
-        return EscapeEnvCardinal.INVERSE_ACTION_MAPPING
-
     def _move_agent(
         self, delta: np.ndarray, phantom_position: Optional[np.ndarray] = None
     ) -> float:
