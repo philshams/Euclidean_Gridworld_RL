@@ -110,19 +110,16 @@ class EscapeEnv(base_env.BaseEnvironment, abc.ABC):
         return self._reward_positions
 
     @property
-    @abc.abstractmethod
     def action_deltas(self) -> Dict[int, np.ndarray]:
-        pass
+        return self._deltas
 
     @property
-    @abc.abstractmethod
     def delta_actions(self) -> Dict[Tuple[int], int]:
-        pass
+        return self._deltas_
 
     @property
-    @abc.abstractmethod
     def inverse_action_mapping(self) -> Dict[int, int]:
-        pass
+        return self._inverse_action_mapping
 
     @property
     def transition_matrix(self) -> Dict:
