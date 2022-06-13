@@ -141,7 +141,7 @@ class BaseEnvironment(abc.ABC):
     @property
     def action_space(self) -> List[int]:
         """Actions (as integer indices) available in environment"""
-        return self.ACTION_SPACE
+        return self._action_space
 
     @property
     def state_space(self) -> List[Tuple[int]]:
