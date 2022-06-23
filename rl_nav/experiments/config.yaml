@@ -16,10 +16,21 @@ training:
     learning_rate: 0.1
     discount_factor: 0.9
     step_cost_factor: 0.01
-    epsilon: 0.99
+    # epsilon: 0.2
 
     one_dim_blocks: True
     imputation_method: random
+
+    epsilon:
+        schedule: linear_decay
+
+        constant:
+            value: 0.1
+        
+        linear_decay:
+            initial_value: 0.99
+            final_value: 0.1
+            anneal_duration: 250000
 
     dyna:
         plan_steps_per_update: 10
@@ -94,6 +105,11 @@ test_environments:
             - gaussian:
                 mean: 1
                 variance: 0
+
+    test_hierarchy_network:
+        transition_structure_paths: 
+            - ../maps/test_hierarchy_transition_7.json
+            - ../maps/hierarchy_transition_7.json
 
 logging:
     visualisation_frequency: 50000
