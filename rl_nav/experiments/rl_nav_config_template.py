@@ -61,8 +61,8 @@ class RLNavConfigTemplate:
         self._hard_coded_geometry_template = config_template.Template(
             fields=[
                 config_field.Field(
-                    name=constants.GEOMETRY_OUTLINE_PATH,
-                    types=[str],
+                    name=constants.GEOMETRY_OUTLINE_PATHS,
+                    types=[list],
                 ),
                 config_field.Field(name=constants.HC_AUGMENT_ACTIONS, types=[bool]),
             ],
@@ -127,6 +127,33 @@ class RLNavConfigTemplate:
                     types=[str],
                     requirements=[
                         lambda x: x in [constants.EPSILON_GREEDY, constants.GREEDY]
+                    ],
+                ),
+                # config_field.Field(
+                #     name=constants.TRAIN_RUNS,
+                #     types=[str, type(None)],
+                #     requirements=[
+                #         lambda x: x is None
+                #         or x
+                #         in [
+                #             constants.THREAT_EDGE,
+                #             constants.THREAT_SHELTER,
+                #             constants.EDGE_SHELTER,
+                #         ]
+                #     ],
+                # ),
+                config_field.Field(
+                    name=constants.TRAIN_RUN_TRIGGER_STATES,
+                    types=[list, type(None)],
+                    requirements=[
+                        lambda x: x is None or all([isinstance(y, list) for y in x])
+                    ],
+                ),
+                config_field.Field(
+                    name=constants.TRAIN_RUN_ACTION_SEQUENCES,
+                    types=[list, type(None)],
+                    requirements=[
+                        lambda x: x is None or all([isinstance(y, list) for y in x])
                     ],
                 ),
                 config_field.Field(
@@ -282,7 +309,12 @@ class RLNavConfigTemplate:
                     name=constants.REPRESENTATION,
                     types=[str],
                     requirements=[
-                        lambda x: x in [constants.AGENT_POSITION, constants.PIXEL]
+                        lambda x: x
+                        in [
+                            constants.AGENT_POSITION,
+                            constants.PIXEL,
+                            constants.AGENT_POSITION_REWARD,
+                        ]
                     ],
                 ),
                 config_field.Field(
