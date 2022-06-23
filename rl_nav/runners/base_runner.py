@@ -2,7 +2,7 @@ import abc
 import copy
 import os
 import random
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 import numpy as np
 from rl_nav import constants
@@ -50,6 +50,16 @@ class BaseRunner(base_runner.BaseRunner):
         self._test_frequency = config.test_frequency
         self._checkpoint_frequency = config.checkpoint_frequency
         self._one_dim_blocks = config.one_dim_blocks
+
+        if config.train_run_trigger_states is not None:
+            self._train_run_trigger_states = [
+                tuple(s) for s in config.train_run_trigger_states
+            ]
+        else:
+            self._train_run_trigger_states = []
+        self._train_run_action_sequences = config.train_run_action_sequences
+
+        self._current_train_run_action_sequence: List[int] = []
 
         self._visualisations = config.visualisations
 
@@ -135,7 +145,26 @@ class BaseRunner(base_runner.BaseRunner):
                 planning=self._planner,
             )
 
-        state, reward = self._model_train_step(state)
+        if state in self._train_run_trigger_states and not len(
+            self._current_train_run_action_sequence
+        ):
+            trigger_state_index = self._train_run_trigger_states.index(state)
+            self._current_train_run_action_sequence = self._train_run_action_sequences[
+                trigger_state_index
+            ][::-1]
+        if len(self._current_train_run_action_sequence):
+            action = self._current_train_run_action_sequence.pop()
+            reward, new_state = self._train_environment.step(action)
+            self._model.step(
+                state=state,
+                action=action,
+                reward=reward,
+                new_state=new_state,
+                active=self._train_environment.active,
+            )
+            state = new_state
+        else:
+            state, reward = self._model_train_step(state)
 
         return state, reward, logging_dict
 
@@ -330,8 +359,8 @@ class BaseRunner(base_runner.BaseRunner):
 
             if constants.HARD_CODED_GEOMETRY in config.features:
                 features_dict[constants.HARD_CODED_GEOMETRY][
-                    constants.GEOMETRY_OUTLINE_PATH
-                ] = config.geometry_outline_path
+                    constants.GEOMETRY_OUTLINE_PATHS
+                ] = config.geometry_outline_paths
                 features_dict[constants.HARD_CODED_GEOMETRY][
                     constants.AUGMENT_ACTIONS
                 ] = config.hc_augment_actions
