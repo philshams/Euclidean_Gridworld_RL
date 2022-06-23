@@ -61,23 +61,32 @@ def _setup_coarse_coding_features(feature_args):
 
 
 def _setup_hard_coded_geometry_features(feature_args):
-    geometry = env_utils.parse_map_outline(
-        map_file_path=feature_args[constants.GEOMETRY_OUTLINE_PATH],
-        mapping=None,
-    )
+    tiles = []
 
-    unzipped_tiles = [np.where(geometry == item) for item in set(geometry.flatten())]
-    tiles = [list(zip(tile[1], tile[0])) for tile in unzipped_tiles]
+    for geometry_path in feature_args[constants.GEOMETRY_OUTLINE_PATHS]:
+        geometry = env_utils.parse_map_outline(
+            map_file_path=geometry_path,
+            mapping=None,
+        )
 
-    augment_actions = feature_args[constants.AUGMENT_ACTIONS]
-    if augment_actions:
-        tiles_ = tiles
-        tiles = []
-        action_space = augment_actions
-        for tile in tiles_:
-            for a in action_space:
-                augmented_tile = [pos + (a,) for pos in tile]
-                tiles.append(augmented_tile)
+        geometry_unzipped_tiles = [
+            np.where(geometry == item) for item in set(geometry.flatten())
+        ]
+        geometry_tiles = [
+            list(zip(tile[1], tile[0])) for tile in geometry_unzipped_tiles
+        ]
+
+        augment_actions = feature_args[constants.AUGMENT_ACTIONS]
+        if augment_actions:
+            tiles_ = geometry_tiles
+            geometry_tiles = []
+            action_space = augment_actions
+            for tile in tiles_:
+                for a in action_space:
+                    augmented_tile = [pos + (a,) for pos in tile]
+                    geometry_tiles.append(augmented_tile)
+
+        tiles.extend(geometry_tiles)
 
     def hard_coded_feature(state: Tuple[int, int, int]):
         if augment_actions:
