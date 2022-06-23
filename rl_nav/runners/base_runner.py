@@ -11,7 +11,7 @@ from rl_nav.environments import (escape_env_cardinal, escape_env_diagonal,
 from rl_nav.models import (a_star, dyna, dyna_linear_features, linear_features,
                            q_learning, state_linear_features,
                            successor_representation)
-from rl_nav.utils import model_utils
+from rl_nav.utils import epsilon_schedules, model_utils
 from run_modes import base_runner
 
 
@@ -41,7 +41,7 @@ class BaseRunner(base_runner.BaseRunner):
 
         super().__init__(config=config, unique_id=unique_id)
 
-        self._epsilon = config.epsilon
+        self._epsilon = self._setup_epsilon(config=config)
         self._test_epsilon = config.test_epsilon
         self._num_steps = config.num_steps
         self._step_count = 0
@@ -166,6 +166,8 @@ class BaseRunner(base_runner.BaseRunner):
         else:
             state, reward = self._model_train_step(state)
 
+        next(self._epsilon)
+
         return state, reward, logging_dict
 
     @abc.abstractmethod
@@ -289,6 +291,16 @@ class BaseRunner(base_runner.BaseRunner):
                 ] = config.transition_structure_path
 
         return env_args
+
+    def _setup_epsilon(self, config):
+        if config.schedule == constants.CONSTANT:
+            return epsilon_schedules.ConstantEpsilon(value=config.value)
+        elif config.schedule == constants.LINEAR_DECAY:
+            return epsilon_schedules.LinearDecayEpsilon(
+                initial_value=config.initial_value,
+                final_value=config.final_value,
+                anneal_duration=config.anneal_duration,
+            )
 
     def _setup_model(self, config):
         """Instantiate model specified in configuration."""
