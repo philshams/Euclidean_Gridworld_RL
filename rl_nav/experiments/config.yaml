@@ -35,7 +35,10 @@ training:
             augment_actions: True
 
         hard_coded_geometry:
-            geometry_outline_path: ../maps/geometry.txt
+            geometry_outline_paths: 
+                - ../maps/hierarchy_geometry_7_1.txt
+                - ../maps/hierarchy_geometry_7_2.txt
+                - ../maps/hierarchy_geometry_7_3.txt
             hc_augment_actions: True
 
 initialisation:
