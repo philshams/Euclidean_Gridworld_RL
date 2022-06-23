@@ -232,7 +232,10 @@ class DynaLinearFeatureLearner(tabular_learner.TabularLearner):
             self._model[state_action] = (new_state, reward)
 
             if self._undirected:
-                reverse_action = self._inverse_actions[action]
+                if any([isinstance(k, dict) for k in self._inverse_actions.values()]):
+                    reverse_action = self._inverse_actions[state][action]
+                else:
+                    reverse_action = self._inverse_actions[action]
                 reverse_state_action = new_state + tuple([reverse_action])
                 if reverse_state_action not in self._model:
                     self._model[reverse_state_action] = (state, 0)
