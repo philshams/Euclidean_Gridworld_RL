@@ -208,8 +208,8 @@ class BaseRunner(base_runner.BaseRunner):
                 environment = escape_env_diagonal.EscapeEnvDiagonal(**environment_args)
                 environments[map_name] = visualisation_env.VisualisationEnv(environment)
         if config.test_env_name == constants.HIERARCHY_NETWORK:
-            for map_path, transition_structure_path in zip(
-                config.test_map_paths, config.transition_structure_paths
+            for i, (map_path, transition_structure_path) in enumerate(
+                zip(config.test_map_paths, config.transition_structure_paths)
             ):
                 map_name = map_path.split("/")[-1].rstrip(".txt")
                 environment_args[constants.MAP_PATH] = map_path
@@ -217,7 +217,14 @@ class BaseRunner(base_runner.BaseRunner):
                     constants.TRANSITION_STRUCTURE
                 ] = transition_structure_path
                 environment = hierarchy_network.HierarchyNetwork(**environment_args)
-                environments[map_name] = visualisation_env.VisualisationEnv(environment)
+                if map_name in environments:
+                    environments[
+                        f"{map_name}_{i}"
+                    ] = visualisation_env.VisualisationEnv(environment)
+                else:
+                    environments[map_name] = visualisation_env.VisualisationEnv(
+                        environment
+                    )
 
         return environments
 
