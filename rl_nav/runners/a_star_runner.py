@@ -42,7 +42,7 @@ class EpisodicAStarRunner(episodic_runner.EpisodicRunner):
 
     def _model_train_step(self, state) -> float:
         """Perform single training step."""
-        action = self._model.select_behaviour_action(state, epsilon=self._epsilon)
+        action = self._model.select_behaviour_action(state, epsilon=self._epsilon.value)
         reward, new_state = self._train_environment.step(action)
 
         self._model.step(
