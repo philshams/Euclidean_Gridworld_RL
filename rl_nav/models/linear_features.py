@@ -186,8 +186,6 @@ class LinearFeatureLearner(tabular_learner.TabularLearner):
             new_state: next state.
             active: whether episode is still ongoing.
         """
-        state_id = self._state_id_mapping[state]
-
         if active:
             discount = self._gamma
         else:
@@ -195,13 +193,15 @@ class LinearFeatureLearner(tabular_learner.TabularLearner):
 
         self._state_visitation_counts[state] += 1
 
-        self._step(
-            state_id=state_id,
-            action=action,
-            reward=reward,
-            discount=discount,
-            new_state=new_state,
-        )
+        if state != new_state:
+            state_id = self._state_id_mapping[state]
+            self._step(
+                state_id=state_id,
+                action=action,
+                reward=reward,
+                discount=discount,
+                new_state=new_state,
+            )
 
     def _step(
         self,
