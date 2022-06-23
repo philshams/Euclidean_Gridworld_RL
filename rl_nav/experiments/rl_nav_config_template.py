@@ -97,6 +97,73 @@ class RLNavConfigTemplate:
             ],
         )
 
+        _constant_epsilon_template = config_template.Template(
+            fields=[
+                config_field.Field(
+                    name=constants.VALUE,
+                    types=[int, float],
+                    requirements=[lambda x: x >= 0 and x <= 1],
+                )
+            ],
+            level=[
+                constants.TRAINING,
+                constants.EPSILON,
+                constants.CONSTANT,
+            ],
+            dependent_variables=[constants.SCHEDULE],
+            dependent_variables_required_values=[[constants.CONSTANT]],
+        )
+
+        _linear_decay_epsilon_template = config_template.Template(
+            fields=[
+                config_field.Field(
+                    name=constants.INITIAL_VALUE,
+                    types=[int, float],
+                    requirements=[lambda x: x >= 0 and x <= 1],
+                ),
+                config_field.Field(
+                    name=constants.FINAL_VALUE,
+                    types=[int, float],
+                    requirements=[lambda x: x >= 0 and x <= 1],
+                ),
+                config_field.Field(
+                    name=constants.ANNEAL_DURATION,
+                    types=[int],
+                    requirements=[lambda x: x > 0],
+                ),
+            ],
+            level=[
+                constants.TRAINING,
+                constants.EPSILON,
+                constants.LINEAR_DECAY,
+            ],
+            dependent_variables=[constants.SCHEDULE],
+            dependent_variables_required_values=[
+                [constants.LINEAR_DECAY],
+            ],
+        )
+
+        self._epsilon_template = config_template.Template(
+            fields=[
+                config_field.Field(
+                    name=constants.SCHEDULE,
+                    types=[str],
+                    requirements=[
+                        lambda x: x
+                        in [
+                            constants.CONSTANT,
+                            constants.LINEAR_DECAY,
+                        ]
+                    ],
+                ),
+            ],
+            level=[constants.TRAINING, constants.EPSILON],
+            nested_templates=[
+                _constant_epsilon_template,
+                _linear_decay_epsilon_template,
+            ],
+        )
+
         self._training_template = config_template.Template(
             fields=[
                 config_field.Field(
@@ -183,11 +250,11 @@ class RLNavConfigTemplate:
                     types=[float, int],
                     requirements=[lambda x: x >= 0],
                 ),
-                config_field.Field(
-                    name=constants.EPSILON,
-                    types=[float, int],
-                    requirements=[lambda x: x >= 0 and x <= 1],
-                ),
+                # config_field.Field(
+                #     name=constants.EPSILON,
+                #     types=[float, int],
+                #     requirements=[lambda x: x >= 0 and x <= 1],
+                # ),
                 config_field.Field(name=constants.ONE_DIM_BLOCKS, types=[bool]),
                 config_field.Field(
                     name=constants.IMPUTATION_METHOD,
@@ -198,7 +265,11 @@ class RLNavConfigTemplate:
                 ),
             ],
             level=[constants.TRAINING],
-            nested_templates=[self._dyna_template, self._linear_features_template],
+            nested_templates=[
+                self._dyna_template,
+                self._linear_features_template,
+                self._epsilon_template,
+            ],
         )
 
         self._random_uniform_template = config_template.Template(
