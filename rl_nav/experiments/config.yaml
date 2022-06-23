@@ -8,10 +8,15 @@ training:
     target: greedy
     test_epsilon: 0.99
 
+    train_run_trigger_states: 
+        - [7, 12]
+    train_run_action_sequences:
+        - [7, 7, 7, 7, 3]
+
     learning_rate: 0.1
     discount_factor: 0.9
     step_cost_factor: 0.01
-    epsilon: 0.9
+    epsilon: 0.99
 
     one_dim_blocks: True
     imputation_method: random
