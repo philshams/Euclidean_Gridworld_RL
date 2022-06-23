@@ -81,8 +81,10 @@ class EscapeEnv(base_env.BaseEnvironment, abc.ABC):
         self._batch_dimension = batch_dimension
         self._torch_axes = torch_axes
 
-        reward_state = self._representation == constants.AGENT_POSITION_REWARD
-        self._setup_environment(map_ascii_path=map_path, reward_state=reward_state)
+        self._reward_state = self._representation == constants.AGENT_POSITION_REWARD
+        self._setup_environment(
+            map_ascii_path=map_path, reward_state=self._reward_state
+        )
 
         # states are zero, -1 removes walls from counts.
         self._visitation_counts = -1 * copy.deepcopy(self._map)
@@ -96,7 +98,7 @@ class EscapeEnv(base_env.BaseEnvironment, abc.ABC):
                     )
                     for action in self.action_space
                 }
-                for state in self._state_space
+                for state in self._positional_state_space
             }
         else:
             self._transition_matrix = {}
@@ -371,7 +373,9 @@ class EscapeEnv(base_env.BaseEnvironment, abc.ABC):
             train: whether episode is for train or test (affects logging).
         """
         if map_yaml_path is not None:
-            self._setup_environment(map_yaml_path=map_yaml_path)
+            self._setup_environment(
+                map_yaml_path=map_yaml_path, reward_state=self._reward_state
+            )
         if episode_timeout is not None:
             # allow for temporary switch to timeout conditions
             self._episode_timeout = episode_timeout
