@@ -46,7 +46,7 @@ class SuccessorRepresentation(tabular_learner.TabularLearner):
 
         self._successor_matrix = np.random.normal(
             loc=0,
-            scale=0.1,
+            scale=0,
             size=(len(action_space), len(state_space), len(state_space)),
         ).astype(dtype="float16")
         self._reward_function = np.zeros(len(state_space)).astype(dtype="float16")
