@@ -11,7 +11,7 @@ from rl_nav.models import tabular_learner
 class Dyna(tabular_learner.TabularLearner):
     """Dyna (Sutton '91)."""
 
-    MAXSIZE = 5
+    MAXSIZE = 500
 
     def __init__(
         self,
