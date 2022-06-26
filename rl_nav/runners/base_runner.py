@@ -57,6 +57,7 @@ class BaseRunner(base_runner.BaseRunner):
             ]
         else:
             self._train_run_trigger_states = []
+        self._train_run_trigger_probabilities = config.train_run_trigger_probabilities
         self._train_run_action_sequences = config.train_run_action_sequences
 
         self._current_train_run_action_sequence: List[int] = []
@@ -148,10 +149,17 @@ class BaseRunner(base_runner.BaseRunner):
         if state in self._train_run_trigger_states and not len(
             self._current_train_run_action_sequence
         ):
-            trigger_state_index = self._train_run_trigger_states.index(state)
-            self._current_train_run_action_sequence = self._train_run_action_sequences[
+            trigger_state_indices = [
+                i for i, x in enumerate(self._train_run_trigger_states) if x == state
+            ]
+            trigger_state_index = random.choice(trigger_state_indices)
+            trigger_state_probability = self._train_run_trigger_probabilities[
                 trigger_state_index
-            ][::-1]
+            ]
+            if random.random() < trigger_state_probability:
+                self._current_train_run_action_sequence = (
+                    self._train_run_action_sequences[trigger_state_index][::-1]
+                )
         if len(self._current_train_run_action_sequence):
             action = self._current_train_run_action_sequence.pop()
             reward, new_state = self._train_environment.step(action)
