@@ -1,17 +1,18 @@
 seed: 0
 
 training:
-    num_steps: 1000000
-    model: linear_features
+    num_steps: 250000
+    model: successor_rep
 
     behaviour: epsilon_greedy
     target: greedy
     test_epsilon: 0.99
 
     train_run_trigger_states: 
-        - [7, 12]
+        # - [7, 12]
     train_run_action_sequences:
-        - [7, 7, 7, 7, 3]
+        # - [7, 7, 7, 7, 3]
+    train_run_trigger_probabilities: # [0.5]
 
     learning_rate: 0.1
     discount_factor: 0.9
@@ -22,10 +23,10 @@ training:
     imputation_method: random
 
     epsilon:
-        schedule: linear_decay
+        schedule: constant
 
         constant:
-            value: 0.1
+            value: 0.99
         
         linear_decay:
             initial_value: 0.99
@@ -66,23 +67,39 @@ initialisation:
 train_environment: 
 
     env_name: escape_env_diagonal
-    map_path: ../maps/blocked_threat_zone_map.txt
+    map_path: ../maps/square_escape_map.txt
 
-    episode_timeout: 
+    episode_timeout: 500
     representation: agent_position
     start_position:
     reward_positions:
         - [7, 1]
-        - [3, 6]
+        # - [3, 7]
+        # - [5, 5]
+        # - [5, 9]
 
     # provide either one set of attributes (used for all rewards)
     # or one set for each reward
     reward_attributes:
-        availability: [infinite] # integer specifying number available or "infinite"
+        availability: [1] # integer specifying number available or "infinite"
         statistics:
             - gaussian:
                 mean: 1
                 variance: 0
+            # - gaussian:
+            #     mean: 0.1
+            #     variance: 0
+        # statistics:
+        #     - gaussian:
+        #         mean: 0.2
+        #         variance: 0
+        # statistics:
+        #     - gaussian:
+        #         mean: 0.2
+        #         variance: 0
+
+    train_hierarchy_network:
+        transition_structure_path: ../maps/vector_blocked_hierarchy_transition_7.json
 
 test_environments:
 
