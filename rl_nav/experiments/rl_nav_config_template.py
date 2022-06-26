@@ -224,6 +224,16 @@ class RLNavConfigTemplate:
                     ],
                 ),
                 config_field.Field(
+                    name=constants.TRAIN_RUN_TRIGGER_PROBABILITIES,
+                    types=[list, type(None)],
+                    requirements=[
+                        lambda x: x is None
+                        or all(
+                            [(isinstance(y, float) and y >= 0 and y <= 1) for y in x]
+                        )
+                    ],
+                ),
+                config_field.Field(
                     name=constants.TARGET,
                     types=[str],
                     requirements=[
