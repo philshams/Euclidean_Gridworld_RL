@@ -221,12 +221,8 @@ class SuccessorRepresentation(tabular_learner.TabularLearner):
         )
 
     def _step_reward_function(self, state_id: int, reward: float):
-        initial_reward_estimate = self._reward_function[state_id]
-
-        updated_reward_estimate = initial_reward_estimate + self._learning_rate * (
-            reward - initial_reward_estimate
-        )
-        self._reward_function[state_id] = updated_reward_estimate
+        error = reward - self._reward_function[state_id]
+        self._reward_function[state_id] += self._learning_rate * error
 
         self._sr_change = True
 
