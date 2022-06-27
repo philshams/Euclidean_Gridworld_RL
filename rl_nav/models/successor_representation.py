@@ -226,27 +226,19 @@ class SuccessorRepresentation(tabular_learner.TabularLearner):
 
         self._sr_change = True
 
-    def _step_successor_matrix(
-        self,
-        state_id,
-        action,
-        discount,
-        new_state_id,
-    ):
-        initial_successor_estimate = self._successor_matrix[action][state_id]
-
-        next_action_under_policy = np.argmax(self._state_action_values[new_state_id, :])
+    def _step_successor_matrix(self, state_id, action, discount, new_state_id, active):
+        if active:
+            next_action = np.argmax(self._state_action_values[new_state_id])
+            target_ = self._successor_matrix[next_action][new_state_id]
+        else:
+            target_ = self._one_hot_matrix[new_state_id]
 
         td_error = (
             self._one_hot_matrix[state_id]
-            + discount * self._successor_matrix[next_action_under_policy][new_state_id]
+            + discount * target_
             - self._successor_matrix[action][state_id]
         )
 
-        new_successor_estimate = (
-            initial_successor_estimate + self._learning_rate * td_error
-        )
-
-        self._successor_matrix[action][state_id] = new_successor_estimate
+        self._successor_matrix[action][state_id] += self._learning_rate * td_error
 
         self._sr_change = True
