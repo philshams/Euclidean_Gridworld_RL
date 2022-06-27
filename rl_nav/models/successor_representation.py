@@ -211,7 +211,7 @@ class SuccessorRepresentation(tabular_learner.TabularLearner):
 
         self._state_visitation_counts[state] += 1
 
-        self._step_reward_function(state_id=state_id, reward=reward)
+        self._step_reward_function(state_id=new_state_id, reward=reward)
         self._step_successor_matrix(
             state_id=state_id,
             action=action,
