@@ -209,11 +209,6 @@ class SuccessorRepresentation(tabular_learner.TabularLearner):
 
         new_state_id = self._state_id_mapping[new_state]
 
-        if active:
-            discount = self._gamma
-        else:
-            discount = 0
-
         self._state_visitation_counts[state] += 1
 
         self._step_reward_function(state_id=state_id, reward=reward)
