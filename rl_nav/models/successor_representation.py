@@ -216,7 +216,8 @@ class SuccessorRepresentation(tabular_learner.TabularLearner):
             state_id=state_id,
             action=action,
             new_state_id=new_state_id,
-            discount=discount,
+            discount=self._gamma,
+            active=active,
         )
 
     def _step_reward_function(self, state_id: int, reward: float):
