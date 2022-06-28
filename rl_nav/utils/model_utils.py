@@ -16,6 +16,8 @@ def get_initialisation_strategy(config):
                 constants.VARIANCE: config.variance,
             }
         }
+    elif config.initialisation_type == constants.ZEROS:
+        initialisation_strategy = {constants.ZEROS: {}}
     else:
         raise ValueError("Unrecognised initialisation_type")
     return initialisation_strategy
