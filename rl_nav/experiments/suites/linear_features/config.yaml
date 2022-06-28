@@ -9,7 +9,7 @@ training:
     test_epsilon: 0.99
 
     learning_rate: 0.01
-    discount_factor: 0.99
+    discount_factor: 0.9
     step_cost_factor: 0.01
     epsilon: 0.99
 
@@ -25,9 +25,13 @@ training:
             # - state_id
 
         coarse_coding:
-            coding_widths: [2, 4, 5]
-            coding_heights: [2, 4, 5]
+            coding_widths: [2,3]
+            coding_heights: [2,3]
             augment_actions: True
+
+        hard_coded_geometry:
+            geometry_outline_path: ../maps/geometry_2.txt
+            hc_augment_actions: True
 
 initialisation:
     type: random_normal
@@ -60,6 +64,9 @@ train_environment:
                 mean: 1
                 variance: 0
 
+    train_hierarchy_network:
+        transition_structure_path: ../maps/hierarchy_transition.json
+
 test_environments:
 
     env_name: escape_env_diagonal
@@ -81,6 +88,12 @@ test_environments:
             - gaussian:
                 mean: 1
                 variance: 0
+
+
+    test_hierarchy_network:
+        transition_structure_paths: 
+            - ../maps/test_hierarchy_transition.json
+            - ../maps/hierarchy_transition.json
 
 logging:
     visualisation_frequency: 50000
