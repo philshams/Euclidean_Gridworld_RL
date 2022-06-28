@@ -130,6 +130,12 @@ CONFIG_CHANGES = {
                     "../maps/square_escape_map.txt",
                 ],
                 "reward_positions": [[7, 6]],
+                "test_hierarchy_network": {
+                    "transition_structure_paths": [
+                        "../maps/test_hierarchy_transition.json",
+                        "../maps/hierarchy_transition.json",
+                    ]
+                },
             },
         }
     ],
