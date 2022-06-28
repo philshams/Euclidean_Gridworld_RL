@@ -92,7 +92,9 @@ class BaseEnvironment(abc.ABC):
             constants.C_BLOCK_STATE_SPACE
         )
         self._start_state_space = list(
-            set(self._positional_state_space) - set(self._c_block_state_space)
+            set(self._positional_state_space)
+            - set(self._c_block_state_space)
+            - set(self._reward_positions)
         )
 
     def average_values_over_positional_states(
