@@ -78,7 +78,9 @@ class HierarchyNetwork(escape_env.EscapeEnv):
 
         delta = current_position - self._agent_position
 
-        return self._compute_reward(delta=delta)
+        reward = self._compute_reward(delta=delta)
+
+        return reward
 
     @property
     def action_deltas(self) -> Dict[int, np.ndarray]:
@@ -91,6 +93,10 @@ class HierarchyNetwork(escape_env.EscapeEnv):
     @property
     def inverse_action_mapping(self) -> Dict[int, int]:
         return self._inverse_action_mapping
+
+    @property
+    def available_actions(self) -> Dict[int, Dict]:
+        return self._available_actions
 
     @property
     def active(self) -> bool:
