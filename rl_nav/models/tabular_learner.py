@@ -21,6 +21,7 @@ class TabularLearner(base_learner.BaseLearner):
         behaviour: str,
         target: str,
         imputation_method: str,
+        update_no_op: bool,
     ):
         """Class constructor.
 
@@ -54,6 +55,8 @@ class TabularLearner(base_learner.BaseLearner):
 
         self._imputation_method = imputation_method
         self._allow_state_instantiation = False
+
+        self._update_no_op = update_no_op
 
     def _train(self):
         """set model to train mode."""
