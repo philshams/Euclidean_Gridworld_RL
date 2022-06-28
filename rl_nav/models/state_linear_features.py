@@ -23,6 +23,7 @@ class StateLinearFeatureLearner(base_learner.BaseLearner):
         behaviour: str,
         target: str,
         imputation_method: str,
+        update_no_op: bool,
     ):
         """Class constructor.
 
@@ -58,6 +59,8 @@ class StateLinearFeatureLearner(base_learner.BaseLearner):
 
         self._imputation_method = imputation_method
         self._allow_state_instantiation = False
+
+        self._update_no_op = update_no_op
 
         (
             self._feature_extractors,
@@ -278,6 +281,11 @@ class StateLinearFeatureLearner(base_learner.BaseLearner):
             new_state: next state.
             active: whether episode is still ongoing.
         """
+        self._state_visitation_counts[state] += 1
+
+        if state == new_state and not self._update_no_op:
+            return
+
         state_id = self._state_id_mapping[state]
         new_state_id = self._state_id_mapping[new_state]
 
@@ -285,8 +293,6 @@ class StateLinearFeatureLearner(base_learner.BaseLearner):
             discount = self._gamma
         else:
             discount = 0
-
-        self._state_visitation_counts[state] += 1
 
         self._step(
             state_id=state_id,

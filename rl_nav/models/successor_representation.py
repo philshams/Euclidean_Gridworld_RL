@@ -18,6 +18,7 @@ class SuccessorRepresentation(tabular_learner.TabularLearner):
         behaviour: str,
         target: str,
         imputation_method: str,
+        update_no_op: bool,
     ):
         """Class constructor.
 
@@ -42,6 +43,7 @@ class SuccessorRepresentation(tabular_learner.TabularLearner):
             behaviour=behaviour,
             target=target,
             imputation_method=imputation_method,
+            update_no_op=update_no_op,
         )
 
         self._successor_matrix = np.random.normal(
@@ -202,14 +204,17 @@ class SuccessorRepresentation(tabular_learner.TabularLearner):
             new_state: next state.
             active: whether episode is still ongoing.
         """
+        self._state_visitation_counts[state] += 1
+
+        if state == new_state and not self._update_no_op:
+            return
+
         state_id = self._state_id_mapping[state]
 
         if new_state not in self._state_id_mapping and self._allow_state_instantiation:
             self._impute_randomly(state=new_state, store_imputation=True)
 
         new_state_id = self._state_id_mapping[new_state]
-
-        self._state_visitation_counts[state] += 1
 
         self._step_reward_function(state_id=new_state_id, reward=reward)
         self._step_successor_matrix(

@@ -21,6 +21,7 @@ class LinearFeatureLearner(tabular_learner.TabularLearner):
         behaviour: str,
         target: str,
         imputation_method: str,
+        update_no_op: bool,
     ):
         """Class constructor.
 
@@ -45,6 +46,7 @@ class LinearFeatureLearner(tabular_learner.TabularLearner):
             behaviour=behaviour,
             target=target,
             imputation_method=imputation_method,
+            update_no_op=update_no_op,
         )
 
         self._state_action_id_mapping = {
@@ -186,22 +188,24 @@ class LinearFeatureLearner(tabular_learner.TabularLearner):
             new_state: next state.
             active: whether episode is still ongoing.
         """
+        self._state_visitation_counts[state] += 1
+
+        if state == new_state and not self._update_no_op:
+            return
+
         if active:
             discount = self._gamma
         else:
             discount = 0
 
-        self._state_visitation_counts[state] += 1
-
-        if state != new_state:
-            state_id = self._state_id_mapping[state]
-            self._step(
-                state_id=state_id,
-                action=action,
-                reward=reward,
-                discount=discount,
-                new_state=new_state,
-            )
+        state_id = self._state_id_mapping[state]
+        self._step(
+            state_id=state_id,
+            action=action,
+            reward=reward,
+            discount=discount,
+            new_state=new_state,
+        )
 
     def _step(
         self,
