@@ -17,17 +17,7 @@ training:
     imputation_method: random
 
     dyna:
-        plan_steps_per_update: 10
-
-    linear_features:
-        features:
-            - coarse_coding
-            - state_id
-
-        coarse_coding:
-            coding_widths: [2]
-            coding_heights: [2]
-            augment_actions: False
+        plan_steps_per_update: 500
 
 initialisation:
     type: random_normal
@@ -60,6 +50,9 @@ train_environment:
                 mean: 1
                 variance: 0
 
+    train_hierarchy_network:
+        transition_structure_path: ../maps/hierarchy_transition.json
+
 test_environments:
 
     env_name: escape_env_diagonal
@@ -81,6 +74,12 @@ test_environments:
             - gaussian:
                 mean: 1
                 variance: 0
+
+    test_hierarchy_network:
+        transition_structure_paths: 
+            - ../maps/test_hierarchy_transition.json
+            - ../maps/hierarchy_transition.json
+
 
 logging:
     visualisation_frequency: 50000
