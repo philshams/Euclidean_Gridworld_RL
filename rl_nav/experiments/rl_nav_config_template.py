@@ -196,19 +196,6 @@ class RLNavConfigTemplate:
                         lambda x: x in [constants.EPSILON_GREEDY, constants.GREEDY]
                     ],
                 ),
-                # config_field.Field(
-                #     name=constants.TRAIN_RUNS,
-                #     types=[str, type(None)],
-                #     requirements=[
-                #         lambda x: x is None
-                #         or x
-                #         in [
-                #             constants.THREAT_EDGE,
-                #             constants.THREAT_SHELTER,
-                #             constants.EDGE_SHELTER,
-                #         ]
-                #     ],
-                # ),
                 config_field.Field(
                     name=constants.TRAIN_RUN_TRIGGER_STATES,
                     types=[list, type(None)],
@@ -260,11 +247,6 @@ class RLNavConfigTemplate:
                     types=[float, int],
                     requirements=[lambda x: x >= 0],
                 ),
-                # config_field.Field(
-                #     name=constants.EPSILON,
-                #     types=[float, int],
-                #     requirements=[lambda x: x >= 0 and x <= 1],
-                # ),
                 config_field.Field(name=constants.ONE_DIM_BLOCKS, types=[bool]),
                 config_field.Field(
                     name=constants.IMPUTATION_METHOD,
@@ -273,6 +255,7 @@ class RLNavConfigTemplate:
                         lambda x: x in [constants.NEAR_NEIGHBOURS, constants.RANDOM]
                     ],
                 ),
+                config_field.Field(name=constants.UPDATE_NO_OP, types=[bool]),
             ],
             level=[constants.TRAINING],
             nested_templates=[
