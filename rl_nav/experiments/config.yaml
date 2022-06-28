@@ -17,10 +17,11 @@ training:
     learning_rate: 0.1
     discount_factor: 0.9
     step_cost_factor: 0.01
-    # epsilon: 0.2
 
     one_dim_blocks: True
     imputation_method: random
+
+    update_no_op: True
 
     epsilon:
         schedule: constant
@@ -39,11 +40,11 @@ training:
     linear_features:
         features:
             - coarse_coding
-            - state_id
+            # - hard_coded_geometry
 
         coarse_coding:
-            coding_widths: [2, 4, 5]
-            coding_heights: [2, 4, 5]
+            coding_widths: [2, 3]
+            coding_heights: [2, 3]
             augment_actions: True
 
         hard_coded_geometry:
@@ -130,10 +131,11 @@ test_environments:
 
 logging:
     visualisation_frequency: 50000
-    rollout_frequency: 100000
-    test_frequency: 5000
-    checkpoint_frequency: 50000
+    rollout_frequency: 50000
+    test_frequency: 50000
+    checkpoint_frequency: 5000
 
     visualisations: 
-        - visitation_counts
+        # - numbered_value_function
+        # - visitation_counts
         - value_function
