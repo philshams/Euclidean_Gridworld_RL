@@ -75,9 +75,6 @@ train_environment:
     start_position:
     reward_positions:
         - [7, 1]
-        # - [3, 7]
-        # - [5, 5]
-        # - [5, 9]
 
     # provide either one set of attributes (used for all rewards)
     # or one set for each reward
@@ -87,17 +84,6 @@ train_environment:
             - gaussian:
                 mean: 1
                 variance: 0
-            # - gaussian:
-            #     mean: 0.1
-            #     variance: 0
-        # statistics:
-        #     - gaussian:
-        #         mean: 0.2
-        #         variance: 0
-        # statistics:
-        #     - gaussian:
-        #         mean: 0.2
-        #         variance: 0
 
     train_hierarchy_network:
         transition_structure_path: ../maps/vector_blocked_hierarchy_transition_7.json
