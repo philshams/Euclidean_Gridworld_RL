@@ -50,6 +50,9 @@ train_environment:
                 mean: 1
                 variance: 0
 
+    train_hierarchy_network:
+        transition_structure_path: ../maps/hierarchy_transition.json
+
 test_environments:
 
     env_name: escape_env_diagonal
@@ -72,6 +75,12 @@ test_environments:
                 mean: 1
                 variance: 0
 
+    test_hierarchy_network:
+        transition_structure_paths: 
+            - ../maps/test_hierarchy_transition.json
+            - ../maps/hierarchy_transition.json
+
+
 logging:
     visualisation_frequency: 50000
     rollout_frequency: 100000
@@ -79,5 +88,5 @@ logging:
     checkpoint_frequency: 50000
 
     visualisations: 
-        - visitation_counts
-        - value_function
+        # - visitation_counts
+        # - value_function
