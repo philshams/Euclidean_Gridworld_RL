@@ -3,3 +3,4 @@
 *__pycache__*
 *.egg-info
 rl_nav/experiments/results
+*.ipynb_checkpoints
