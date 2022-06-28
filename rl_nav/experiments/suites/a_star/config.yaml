@@ -47,6 +47,9 @@ train_environment:
                 mean: 1
                 variance: 0
 
+    train_hierarchy_network:
+        transition_structure_path: ../maps/hierarchy_transition.json
+
 test_environments:
 
     env_name: escape_env_diagonal
