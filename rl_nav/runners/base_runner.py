@@ -323,6 +323,7 @@ class BaseRunner(base_runner.BaseRunner):
                 learning_rate=config.learning_rate,
                 gamma=config.discount_factor,
                 imputation_method=config.imputation_method,
+                update_no_op=config.update_no_op,
             )
         elif config.model == constants.SUCCESSOR_REP:
             model = successor_representation.SuccessorRepresentation(
@@ -334,6 +335,7 @@ class BaseRunner(base_runner.BaseRunner):
                 learning_rate=config.learning_rate,
                 gamma=config.discount_factor,
                 imputation_method=config.imputation_method,
+                update_no_op=config.update_no_op,
             )
         elif config.model == constants.DYNA:
             model = dyna.Dyna(
@@ -346,6 +348,7 @@ class BaseRunner(base_runner.BaseRunner):
                 gamma=config.discount_factor,
                 imputation_method=config.imputation_method,
                 plan_steps_per_update=config.plan_steps_per_update,
+                update_no_op=config.update_no_op,
             )
         elif config.model == constants.UNDIRECTED_DYNA:
             model = dyna.Dyna(
@@ -357,6 +360,7 @@ class BaseRunner(base_runner.BaseRunner):
                 learning_rate=config.learning_rate,
                 gamma=config.discount_factor,
                 imputation_method=config.imputation_method,
+                update_no_op=config.update_no_op,
                 plan_steps_per_update=config.plan_steps_per_update,
                 inverse_actions=self._train_environment.inverse_action_mapping,
             )
@@ -403,6 +407,7 @@ class BaseRunner(base_runner.BaseRunner):
                     learning_rate=config.learning_rate,
                     gamma=config.discount_factor,
                     imputation_method=config.imputation_method,
+                    update_no_op=config.update_no_op,
                 )
             elif config.model == constants.STATE_LINEAR_FEATURES:
                 model = state_linear_features.StateLinearFeatureLearner(
@@ -415,6 +420,7 @@ class BaseRunner(base_runner.BaseRunner):
                     learning_rate=config.learning_rate,
                     gamma=config.discount_factor,
                     imputation_method=config.imputation_method,
+                    update_no_op=config.update_no_op,
                 )
             elif config.model == constants.DYNA_LINEAR_FEATURES:
                 model = dyna_linear_features.DynaLinearFeatureLearner(
@@ -428,6 +434,7 @@ class BaseRunner(base_runner.BaseRunner):
                     gamma=config.discount_factor,
                     imputation_method=config.imputation_method,
                     plan_steps_per_update=config.plan_steps_per_update,
+                    update_no_op=config.update_no_op,
                 )
             elif config.model == constants.UNDIRECTED_DYNA_LINEAR_FEATURES:
                 model = dyna_linear_features.DynaLinearFeatureLearner(
@@ -440,6 +447,7 @@ class BaseRunner(base_runner.BaseRunner):
                     learning_rate=config.learning_rate,
                     gamma=config.discount_factor,
                     imputation_method=config.imputation_method,
+                    update_no_op=config.update_no_op,
                     plan_steps_per_update=config.plan_steps_per_update,
                     inverse_actions=self._train_environment.inverse_action_mapping,
                 )
