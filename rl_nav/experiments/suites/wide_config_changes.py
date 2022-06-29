@@ -3,7 +3,7 @@ CONFIG_CHANGES = {
         {
             "train_environment": {
                 "map_path": "../wide_maps/square_escape_map.txt",
-                "reward_positions": [11, 1],
+                "reward_positions": [[11, 1]],
                 "train_hierarchy_network": {
                     "transition_structure_path": "../wide_maps/hierarchy_transition.json"
                 },
@@ -14,7 +14,7 @@ CONFIG_CHANGES = {
                     "../wide_maps/square_escape_map.txt",
                 ],
                 "start_position": [11, 12],
-                "reward_positions": [11, 1],
+                "reward_positions": [[11, 1]],
                 "test_hierarchy_network": {
                     "transition_structure_paths": [
                         "../wide_maps/test_hierarchy_transition.json",
@@ -39,7 +39,7 @@ CONFIG_CHANGES = {
                     "../wide_maps/square_escape_map.txt",
                 ],
                 "start_position": [11, 12],
-                "reward_positions": [11, 1],
+                "reward_positions": [[11, 1]],
                 "test_hierarchy_network": {
                     "transition_structure_paths": [
                         "../wide_maps/test_hierarchy_transition.json",
@@ -53,7 +53,7 @@ CONFIG_CHANGES = {
         {
             "train_environment": {
                 "map_path": "../wide_maps/vector_blocked_square_escape_map.txt",
-                "reward_positions": [11, 1],
+                "reward_positions": [[11, 1]],
                 "train_hierarchy_network": {
                     "transition_structure_path": "../wide_maps/vector_blocked_hierarchy_transition.json"
                 },
@@ -65,7 +65,7 @@ CONFIG_CHANGES = {
                     "../wide_maps/vector_blocked_square_escape_map.txt",
                 ],
                 "start_position": [11, 12],
-                "reward_positions": [11, 1],
+                "reward_positions": [[11, 1]],
                 "test_hierarchy_network": {
                     "transition_structure_paths": [
                         "../wide_maps/test_hierarchy_transition.json",
@@ -80,7 +80,7 @@ CONFIG_CHANGES = {
         {
             "train_environment": {
                 "map_path": "../wide_maps/shelter_blocked_square_escape_map.txt",
-                "reward_positions": [11, 1],
+                "reward_positions": [[11, 1]],
                 "train_hierarchy_network": {
                     "transition_structure_path": "../wide_maps/shelter_blocked_hierarchy_transition.json"
                 },
@@ -92,7 +92,7 @@ CONFIG_CHANGES = {
                     "../wide_maps/shelter_blocked_square_escape_map.txt",
                 ],
                 "start_position": [11, 12],
-                "reward_positions": [11, 1],
+                "reward_positions": [[11, 1]],
                 "test_hierarchy_network": {
                     "transition_structure_paths": [
                         "../wide_maps/test_hierarchy_transition.json",
@@ -107,7 +107,7 @@ CONFIG_CHANGES = {
         {
             "train_environment": {
                 "map_path": "../wide_maps/vector_threat_only_blocked_square_escape_map.txt",
-                "reward_positions": [11, 1],
+                "reward_positions": [[11, 1]],
                 "train_hierarchy_network": {
                     "transition_structure_path": "../wide_maps/vector_threat_only_blocked_hierarchy_transition.json"
                 },
@@ -119,7 +119,7 @@ CONFIG_CHANGES = {
                     "../wide_maps/vector_threat_only_blocked_square_escape_map.txt",
                 ],
                 "start_position": [11, 12],
-                "reward_positions": [11, 1],
+                "reward_positions": [[11, 1]],
                 "test_hierarchy_network": {
                     "transition_structure_paths": [
                         "../wide_maps/test_hierarchy_transition.json",
@@ -134,7 +134,7 @@ CONFIG_CHANGES = {
         {
             "train_environment": {
                 "map_path": "../wide_maps/square_escape_map.txt",
-                "reward_positions": [11, 1],
+                "reward_positions": [[11, 1]],
                 "train_hierarchy_network": {
                     "transition_structure_path": "../wide_maps/hierarchy_transition.json"
                 },
@@ -159,7 +159,7 @@ CONFIG_CHANGES = {
         {
             "train_environment": {
                 "map_path": "../wide_maps/blocked_threat_zone_trip_wire_map.txt",
-                "reward_positions": [11, 1],
+                "reward_positions": [[11, 1]],
             },
             "test_environments": {
                 "map_paths": [
@@ -167,7 +167,7 @@ CONFIG_CHANGES = {
                     "../wide_maps/square_escape_map.txt",
                 ],
                 "start_position": [11, 12],
-                "reward_positions": [11, 1],
+                "reward_positions": [[11, 1]],
             },
         }
     ],
@@ -175,7 +175,7 @@ CONFIG_CHANGES = {
         {
             "train_environment": {
                 "map_path": "../wide_maps/blocked_threat_zone_map.txt",
-                "reward_positions": [11, 1],
+                "reward_positions": [[11, 1]],
             },
             "test_environments": {
                 "map_paths": [
@@ -183,7 +183,7 @@ CONFIG_CHANGES = {
                     "../wide_maps/square_escape_map.txt",
                 ],
                 "start_position": [11, 12],
-                "reward_positions": [11, 1],
+                "reward_positions": [[11, 1]],
             },
         }
     ],
