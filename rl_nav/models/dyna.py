@@ -233,8 +233,7 @@ class Dyna(tabular_learner.TabularLearner):
                 else:
                     reverse_action = self._inverse_actions[action]
                 reverse_state_action = new_state + tuple([reverse_action])
-                if reverse_state_action not in self._model:
-                    self._model[reverse_state_action] = (state, 0)
+                self._model[reverse_state_action] = (state, 0)
 
             self._plan()
 
