@@ -725,6 +725,14 @@ class BaseRunner(base_runner.BaseRunner):
                     plot_values,
                 )
 
+                self._train_environment.plot_heatmap_over_env(
+                    heatmap=plot_values,
+                    save_name=os.path.join(
+                        self._visualisations_folder_path,
+                        f"{self._step_count}_{constants.PRE_TEST}_{constants.VALUES_PDF}",
+                    ),
+                )
+
         if rollout:
             self._test_rollout(
                 save_name_base=f"{constants.INDIVIDUAL_TEST_RUN}_{constants.FIND_SHELTER_RUN}"
