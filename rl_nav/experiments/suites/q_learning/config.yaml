@@ -99,7 +99,7 @@ logging:
     visualisation_frequency: 50000
     rollout_frequency: 50000
     test_frequency: 50000
-    checkpoint_frequency: 5000
+    checkpoint_frequency: 50000
 
     visualisations: 
         # - numbered_value_function
