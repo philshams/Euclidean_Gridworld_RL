@@ -164,7 +164,10 @@ if __name__ == "__main__":
             config_changes_path = args.config_changes
 
         try:
-            seeds_arg = int(args.seeds)
+            if args.seeds is not None:
+                seeds_arg = int(args.seeds)
+            else:
+                seeds_arg = args.seeds
         except ValueError:
             seeds_arg = args.seeds
         seeds = utils.process_seed_arguments(seeds_arg)
