@@ -112,9 +112,14 @@ class AStar(base_learner.BaseLearner):
 
         if state not in self._transition_matrix:
             self._transition_matrix[state] = []
-
         if new_state != state and new_state not in self._transition_matrix[state]:
             self._transition_matrix[state].append(new_state)
+
+        # undirected
+        if new_state not in self._transition_matrix:
+            self._transition_matrix[new_state]
+        if new_state != state and state not in self._transition_matrix[new_state]:
+            self._transition_matrix[new_state].append(state)
 
         # for action_available in self._action_space:
         #     delta = self._deltas[action_available]
