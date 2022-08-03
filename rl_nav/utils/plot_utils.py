@@ -22,6 +22,8 @@ def plot_trajectories(folder_path, exp_names):
         split_by=None,
         gradient=False,
     ):
+
+        path_lengths = []
         fig = plt.figure()
 
         plt.imshow(env, origin="lower")
@@ -77,8 +79,15 @@ def plot_trajectories(folder_path, exp_names):
                         color="skyblue",
                         alpha=0.6,
                     )
+                    path_lengths.append(len(y[split_index + 1 :]))
             else:
                 plt.plot(x, y, color="skyblue", alpha=0.6)
+                path_lengths.append(len(y))
+
+        plt.title(
+            f"Average Path Length: {round(np.mean(path_lengths), 2)} "
+            f"+- {round(np.std(path_lengths), 2)}"
+        )
 
         fig.savefig(save_path)
         plt.close()
