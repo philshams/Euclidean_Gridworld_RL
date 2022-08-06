@@ -36,16 +36,16 @@ class LifelongSRRunner(lifelong_runner.LifelongRunner):
             ),
         )
         # place field of reward state
-        for i, reward_pos in enumerate(self._train_environment.reward_positions):
-            place_field = self._model.get_place_field(state=reward_pos)
+        # for i, reward_pos in enumerate(self._train_environment.reward_positions):
+        #     place_field = self._model.get_place_field(state=reward_pos)
 
-            self._train_environment.plot_heatmap_over_env(
-                heatmap=place_field,
-                save_name=os.path.join(
-                    self._visualisations_folder_path,
-                    f"{self._step_count}_{i}_{constants.SR_REWARD_POS_PLACE_FIELD_PDF}",
-                ),
-            )
+        #     self._train_environment.plot_heatmap_over_env(
+        #         heatmap=place_field,
+        #         save_name=os.path.join(
+        #             self._visualisations_folder_path,
+        #             f"{self._step_count}_{i}_{constants.SR_REWARD_POS_PLACE_FIELD_PDF}",
+        #         ),
+        #     )
 
 
 class EpisodicSRRunner(episodic_runner.EpisodicRunner):
@@ -80,13 +80,13 @@ class EpisodicSRRunner(episodic_runner.EpisodicRunner):
             ),
         )
         # place field of reward state
-        for i, reward_pos in enumerate(self._train_environment.reward_positions):
-            place_field = self._model.get_place_field(state=reward_pos)
+        # for i, reward_pos in enumerate(self._train_environment.reward_positions):
+        #     place_field = self._model.get_place_field(state=reward_pos)
 
-            self._train_environment.plot_heatmap_over_env(
-                heatmap=place_field,
-                save_name=os.path.join(
-                    self._visualisations_folder_path,
-                    f"{self._step_count}_{i}_{constants.SR_REWARD_POS_PLACE_FIELD_PDF}",
-                ),
-            )
+        #     self._train_environment.plot_heatmap_over_env(
+        #         heatmap=place_field,
+        #         save_name=os.path.join(
+        #             self._visualisations_folder_path,
+        #             f"{self._step_count}_{i}_{constants.SR_REWARD_POS_PLACE_FIELD_PDF}",
+        #         ),
+        #     )
