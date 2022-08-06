@@ -20,7 +20,7 @@ except ModuleNotFoundError:
 class VisualisationEnv(wrapper.Wrapper):
 
     COLORMAP = cm.get_cmap("plasma")
-    NORMALISE = True
+    NORMALISE = False
 
     def __init__(self, env):
         super().__init__(env=env)
