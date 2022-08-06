@@ -233,7 +233,12 @@ class SuccessorRepresentation(tabular_learner.TabularLearner):
 
     def _step_successor_matrix(self, state_id, action, discount, new_state_id, active):
         if active:
-            next_action = np.argmax(self._state_action_values[new_state_id])
+            next_action_values = self._state_action_values[new_state_id]
+            max_next_action_value = np.max(next_action_values)
+            next_action = np.random.choice(
+                np.where(next_action_values == max_next_action_value)[0]
+            )
+            next_action = np.random.choice(range(len(next_action_values)))
             target_ = self._successor_matrix[next_action][new_state_id]
         else:
             target_ = self._one_hot_matrix[new_state_id]
