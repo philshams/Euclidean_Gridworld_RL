@@ -159,14 +159,24 @@ class EscapeEnv(base_env.BaseEnvironment, abc.ABC):
         skeleton[self._map == 1] = np.zeros(3)
 
         # make b, c blocks black
-        skeleton[self._map == 0.5] = np.zeros(3)
-        skeleton[self._map == 0.55] = np.zeros(3)
+        skeleton[self._map == constants.B_BLOCK_VALUE] = np.zeros(3)
+        skeleton[self._map == constants.NO_START_BLOCK_VALUE] = np.zeros(3)
 
-        # make k blocks, h blocks, d blocks, e blocks silver
-        skeleton[self._map == 0.4] = 0.75 * np.ones(3)
-        skeleton[self._map == 0.6] = 0.75 * np.ones(3)
-        skeleton[self._map == 0.51] = 0.75 * np.ones(3)
-        skeleton[self._map == 0.52] = 0.75 * np.ones(3)
+        # make k blocks, h blocks, d blocks, e blocks etc. silver
+        for value in [
+            constants.H_BLOCK_VALUE,
+            constants.K_BLOCK_VALUE,
+            constants.D_BLOCK_VALUE,
+            constants.E_BLOCK_VALUE,
+            constants.Z_BLOCK_VALUE,
+            constants.Y_BLOCK_VALUE,
+            constants.X_BLOCK_VALUE,
+            constants.V_BLOCK_VALUE,
+            constants.A_BLOCK_VALUE,
+            constants.F_BLOCK_VALUE,
+            constants.U_BLOCK_VALUE,
+        ]:
+            skeleton[self._map == value] = 0.75 * np.ones(3)
 
         if rewards is not None:
             if isinstance(rewards, str):
