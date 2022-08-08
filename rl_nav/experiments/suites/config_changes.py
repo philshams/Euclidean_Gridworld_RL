@@ -31,7 +31,7 @@ CONFIG_CHANGES = {
             },
             "test_environments": {
                 "map_paths": [
-                    "../circular_maps/all_edge_blocked_obstacle_map.txt"
+                    "../circular_maps/all_edge_blocked_obstacle_map.txt",
                     "../circular_maps/test_map.txt",
                     "../circular_maps/obstacle_map.txt",
                 ]
@@ -45,7 +45,7 @@ CONFIG_CHANGES = {
             },
             "test_environments": {
                 "map_paths": [
-                    "../circular_maps/direct_edge_blocked_obstacle_map.txt"
+                    "../circular_maps/direct_edge_blocked_obstacle_map.txt",
                     "../circular_maps/test_map.txt",
                     "../circular_maps/obstacle_map.txt",
                 ]
