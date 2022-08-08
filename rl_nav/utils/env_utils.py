@@ -176,7 +176,7 @@ def configure_state_space(
     d_block_indices = np.where(map_outline == constants.D_BLOCK_VALUE)
     e_block_indices = np.where(map_outline == constants.E_BLOCK_VALUE)
     b_block_indices = np.where(map_outline == constants.B_BLOCK_VALUE)
-    c_block_indices = np.where(map_outline == constants.C_BLOCK_VALUE)
+    c_block_indices = np.where(map_outline == constants.NO_START_BLOCK_VALUE)
     z_block_indices = np.where(map_outline == constants.Z_BLOCK_VALUE)
     y_block_indices = np.where(map_outline == constants.Y_BLOCK_VALUE)
     v_block_indices = np.where(map_outline == constants.V_BLOCK_VALUE)
@@ -221,9 +221,6 @@ def configure_state_space(
     if len(e_block_state_space):
         positional_state_space.extend(e_block_state_space)
         state_space_dictionary[constants.E_BLOCK_STATE_SPACE] = e_block_state_space
-    if len(c_block_state_space):
-        positional_state_space.extend(c_block_state_space)
-        state_space_dictionary[constants.C_BLOCK_STATE_SPACE] = c_block_state_space
     if len(z_block_state_space):
         positional_state_space.extend(z_block_state_space)
         state_space_dictionary[constants.Z_BLOCK_STATE_SPACE] = z_block_state_space
@@ -248,6 +245,10 @@ def configure_state_space(
     if len(u_block_state_space):
         positional_state_space.extend(u_block_state_space)
         state_space_dictionary[constants.U_BLOCK_STATE_SPACE] = u_block_state_space
+
+    if len(c_block_state_space):
+        positional_state_space.extend(c_block_state_space)
+        state_space_dictionary[constants.C_BLOCK_STATE_SPACE] = c_block_state_space
     else:
         state_space_dictionary[constants.C_BLOCK_STATE_SPACE] = []
 
