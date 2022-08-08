@@ -48,7 +48,7 @@ initialisation:
 train_environment: 
 
     env_name: escape_env_diagonal
-    map_path: ../maps/square_escape_map.txt
+    map_path: ../circular_maps/obstacle_map.txt
 
     episode_timeout: 500
     representation: agent_position
@@ -72,8 +72,8 @@ test_environments:
 
     env_name: escape_env_diagonal
     map_paths: 
-        - ../maps/square_escape_test_map.txt
-        - ../maps/square_escape_map.txt
+        - ../circular_maps/obstacle_map.txt
+        - ../circular_maps/test_map.txt
 
     episode_timeout: 500
     representation: agent_position
