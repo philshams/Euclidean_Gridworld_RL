@@ -114,10 +114,10 @@ class BaseRunner(base_runner.BaseRunner):
                 f"{constants.TEST_EPISODE_LENGTH}_{map_name}_{constants.FINAL_REWARD_RUN}"
             )
             columns.append(
-                f"{constants.TEST_EPISODE_REWARD}_{map_name}_{constants.FIND_SHELTER_RUN}"
+                f"{constants.TEST_EPISODE_REWARD}_{map_name}_{constants.FIND_THREAT_RUN}"
             )
             columns.append(
-                f"{constants.TEST_EPISODE_LENGTH}_{map_name}_{constants.FIND_SHELTER_RUN}"
+                f"{constants.TEST_EPISODE_LENGTH}_{map_name}_{constants.FIND_THREAT_RUN}"
             )
 
         return columns + self._get_runner_specific_data_columns()
@@ -556,7 +556,7 @@ class BaseRunner(base_runner.BaseRunner):
             )
 
     def _perform_tests(self, rollout: bool, planning: bool):
-        find_shelter_logging_dict = self._find_shelter_test(
+        find_threat_logging_dict = self._find_threat_test(
             rollout=rollout, planning=planning
         )
         find_reward_logging_dict = self._find_reward_test(
@@ -568,7 +568,7 @@ class BaseRunner(base_runner.BaseRunner):
         logging_dict = {
             **plain_logging_dict,
             **find_reward_logging_dict,
-            **find_shelter_logging_dict,
+            **find_threat_logging_dict,
         }
         self._model.env_transition_matrix = self._train_environment.transition_matrix
         return logging_dict
@@ -639,7 +639,7 @@ class BaseRunner(base_runner.BaseRunner):
 
         return test_logging_dict
 
-    def _find_shelter_test(self, rollout: bool, planning: bool):
+    def _find_threat_test(self, rollout: bool, planning: bool):
         """Agent starts in shelter and explores/learns in the time until it first reaches
         the threat zone at which point a test rollout is triggered."""
         test_logging_dict = {}
@@ -697,10 +697,10 @@ class BaseRunner(base_runner.BaseRunner):
                 )
 
             test_logging_dict[
-                f"{constants.TEST_EPISODE_REWARD}_{map_name}_{constants.FIND_SHELTER_RUN}"
+                f"{constants.TEST_EPISODE_REWARD}_{map_name}_{constants.FIND_THREAT_RUN}"
             ] = reward
             test_logging_dict[
-                f"{constants.TEST_EPISODE_LENGTH}_{map_name}_{constants.FIND_SHELTER_RUN}"
+                f"{constants.TEST_EPISODE_LENGTH}_{map_name}_{constants.FIND_THREAT_RUN}"
             ] = length
 
             if (
@@ -735,7 +735,7 @@ class BaseRunner(base_runner.BaseRunner):
 
         if rollout:
             self._test_rollout(
-                save_name_base=f"{constants.INDIVIDUAL_TEST_RUN}_{constants.FIND_SHELTER_RUN}"
+                save_name_base=f"{constants.INDIVIDUAL_TEST_RUN}_{constants.FIND_THREAT_RUN}"
             )
 
         return test_logging_dict
