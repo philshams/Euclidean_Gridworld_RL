@@ -15,16 +15,24 @@ class BaseEnvironment(abc.ABC):
     """
 
     MAPPING = {
-        constants.WALL_CHARACTER: 1,
-        constants.H_BLOCK_CHARACTER: 0.4,
-        constants.K_BLOCK_CHARACTER: 0.6,
-        constants.OPEN_CHARACTER: 0,
-        constants.START_CHARACTER: 0,
-        constants.REWARD_CHARACTER: 0,
-        constants.B_BLOCK_CHARACTER: 0.5,
-        constants.D_BLOCK_CHARACTER: 0.51,
-        constants.E_BLOCK_CHARACTER: 0.52,
-        constants.NO_START_BLOCK_CHAR: 0.55,
+        constants.WALL_CHARACTER: constants.WALL_VALUE,
+        constants.H_BLOCK_CHARACTER: constants.H_BLOCK_VALUE,
+        constants.K_BLOCK_CHARACTER: constants.K_BLOCK_VALUE,
+        constants.OPEN_CHARACTER: constants.BLANK_VALUE,
+        constants.START_CHARACTER: constants.BLANK_VALUE,
+        constants.REWARD_CHARACTER: constants.BLANK_VALUE,
+        constants.B_BLOCK_CHARACTER: constants.B_BLOCK_VALUE,
+        constants.D_BLOCK_CHARACTER: constants.D_BLOCK_VALUE,
+        constants.E_BLOCK_CHARACTER: constants.E_BLOCK_VALUE,
+        constants.NO_START_BLOCK_CHAR: constants.NO_START_BLOCK_VALUE,
+        constants.Z_BLOCK_CHARACTER: constants.Z_BLOCK_VALUE,
+        constants.Y_BLOCK_CHARACTER: constants.Y_BLOCK_VALUE,
+        constants.X_BLOCK_CHARACTER: constants.X_BLOCK_VALUE,
+        constants.V_BLOCK_CHARACTER: constants.V_BLOCK_VALUE,
+        constants.F_BLOCK_CHARACTER: constants.F_BLOCK_VALUE,
+        constants.A_BLOCK_CHARACTER: constants.A_BLOCK_VALUE,
+        constants.U_BLOCK_CHARACTER: constants.U_BLOCK_VALUE,
+        constants.W_BLOCK_CHARACTER: constants.W_BLOCK_VALUE,
     }
 
     def __init__(self, training: bool):
@@ -90,6 +98,30 @@ class BaseEnvironment(abc.ABC):
         )
         self._c_block_state_space = state_space_dictionary.get(
             constants.C_BLOCK_STATE_SPACE
+        )
+        self._z_block_state_space = state_space_dictionary.get(
+            constants.Z_BLOCK_STATE_SPACE
+        )
+        self._x_block_state_space = state_space_dictionary.get(
+            constants.X_BLOCK_STATE_SPACE
+        )
+        self._v_block_state_space = state_space_dictionary.get(
+            constants.V_BLOCK_STATE_SPACE
+        )
+        self._y_block_state_space = state_space_dictionary.get(
+            constants.Y_BLOCK_STATE_SPACE
+        )
+        self._a_block_state_space = state_space_dictionary.get(
+            constants.A_BLOCK_STATE_SPACE
+        )
+        self._f_block_state_space = state_space_dictionary.get(
+            constants.F_BLOCK_STATE_SPACE
+        )
+        self._w_block_state_space = state_space_dictionary.get(
+            constants.W_BLOCK_STATE_SPACE
+        )
+        self._u_block_state_space = state_space_dictionary.get(
+            constants.U_BLOCK_STATE_SPACE
         )
         self._start_state_space = list(
             set(self._positional_state_space)
