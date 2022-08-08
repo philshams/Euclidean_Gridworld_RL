@@ -104,25 +104,11 @@ class VisualisationEnv(wrapper.Wrapper):
 
         out.release()
 
-    def plot_heatmap_over_env(
-        self,
-        heatmap: Dict[Tuple[int, int], float],
-        fig: Optional[matplotlib.figure.Figure] = None,
-        ax: Optional[matplotlib.axes.Axes] = None,
-        save_name: Optional[str] = None,
-    ) -> None:
-        """plot quantities over top of environmen (e.g. value function)
-
-        Args:
-            heatmap: data to plot; dictionary of states (keys) and quantities (values).
-            fig: figure on which to plot.
-            ax: axis on which to plot.
-            save_name: path to which to save plot.
-        """
-        assert (
-            ax is not None and fig is not None
-        ) or save_name is not None, "Either must provide axis to plot heatmap over,"
-        "r file name to save separate figure."
+    def _plot_normalised_heatmap_over_env(
+        self, heatmap: Dict[Tuple[int, int], float], save_name: str
+    ):
+        split_save_name = save_name.split(".pdf")[0]
+        save_name = f"{split_save_name}_normalised.pdf"
         environment_map = self._env._env_skeleton(
             rewards=None,
             agent=None,
@@ -132,30 +118,52 @@ class VisualisationEnv(wrapper.Wrapper):
         current_max_value = np.max(all_values)
         current_min_value = np.min(all_values)
 
-        if VisualisationEnv.NORMALISE:
-            for position, value in heatmap.items():
-                # remove alpha from rgba in colormap return
-                # normalise value for color mapping
-                environment_map[position[::-1]] = self.COLORMAP(
-                    (value - current_min_value)
-                    / (current_max_value - current_min_value)
-                )[:-1]
-        else:
-            for position, value in heatmap.items():
-                # remove alpha from rgba in colormap return
-                environment_map[position[::-1]] = self.COLORMAP(value)[:-1]
+        for position, value in heatmap.items():
+            # remove alpha from rgba in colormap return
+            # normalise value for color mapping
+            environment_map[position[::-1]] = self.COLORMAP(
+                (value - current_min_value) / (current_max_value - current_min_value)
+            )[:-1]
 
         fig = plt.figure()
-        if save_name is not None:
-            plt.imshow(environment_map, origin="lower", cmap=self.COLORMAP)
-            plt.colorbar()
-            fig.savefig(save_name, dpi=60)
-        else:
-            divider = make_axes_locatable(ax)
-            cax = divider.append_axes("right", size="5%", pad=0.05)
-            im = ax.imshow(environment_map, origin="lower", cmap=self.COLORMAP)
-            fig.colorbar(im, ax=ax, cax=cax, orientation="vertical")
+        plt.imshow(environment_map, origin="lower", cmap=self.COLORMAP)
+        plt.colorbar()
+        fig.savefig(save_name, dpi=60)
         plt.close()
+
+    def _plot_unnormalised_heatmap_over_env(
+        self, heatmap: Dict[Tuple[int, int], float], save_name: str
+    ):
+        environment_map = self._env._env_skeleton(
+            rewards=None,
+            agent=None,
+        )
+
+        for position, value in heatmap.items():
+            # remove alpha from rgba in colormap return
+            environment_map[position[::-1]] = self.COLORMAP(value)[:-1]
+
+        fig = plt.figure()
+        plt.imshow(environment_map, origin="lower", cmap=self.COLORMAP)
+        plt.colorbar()
+        fig.savefig(save_name, dpi=60)
+        plt.close()
+
+    def plot_heatmap_over_env(
+        self,
+        heatmap: Dict[Tuple[int, int], float],
+        save_name: str,
+    ) -> None:
+        """plot quantities over top of environmen (e.g. value function)
+
+        Args:
+            heatmap: data to plot; dictionary of states (keys) and quantities (values).
+            fig: figure on which to plot.
+            ax: axis on which to plot.
+            save_name: path to which to save plot.
+        """
+        self._plot_unnormalised_heatmap_over_env(heatmap=heatmap, save_name=save_name)
+        self._plot_normalised_heatmap_over_env(heatmap=heatmap, save_name=save_name)
 
     def plot_numbered_values_over_env(
         self, values: Dict[Tuple[int], np.ndarray], save_name: str
