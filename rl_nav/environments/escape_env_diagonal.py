@@ -173,6 +173,80 @@ class EscapeEnvDiagonal(escape_env.EscapeEnv):
             tuple(provisional_new_position) in self._c_block_state_space
         )
 
+        moving_into_z_block = (
+            (self._z_block_state_space is not None)
+            and (tuple(provisional_new_position) in self._z_block_state_space)
+            and (np.array_equal(delta, self._deltas[7]))
+        )
+
+        moving_into_y_block = (
+            (self._y_block_state_space is not None)
+            and (tuple(provisional_new_position) in self._y_block_state_space)
+            and (np.array_equal(delta, self._deltas[6]))
+        )
+
+        moving_into_v_block = (
+            (self._v_block_state_space is not None)
+            and (tuple(provisional_new_position) in self._v_block_state_space)
+            and (
+                np.array_equal(delta, self._deltas[7])
+                or np.array_equal(delta, self._deltas[0])
+            )
+        )
+
+        moving_into_a_block = (
+            (self._a_block_state_space is not None)
+            and (tuple(provisional_new_position) in self._a_block_state_space)
+            and (
+                np.array_equal(delta, self._deltas[0])
+                or np.array_equal(delta, self._deltas[3])
+                or np.array_equal(delta, self._deltas[6])
+                or np.array_equal(delta, self._deltas[7])
+            )
+        )
+
+        moving_into_f_block = (
+            (self._f_block_state_space is not None)
+            and (tuple(provisional_new_position) in self._f_block_state_space)
+            and (
+                np.array_equal(delta, self._deltas[2])
+                or np.array_equal(delta, self._deltas[3])
+                or np.array_equal(delta, self._deltas[6])
+                or np.array_equal(delta, self._deltas[7])
+            )
+        )
+
+        moving_into_u_block = (
+            (self._u_block_state_space is not None)
+            and (tuple(provisional_new_position) in self._u_block_state_space)
+            and (
+                np.array_equal(delta, self._deltas[2])
+                or np.array_equal(delta, self._deltas[6])
+            )
+        )
+
+        moving_into_w_block = (
+            (self._w_block_state_space is not None)
+            and (tuple(provisional_new_position) in self._w_block_state_space)
+            and (
+                np.array_equal(delta, self._deltas[2])
+                or np.array_equal(delta, self._deltas[3])
+                or np.array_equal(delta, self._deltas[5])
+                or np.array_equal(delta, self._deltas[6])
+            )
+        )
+
+        moving_into_x_block = (
+            (self._x_block_state_space is not None)
+            and (tuple(provisional_new_position) in self._x_block_state_space)
+            and (
+                np.array_equal(delta, self._deltas[0])
+                or np.array_equal(delta, self._deltas[3])
+                or np.array_equal(delta, self._deltas[4])
+                or np.array_equal(delta, self._deltas[7])
+            )
+        )
+
         move_permissible = all(
             [
                 not moving_into_wall,
@@ -183,6 +257,14 @@ class EscapeEnvDiagonal(escape_env.EscapeEnv):
                 not moving_into_b_block,
                 not moving_from_b_block,
                 not moving_into_c_block,
+                not moving_into_z_block,
+                not moving_into_v_block,
+                not moving_into_u_block,
+                not moving_into_w_block,
+                not moving_into_x_block,
+                not moving_into_y_block,
+                not moving_into_a_block,
+                not moving_into_f_block,
             ]
         )
 
