@@ -175,6 +175,7 @@ class EscapeEnv(base_env.BaseEnvironment, abc.ABC):
             constants.A_BLOCK_VALUE,
             constants.F_BLOCK_VALUE,
             constants.U_BLOCK_VALUE,
+            constants.W_BLOCK_VALUE,
         ]:
             skeleton[self._map == value] = 0.75 * np.ones(3)
 
