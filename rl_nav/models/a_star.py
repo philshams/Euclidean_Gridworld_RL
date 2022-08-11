@@ -117,7 +117,7 @@ class AStar(base_learner.BaseLearner):
 
         # undirected
         if new_state not in self._transition_matrix:
-            self._transition_matrix[new_state]
+            self._transition_matrix[new_state] = []
         if new_state != state and state not in self._transition_matrix[new_state]:
             self._transition_matrix[new_state].append(state)
 
