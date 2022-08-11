@@ -12,6 +12,7 @@ CONFIG_CHANGES = {
     ],
     "condition_2": [
         {
+            "training": {"step_cost_factor": 0.0},
             "train_environment": {
                 "map_path": "../circular_maps/empty_obstacle_map.txt",
                 "reward_positions": [],
