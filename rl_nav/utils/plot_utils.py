@@ -30,11 +30,14 @@ def plot_trajectories(folder_path, exp_names):
 
         for seed_folder in seed_folders:
 
-            all_rollouts = [
-                os.path.join(seed_folder, constants.ROLLOUTS, f)
-                for f in os.listdir(os.path.join(seed_folder, constants.ROLLOUTS))
-                if pattern.match(f)
-            ]
+            try:
+                all_rollouts = [
+                    os.path.join(seed_folder, constants.ROLLOUTS, f)
+                    for f in os.listdir(os.path.join(seed_folder, constants.ROLLOUTS))
+                    if pattern.match(f)
+                ]
+            except FileNotFoundError:
+                break
 
             final_rollout = sorted(
                 all_rollouts, key=lambda x: int(x.split(".npy")[0].split("_")[-1])
@@ -73,23 +76,45 @@ def plot_trajectories(folder_path, exp_names):
                             alpha=0.6,
                         )
                 else:
+                    x_plot = np.array(x[split_index + 1 :])
+                    y_plot = np.array(y[split_index + 1 :])
                     plt.plot(
-                        x[split_index + 1 :],
-                        y[split_index + 1 :],
+                        x_plot,
+                        y_plot,
                         color="skyblue",
                         alpha=0.6,
                     )
-                    path_lengths.append(len(y[split_index + 1 :]))
+                    x_diffs = x_plot[1:] - x_plot[:-1]
+                    y_diffs = y_plot[1:] - y_plot[:-1]
+                    distance = np.sqrt(x_diffs**2 + y_diffs**2).sum()
+                    path_lengths.append(distance)
             else:
                 plt.plot(x, y, color="skyblue", alpha=0.6)
                 path_lengths.append(len(y))
+
+        # gridlines
+        for row in range(env.shape[0]):
+            plt.plot(
+                [-0.5, env.shape[1] - 0.5],
+                [row - 0.5, row - 0.5],
+                color="gray",
+                alpha=0.2,
+            )
+        for col in range(env.shape[1]):
+            plt.plot(
+                [col - 0.5, col - 0.5],
+                [-0.5, env.shape[0] - 0.5],
+                color="gray",
+                alpha=0.2,
+            )
 
         plt.title(
             f"Average Path Length: {round(np.mean(path_lengths), 2)} "
             f"+- {round(np.std(path_lengths), 2)}"
         )
 
-        fig.savefig(save_path)
+        fig.savefig(f"{save_path}.eps")
+        fig.savefig(f"{save_path}.png")
         plt.close()
 
     for exp_name in exp_names:
@@ -127,8 +152,8 @@ def plot_trajectories(folder_path, exp_names):
                 f"{constants.INDIVIDUAL_TEST_RUN}_{constants.FINAL_REWARD_RUN}_{env_name}_[0-9]*.npy"
             )
 
-            find_shelter_pattern = re.compile(
-                f"{constants.INDIVIDUAL_TEST_RUN}_{constants.FIND_SHELTER_RUN}_{env_name}_[0-9]*.npy"
+            find_threat_pattern = re.compile(
+                f"{constants.INDIVIDUAL_TEST_RUN}_{constants.FIND_THREAT_RUN}_{env_name}_[0-9]*.npy"
             )
 
             _plot_trajectories(
@@ -138,7 +163,7 @@ def plot_trajectories(folder_path, exp_names):
                 env=env,
                 pattern=plain_pattern,
                 save_path=os.path.join(
-                    exp_path, f"{env_name}_{constants.TRAJECTORIES}.pdf"
+                    exp_path, f"{env_name}_{constants.TRAJECTORIES}"
                 ),
             )
 
@@ -150,7 +175,7 @@ def plot_trajectories(folder_path, exp_names):
                 pattern=final_reward_pattern,
                 save_path=os.path.join(
                     exp_path,
-                    f"{env_name}_{constants.FINAL_REWARD_RUN}_{constants.TRAJECTORIES}.pdf",
+                    f"{env_name}_{constants.FINAL_REWARD_RUN}_{constants.TRAJECTORIES}",
                 ),
                 split_by=reward_positions,
             )
@@ -160,10 +185,10 @@ def plot_trajectories(folder_path, exp_names):
                 seed_folders=seed_folders,
                 env_name=env_name,
                 env=env,
-                pattern=find_shelter_pattern,
+                pattern=find_threat_pattern,
                 save_path=os.path.join(
                     exp_path,
-                    f"{env_name}_{constants.FIND_SHELTER_RUN}_{constants.TRAJECTORIES}.pdf",
+                    f"{env_name}_{constants.FIND_THREAT_RUN}_{constants.TRAJECTORIES}",
                 ),
                 split_by=[start_position],
             )
