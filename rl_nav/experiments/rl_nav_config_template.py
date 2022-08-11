@@ -243,7 +243,7 @@ class RLNavConfigTemplate:
                     requirements=[lambda x: x > 0 and x <= 1],
                 ),
                 config_field.Field(
-                    name=constants.STEP_COST_FACTOR,
+                    name=constants.TRAIN_STEP_COST_FACTOR,
                     types=[float, int],
                     requirements=[lambda x: x >= 0],
                 ),
@@ -443,6 +443,11 @@ class RLNavConfigTemplate:
                     name=constants.REWARD_POSITIONS,
                     types=[list],
                     requirements=[lambda x: all([isinstance(y, list) for y in x])],
+                ),
+                config_field.Field(
+                    name=constants.STEP_COST_FACTOR,
+                    types=[int, float],
+                    requirements=[lambda x: x >= 0],
                 ),
             ],
             level=[constants.TEST_ENVIRONMENTS],
