@@ -265,7 +265,7 @@ class BaseRunner(base_runner.BaseRunner):
                         config, f"{config_key_prefix}_{constants.REWARD_POSITIONS}"
                     ),
                     constants.STEP_COST_FACTOR: getattr(
-                        config, constants.STEP_COST_FACTOR
+                        config, f"{config_key_prefix}_{constants.STEP_COST_FACTOR}"
                     ),
                     constants.START_POSITION: getattr(
                         config, f"{config_key_prefix}_{constants.START_POSITION}"
