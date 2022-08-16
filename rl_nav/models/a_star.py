@@ -1,9 +1,10 @@
 import copy
 import itertools
 import random
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Optional
 
 import numpy as np
+from scipy import stats
 from rl_nav import constants
 from rl_nav.models import base_learner
 from rl_nav.utils import a_star_search
@@ -16,6 +17,8 @@ class AStar(base_learner.BaseLearner):
         self,
         action_space: List[int],
         state_space: List[Tuple[int, int]],
+        window_average: int,
+        inverse_actions: Optional[Dict] = None,
     ):
         """Class constructor.
 
@@ -24,6 +27,13 @@ class AStar(base_learner.BaseLearner):
             state_space: list of states.
         """
         super().__init__()
+
+        if inverse_actions is not None:
+            self._undirected = True
+            self._inverse_actions = inverse_actions
+        else:
+            self._undirected = False
+            self._inverse_actions = None
 
         self._action_space = action_space
         self._state_space = state_space
@@ -34,10 +44,12 @@ class AStar(base_learner.BaseLearner):
         self._allow_state_instantiation = False
         self._state_visitation_counts = {s: 0 for s in self._state_space}
 
+        self._window_average = window_average
         self._model = {}
         self._transition_matrix = {}
+        self._inverse_transition_matrix = {}
         self._action_history = {}
-        self._reward_states = []
+        self._reward_states = {}
 
     def _train(self):
         pass
@@ -48,12 +60,37 @@ class AStar(base_learner.BaseLearner):
     def select_target_action(self):
         pass
 
+    def _process_transition_matrix(self):
+        transition_matrix = {}
+
+        all_state_keys = set(list(self._transition_matrix) + list(self._inverse_transition_matrix))
+
+        for state, action_next_states in self._transition_matrix.items():
+            if state not in transition_matrix:
+                transition_matrix[state] = []
+            for action in action_next_states:
+                if action_next_states[action]:
+                    modal_new_state = tuple(stats.mode(action_next_states[action])[0][0])
+                    if modal_new_state not in transition_matrix[state]:
+                        transition_matrix[state].append(modal_new_state)
+        for state, action_next_states in self._inverse_transition_matrix.items():
+            if state not in transition_matrix:
+                transition_matrix[state] = []
+            for action in action_next_states:
+                if action_next_states[action]:
+                    modal_new_state = tuple(stats.mode(action_next_states[action])[0][0])
+                    if modal_new_state not in transition_matrix[state]:
+                        transition_matrix[state].append(modal_new_state)
+           
+        return transition_matrix
+
     def plan(self, state):
         if len(self._reward_states):
+            transition_matrix = self._process_transition_matrix()
             path = a_star_search.search(
-                transition_matrix=self._transition_matrix,
+                transition_matrix=transition_matrix,
                 start_state=state,
-                reward_states=self._reward_states,
+                reward_states=list(self._reward_states.keys()),
             )
         else:
             path = None
@@ -107,19 +144,26 @@ class AStar(base_learner.BaseLearner):
             self._id_state_mapping[len(self._id_state_mapping)] = state
             self._state_visitation_counts[state] = 0
 
-        if reward > 0 and new_state not in self._reward_states:
-            self._reward_states.append(copy.deepcopy(new_state))
+        if reward > 0:
+            if new_state not in self._reward_states:
+                self._reward_states[new_state] = []
+            self._reward_states[new_state].append(reward)
 
         if state not in self._transition_matrix:
-            self._transition_matrix[state] = []
-        if new_state != state and new_state not in self._transition_matrix[state]:
-            self._transition_matrix[state].append(new_state)
+            self._transition_matrix[state] = {}
+        if action not in self._transition_matrix[state]:
+            self._transition_matrix[state][action] = []
+        if new_state != state:
+            self._transition_matrix[state][action].append(new_state)
 
-        # undirected
-        if new_state not in self._transition_matrix:
-            self._transition_matrix[new_state] = []
-        if new_state != state and state not in self._transition_matrix[new_state]:
-            self._transition_matrix[new_state].append(state)
+        if self._undirected:
+            inverse_action = self._inverse_actions[action]
+            if new_state not in self._inverse_transition_matrix:
+                self._inverse_transition_matrix[new_state] = {}
+            if inverse_action not in self._inverse_transition_matrix[new_state]:
+                self._inverse_transition_matrix[new_state][inverse_action] = []
+            if new_state != state:
+                self._inverse_transition_matrix[new_state][inverse_action].append(state)
 
         # for action_available in self._action_space:
         #     delta = self._deltas[action_available]
