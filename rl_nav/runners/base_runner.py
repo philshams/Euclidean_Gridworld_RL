@@ -368,6 +368,8 @@ class BaseRunner(base_runner.BaseRunner):
             model = a_star.AStar(
                 action_space=self._train_environment.action_space,
                 state_space=self._train_environment.state_space,
+                window_average=config.gradual_learner_window_average,
+                inverse_actions=self._train_environment.inverse_action_mapping,
             )
         elif config.model in [
             constants.LINEAR_FEATURES,
