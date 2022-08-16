@@ -256,7 +256,9 @@ class RLNavConfigTemplate:
                     ],
                 ),
                 config_field.Field(name=constants.UPDATE_NO_OP, types=[bool]),
-                config_field.Field(name=constants.GRADUAL_LEARNER_WINDOW_AVERAGE, types=[int]),
+                config_field.Field(
+                    name=constants.GRADUAL_LEARNER_WINDOW_AVERAGE, types=[int]
+                ),
             ],
             level=[constants.TRAINING],
             nested_templates=[

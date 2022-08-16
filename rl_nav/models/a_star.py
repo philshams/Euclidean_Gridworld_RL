@@ -63,14 +63,18 @@ class AStar(base_learner.BaseLearner):
     def _process_transition_matrix(self):
         transition_matrix = {}
 
-        all_state_keys = set(list(self._transition_matrix) + list(self._inverse_transition_matrix))
+        all_state_keys = set(
+            list(self._transition_matrix) + list(self._inverse_transition_matrix)
+        )
 
         for state, action_next_states in self._transition_matrix.items():
             if state not in transition_matrix:
                 transition_matrix[state] = []
             for action in action_next_states:
                 if action_next_states[action]:
-                    modal_new_state = tuple(stats.mode(action_next_states[action])[0][0])
+                    modal_new_state = tuple(
+                        stats.mode(action_next_states[action])[0][0]
+                    )
                     if modal_new_state not in transition_matrix[state]:
                         transition_matrix[state].append(modal_new_state)
         for state, action_next_states in self._inverse_transition_matrix.items():
@@ -78,10 +82,12 @@ class AStar(base_learner.BaseLearner):
                 transition_matrix[state] = []
             for action in action_next_states:
                 if action_next_states[action]:
-                    modal_new_state = tuple(stats.mode(action_next_states[action])[0][0])
+                    modal_new_state = tuple(
+                        stats.mode(action_next_states[action])[0][0]
+                    )
                     if modal_new_state not in transition_matrix[state]:
                         transition_matrix[state].append(modal_new_state)
-           
+
         return transition_matrix
 
     def plan(self, state):
