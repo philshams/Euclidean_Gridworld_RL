@@ -466,6 +466,11 @@ class RLNavConfigTemplate:
                     requirements=[lambda x: x > 0],
                 ),
                 config_field.Field(
+                    name=constants.TRAIN_TEST_FREQUENCY,
+                    types=[int],
+                    requirements=[lambda x: x > 0],
+                ),
+                config_field.Field(
                     name=constants.TEST_FREQUENCY,
                     types=[int],
                     requirements=[lambda x: x > 0],
