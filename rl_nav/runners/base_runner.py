@@ -55,6 +55,7 @@ class BaseRunner(base_runner.BaseRunner):
         self._test_epsilon = config.test_epsilon
         self._num_steps = config.num_steps
         self._step_count = 0
+        self._print_frequency = config.print_frequency
         self._rollout_frequency = config.rollout_frequency
         self._visualisation_frequency = config.visualisation_frequency
         self._train_test_frequency = config.train_test_frequency
@@ -143,6 +144,8 @@ class BaseRunner(base_runner.BaseRunner):
 
     def _train_step(self, state):
 
+        if self._step_count % self._print_frequency == 0:
+            self._logger.info(f"Step: {self._step_count}")
         self._step_count += 1
 
         logging_dict = {}
