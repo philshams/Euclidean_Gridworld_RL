@@ -219,3 +219,4 @@ W_BLOCK_VALUE = 0.93
 TEST_STEP_COST_FACTOR = "test_step_cost_factor"
 STEP_COST_FACTOR = "step_cost_factor"
 GRADUAL_LEARNER_WINDOW_AVERAGE = "gradual_learner_window_average"
+TRAIN_TEST_FREQUENCY = "train_test_frequency"
