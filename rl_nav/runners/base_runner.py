@@ -6,11 +6,21 @@ from typing import Any, Dict, List, Optional, Union
 
 import numpy as np
 from rl_nav import constants
-from rl_nav.environments import (escape_env_cardinal, escape_env_diagonal,
-                                 hierarchy_network, visualisation_env)
-from rl_nav.models import (a_star, dyna, dyna_linear_features, linear_features,
-                           q_learning, state_linear_features,
-                           successor_representation)
+from rl_nav.environments import (
+    escape_env_cardinal,
+    escape_env_diagonal,
+    hierarchy_network,
+    visualisation_env,
+)
+from rl_nav.models import (
+    a_star,
+    dyna,
+    dyna_linear_features,
+    linear_features,
+    q_learning,
+    state_linear_features,
+    successor_representation,
+)
 from rl_nav.utils import epsilon_schedules, model_utils
 from run_modes import base_runner
 
@@ -47,6 +57,7 @@ class BaseRunner(base_runner.BaseRunner):
         self._step_count = 0
         self._rollout_frequency = config.rollout_frequency
         self._visualisation_frequency = config.visualisation_frequency
+        self._train_test_frequency = config.train_test_frequency
         self._test_frequency = config.test_frequency
         self._checkpoint_frequency = config.checkpoint_frequency
         self._one_dim_blocks = config.one_dim_blocks
@@ -140,7 +151,7 @@ class BaseRunner(base_runner.BaseRunner):
             and self._step_count != 1
         ):
             self._generate_visualisations()
-        if self._step_count % self._test_frequency == 0:
+        if self._step_count % self._train_test_frequency == 0:
             logging_dict = self._perform_tests(
                 rollout=(self._step_count % self._rollout_frequency == 0),
                 planning=self._planner,
@@ -558,20 +569,21 @@ class BaseRunner(base_runner.BaseRunner):
             )
 
     def _perform_tests(self, rollout: bool, planning: bool):
-        find_threat_logging_dict = self._find_threat_test(
-            rollout=rollout, planning=planning
-        )
-        find_reward_logging_dict = self._find_reward_test(
-            rollout=rollout, planning=planning
-        )
-        plain_logging_dict = self._test(
+        logging_dict = self._test(
             test_model=self._model, rollout=rollout, planning=planning
         )
-        logging_dict = {
-            **plain_logging_dict,
-            **find_reward_logging_dict,
-            **find_threat_logging_dict,
-        }
+        if self._step_count % self._test_frequency == 0:
+            find_threat_logging_dict = self._find_threat_test(
+                rollout=rollout, planning=planning
+            )
+            find_reward_logging_dict = self._find_reward_test(
+                rollout=rollout, planning=planning
+            )
+            logging_dict = {
+                **logging_dict,
+                **find_reward_logging_dict,
+                **find_threat_logging_dict,
+            }
         self._model.env_transition_matrix = self._train_environment.transition_matrix
         return logging_dict
 
