@@ -555,15 +555,16 @@ class BaseRunner(base_runner.BaseRunner):
 
         self._runner_specific_visualisations()
 
-    def _test_rollout(self, save_name_base: str):
+    def _test_rollout(self, visualise: bool, save_name_base: str):
         for i, (map_name, test_env) in enumerate(self._test_environments.items()):
-            test_env.visualise_episode_history(
-                save_path=os.path.join(
-                    self._rollout_folder_path,
-                    f"{save_name_base}_{map_name}_{self._step_count}.mp4",
-                ),
-                history=constants.TEST,
-            )
+            if visualise:
+                test_env.visualise_episode_history(
+                    save_path=os.path.join(
+                        self._rollout_folder_path,
+                        f"{save_name_base}_{map_name}_{self._step_count}.mp4",
+                    ),
+                    history=constants.TEST,
+                )
             test_env.save_history(
                 save_path=os.path.join(
                     self._rollout_folder_path,
@@ -649,10 +650,10 @@ class BaseRunner(base_runner.BaseRunner):
                 f"{constants.TEST_EPISODE_LENGTH}_{map_name}_{constants.FINAL_REWARD_RUN}"
             ] = length
 
-        if rollout:
-            self._test_rollout(
-                save_name_base=f"{constants.INDIVIDUAL_TEST_RUN}_{constants.FINAL_REWARD_RUN}"
-            )
+        self._test_rollout(
+            visualise=rollout,
+            save_name_base=f"{constants.INDIVIDUAL_TEST_RUN}_{constants.FINAL_REWARD_RUN}",
+        )
 
         return test_logging_dict
 
@@ -750,10 +751,10 @@ class BaseRunner(base_runner.BaseRunner):
                     ),
                 )
 
-        if rollout:
-            self._test_rollout(
-                save_name_base=f"{constants.INDIVIDUAL_TEST_RUN}_{constants.FIND_THREAT_RUN}"
-            )
+        self._test_rollout(
+            visualise=rollout,
+            save_name_base=f"{constants.INDIVIDUAL_TEST_RUN}_{constants.FIND_THREAT_RUN}",
+        )
 
         return test_logging_dict
 
@@ -784,8 +785,9 @@ class BaseRunner(base_runner.BaseRunner):
             test_logging_dict[f"{constants.TEST_EPISODE_REWARD}_{map_name}"] = reward
             test_logging_dict[f"{constants.TEST_EPISODE_LENGTH}_{map_name}"] = length
 
-        if rollout:
-            self._test_rollout(save_name_base=f"{constants.INDIVIDUAL_TEST_RUN}")
+        self._test_rollout(
+            visualise=rollout, save_name_base=f"{constants.INDIVIDUAL_TEST_RUN}"
+        )
 
         test_model.train()
 
