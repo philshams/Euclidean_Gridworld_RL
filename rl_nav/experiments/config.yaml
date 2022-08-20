@@ -16,12 +16,14 @@ training:
 
     learning_rate: 0.1
     discount_factor: 0.9
-    step_cost_factor: 0.01
+    train_step_cost_factor: 0.01
 
     one_dim_blocks: True
     imputation_method: random
 
     update_no_op: True
+
+    gradual_learner_window_average: 150
 
     epsilon:
         schedule: constant
@@ -68,7 +70,7 @@ initialisation:
 train_environment: 
 
     env_name: escape_env_diagonal
-    map_path: ../maps/square_escape_map.txt
+    map_path: ../circular_maps/obstacle_map.txt
 
     episode_timeout: 500
     representation: agent_position
@@ -92,8 +94,8 @@ test_environments:
 
     env_name: escape_env_diagonal
     map_paths: 
-        - ../maps/square_escape_test_map.txt
-        - ../maps/square_escape_map.txt
+        - ../circular_maps/obstacle_map.txt
+        - ../circular_maps/test_map.txt
 
     episode_timeout: 500
     representation: agent_position
@@ -117,12 +119,14 @@ test_environments:
             - ../maps/hierarchy_transition_7.json
 
 logging:
+    print_frequency: 5000
     visualisation_frequency: 50000
     rollout_frequency: 50000
+    train_test_frequency: 50000
     test_frequency: 50000
     checkpoint_frequency: 50000
 
     visualisations: 
         # - numbered_value_function
         # - visitation_counts
-        - value_function
+        # - value_function
