@@ -461,6 +461,11 @@ class RLNavConfigTemplate:
         self._logging_template = config_template.Template(
             fields=[
                 config_field.Field(
+                    name=constants.PRINT_FREQUENCY,
+                    types=[int],
+                    requirements=[lambda x: x > 0],
+                ),
+                config_field.Field(
                     name=constants.VISUALISATION_FREQUENCY,
                     types=[int],
                     requirements=[lambda x: x > 0],
