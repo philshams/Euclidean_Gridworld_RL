@@ -1,7 +1,7 @@
 seed: 0
 
 training:
-    num_steps: 250000
+    num_steps: 1500000
     model: successor_rep
 
     behaviour: epsilon_greedy
@@ -22,6 +22,8 @@ training:
     imputation_method: random
 
     update_no_op: True
+
+    gradual_learner_window_average: 150
 
     epsilon:
         schedule: constant
@@ -97,10 +99,11 @@ test_environments:
             - ../maps/hierarchy_transition_7.json
 
 logging:
-    visualisation_frequency: 50000
-    rollout_frequency: 50000
-    test_frequency: 50000
-    checkpoint_frequency: 50000
+    visualisation_frequency: 100000
+    rollout_frequency: 100000
+    train_test_frequency: 5000
+    test_frequency: 100000
+    checkpoint_frequency: 100000
 
     visualisations: 
         # - numbered_value_function
