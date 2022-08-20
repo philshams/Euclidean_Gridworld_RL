@@ -99,6 +99,7 @@ test_environments:
             - ../maps/hierarchy_transition_7.json
 
 logging:
+    print_frequency: 5000
     visualisation_frequency: 100000
     rollout_frequency: 100000
     train_test_frequency: 5000
