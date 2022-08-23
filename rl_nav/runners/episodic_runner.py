@@ -30,6 +30,7 @@ class EpisodicRunner(base_runner.BaseRunner):
             self._next_rollout_step += self._rollout_frequency
 
     def train(self):
+        self._model.train()
         self._model.env_transition_matrix = self._train_environment.transition_matrix
         while self._step_count < self._num_steps:
             self._train_episode()
