@@ -573,8 +573,9 @@ class BaseRunner(base_runner.BaseRunner):
             )
 
     def _perform_tests(self, rollout: bool, planning: bool):
+        model_copy = copy.deepcopy(self._model)
         logging_dict = self._test(
-            test_model=self._model, rollout=rollout, planning=planning
+            test_model=model_copy, rollout=rollout, planning=planning
         )
         if self._step_count % self._test_frequency == 0:
             find_threat_logging_dict = self._find_threat_test(
