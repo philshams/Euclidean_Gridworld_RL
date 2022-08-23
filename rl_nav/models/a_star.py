@@ -47,7 +47,6 @@ class AStar(base_learner.BaseLearner):
         self._window_average = window_average
         self._model = {}
         self._transition_matrix = {}
-        self._inverse_transition_matrix = {}
         self._action_history = {}
         self._reward_states = {}
 
@@ -77,17 +76,10 @@ class AStar(base_learner.BaseLearner):
                             0
                         ][0]
                     )
-                    if modal_new_state not in transition_matrix[state]:
-                        transition_matrix[state].append(modal_new_state)
-        for state, action_next_states in self._inverse_transition_matrix.items():
-            if state not in transition_matrix:
-                transition_matrix[state] = []
-            for action in action_next_states:
-                if action_next_states[action]:
-                    modal_new_state = tuple(
-                        stats.mode(action_next_states[action])[0][0]
-                    )
-                    if modal_new_state not in transition_matrix[state]:
+                    if (
+                        modal_new_state not in transition_matrix[state]
+                        and state != modal_new_state
+                    ):
                         transition_matrix[state].append(modal_new_state)
 
         return transition_matrix
@@ -161,24 +153,15 @@ class AStar(base_learner.BaseLearner):
             self._transition_matrix[state] = {}
         if action not in self._transition_matrix[state]:
             self._transition_matrix[state][action] = []
-        if new_state != state:
-            self._transition_matrix[state][action].append(new_state)
+        self._transition_matrix[state][action].append(new_state)
 
-        if self._undirected:
+        if self._undirected and state != new_state:
             inverse_action = self._inverse_actions[action]
-            if new_state not in self._inverse_transition_matrix:
-                self._inverse_transition_matrix[new_state] = {}
-            if inverse_action not in self._inverse_transition_matrix[new_state]:
-                self._inverse_transition_matrix[new_state][inverse_action] = []
-            if new_state != state:
-                self._inverse_transition_matrix[new_state][inverse_action].append(state)
-
-        # for action_available in self._action_space:
-        #     delta = self._deltas[action_available]
-        #     next_state = tuple(np.array(state) + delta)
-        #     if next_state in self._state_space:
-        #         if next_state not in self._transition_matrix[state]:
-        #             self._transition_matrix[state].append(next_state)
+            if new_state not in self._transition_matrix:
+                self._transition_matrix[new_state] = {}
+            if inverse_action not in self._transition_matrix[new_state]:
+                self._transition_matrix[new_state][inverse_action] = []
+            self._transition_matrix[new_state][inverse_action].append(state)
 
         if not self._allow_state_instantiation:
             self._state_visitation_counts[state] += 1
