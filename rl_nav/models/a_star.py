@@ -73,7 +73,9 @@ class AStar(base_learner.BaseLearner):
             for action in action_next_states:
                 if action_next_states[action]:
                     modal_new_state = tuple(
-                        stats.mode(action_next_states[action])[0][0]
+                        stats.mode(action_next_states[action][-self._window_average :])[
+                            0
+                        ][0]
                     )
                     if modal_new_state not in transition_matrix[state]:
                         transition_matrix[state].append(modal_new_state)
