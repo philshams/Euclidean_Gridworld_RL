@@ -62,10 +62,6 @@ class AStar(base_learner.BaseLearner):
     def _process_transition_matrix(self):
         transition_matrix = {}
 
-        all_state_keys = set(
-            list(self._transition_matrix) + list(self._inverse_transition_matrix)
-        )
-
         for state, action_next_states in self._transition_matrix.items():
             if state not in transition_matrix:
                 transition_matrix[state] = []
