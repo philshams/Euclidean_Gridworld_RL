@@ -21,7 +21,7 @@ from rl_nav.models import (
     state_linear_features,
     successor_representation,
 )
-from rl_nav.utils import epsilon_schedules, model_utils
+from rl_nav.utils import epsilon_schedules, model_utils, learning_rate_schedules
 from run_modes import base_runner
 
 
@@ -327,29 +327,45 @@ class BaseRunner(base_runner.BaseRunner):
                 anneal_duration=config.anneal_duration,
             )
 
+    def _setup_lr(self, config):
+        if config.learning_rate_schedule == constants.CONSTANT:
+            return learning_rate_schedules.ConstantLearningRate(value=config.value)
+        elif config.learning_rate_schedule == constants.LINEAR_DECAY:
+            return learning_rate_schedules.LinearDecayLearningRate(
+                initial_value=config.initial_value,
+                final_value=config.final_value,
+                anneal_duration=config.anneal_duration,
+            )
+        elif config.learning_rate_schedule == constants.HARD_CODED:
+            return learning_rate_schedules.HardCodedLearningRate(
+                values=config.values, timesteps=config.timestep_changes
+            )
+
     def _setup_model(self, config):
         """Instantiate model specified in configuration."""
         initialisation_strategy = model_utils.get_initialisation_strategy(config)
         if config.model == constants.Q_LEARNING:
+            learning_rate = self._setup_lr(config=config)
             model = q_learning.QLearner(
                 action_space=self._train_environment.action_space,
                 state_space=self._train_environment.state_space,
                 behaviour=config.behaviour,
                 target=config.target,
                 initialisation_strategy=initialisation_strategy,
-                learning_rate=config.learning_rate,
+                learning_rate=learning_rate,
                 gamma=config.discount_factor,
                 imputation_method=config.imputation_method,
                 update_no_op=config.update_no_op,
             )
         elif config.model == constants.SUCCESSOR_REP:
+            learning_rate = self._setup_lr(config=config)
             model = successor_representation.SuccessorRepresentation(
                 action_space=self._train_environment.action_space,
                 state_space=self._train_environment.state_space,
                 behaviour=config.behaviour,
                 target=config.target,
                 initialisation_strategy=initialisation_strategy,
-                learning_rate=config.learning_rate,
+                learning_rate=learning_rate,
                 gamma=config.discount_factor,
                 imputation_method=config.imputation_method,
                 update_no_op=config.update_no_op,
