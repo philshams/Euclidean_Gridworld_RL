@@ -303,6 +303,8 @@ class StateLinearFeatureLearner(base_learner.BaseLearner):
             new_state_id=new_state_id,
         )
 
+        next(self._learning_rate)
+
     def _step(
         self,
         state_id,
