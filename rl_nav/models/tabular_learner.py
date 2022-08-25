@@ -1,11 +1,12 @@
 import abc
 import copy
 import random
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Type
 
 import numpy as np
 from rl_nav import constants
 from rl_nav.models import base_learner
+from rl_nav.utils import learning_rate_schedules
 
 
 class TabularLearner(base_learner.BaseLearner):
@@ -15,7 +16,7 @@ class TabularLearner(base_learner.BaseLearner):
         self,
         action_space: List[int],
         state_space: List[Tuple[int, int]],
-        learning_rate: float,
+        learning_rate: Type[learning_rate_schedules.LearningRateSchedule],
         gamma: float,
         initialisation_strategy: Dict,
         behaviour: str,
