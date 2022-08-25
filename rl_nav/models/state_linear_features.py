@@ -1,12 +1,13 @@
 import copy
 import itertools
 import random
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Type
 
 import numpy as np
 from rl_nav import constants
 from rl_nav.models import base_learner
 from rl_nav.utils import feature_utils
+from rl_nav.utils import learning_rate_schedules
 
 
 class StateLinearFeatureLearner(base_learner.BaseLearner):
@@ -17,7 +18,7 @@ class StateLinearFeatureLearner(base_learner.BaseLearner):
         features: Dict[str, Dict[str, Any]],
         action_space: List[int],
         state_space: List[Tuple[int, int]],
-        learning_rate: float,
+        learning_rate: Type[learning_rate_schedules.LearningRateSchedule],
         gamma: float,
         initialisation_strategy: Dict,
         behaviour: str,
@@ -314,5 +315,5 @@ class StateLinearFeatureLearner(base_learner.BaseLearner):
         state_features = self._state_features[state_id]
         v_target = self._state_values[new_state_id]
         delta = reward + discount * v_target - initial_state_value
-        self._weight_matrix += self._learning_rate * delta * state_features
+        self._weight_matrix += self._learning_rate.value * delta * state_features
         self._wm_change = True
