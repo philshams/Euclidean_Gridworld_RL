@@ -1,11 +1,12 @@
 import itertools
 import random
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Type
 
 import numpy as np
 from rl_nav import constants
 from rl_nav.models import tabular_learner
 from rl_nav.utils import feature_utils
+from rl_nav.utils import learning_rate_schedules
 
 
 class DynaLinearFeatureLearner(tabular_learner.TabularLearner):
@@ -16,7 +17,7 @@ class DynaLinearFeatureLearner(tabular_learner.TabularLearner):
         features: Dict[str, Dict[str, Any]],
         action_space: List[int],
         state_space: List[Tuple[int, int]],
-        learning_rate: float,
+        learning_rate: Type[learning_rate_schedules.LearningRateSchedule],
         gamma: float,
         initialisation_strategy: Dict,
         behaviour: str,
@@ -246,6 +247,8 @@ class DynaLinearFeatureLearner(tabular_learner.TabularLearner):
 
             self._plan()
 
+        next(self._learning_rate)
+
     def _step(
         self,
         state_id,
@@ -261,7 +264,7 @@ class DynaLinearFeatureLearner(tabular_learner.TabularLearner):
 
         updated_state_action_value = (
             initial_state_action_value
-            + self._learning_rate
+            + self._learning_rate.value
             * (
                 reward
                 + discount * self._max_state_action_value(state=new_state)
