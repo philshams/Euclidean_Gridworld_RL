@@ -1,10 +1,11 @@
 import itertools
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Tuple, Type
 
 import numpy as np
 from rl_nav import constants
 from rl_nav.models import tabular_learner
 from rl_nav.utils import feature_utils
+from rl_nav.utils import learning_rate_schedules
 
 
 class LinearFeatureLearner(tabular_learner.TabularLearner):
@@ -15,7 +16,7 @@ class LinearFeatureLearner(tabular_learner.TabularLearner):
         features: Dict[str, Dict[str, Any]],
         action_space: List[int],
         state_space: List[Tuple[int, int]],
-        learning_rate: float,
+        learning_rate: Type[learning_rate_schedules.LearningRateSchedule],
         gamma: float,
         initialisation_strategy: Dict,
         behaviour: str,
@@ -207,6 +208,8 @@ class LinearFeatureLearner(tabular_learner.TabularLearner):
             new_state=new_state,
         )
 
+        next(self._learning_rate)
+
     def _step(
         self,
         state_id,
@@ -219,5 +222,5 @@ class LinearFeatureLearner(tabular_learner.TabularLearner):
         state_action_features = self._state_action_features[state_id][action]
         q_target = self._max_state_action_value(state=new_state)
         delta = reward + discount * q_target - initial_state_action_value
-        self._weight_matrix += self._learning_rate * delta * state_action_features
+        self._weight_matrix += self._learning_rate.value * delta * state_action_features
         self._wm_change = True
