@@ -428,6 +428,11 @@ class RLNavConfigTemplate:
                 ),
                 config_field.Field(name=constants.MAP_PATHS, types=[list]),
                 config_field.Field(
+                    name=constants.NUM_TRIALS,
+                    types=[int],
+                    requirements=[lambda x: x > 1],
+                ),
+                config_field.Field(
                     name=constants.EPISODE_TIMEOUT,
                     types=[int, type(None)],
                     requirements=[lambda x: x is None or x > 0],
