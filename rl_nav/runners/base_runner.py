@@ -371,26 +371,28 @@ class BaseRunner(base_runner.BaseRunner):
                 update_no_op=config.update_no_op,
             )
         elif config.model == constants.DYNA:
+            learning_rate = self._setup_lr(config=config)
             model = dyna.Dyna(
                 action_space=self._train_environment.action_space,
                 state_space=self._train_environment.state_space,
                 behaviour=config.behaviour,
                 target=config.target,
                 initialisation_strategy=initialisation_strategy,
-                learning_rate=config.learning_rate,
+                learning_rate=learning_rate,
                 gamma=config.discount_factor,
                 imputation_method=config.imputation_method,
                 plan_steps_per_update=config.plan_steps_per_update,
                 update_no_op=config.update_no_op,
             )
         elif config.model == constants.UNDIRECTED_DYNA:
+            learning_rate = self._setup_lr(config=config)
             model = dyna.Dyna(
                 action_space=self._train_environment.action_space,
                 state_space=self._train_environment.state_space,
                 behaviour=config.behaviour,
                 target=config.target,
                 initialisation_strategy=initialisation_strategy,
-                learning_rate=config.learning_rate,
+                learning_rate=learning_rate,
                 gamma=config.discount_factor,
                 imputation_method=config.imputation_method,
                 update_no_op=config.update_no_op,
@@ -431,6 +433,8 @@ class BaseRunner(base_runner.BaseRunner):
                     constants.AUGMENT_ACTIONS
                 ] = config.hc_augment_actions
 
+            learning_rate = self._setup_lr(config=config)
+
             if config.model == constants.LINEAR_FEATURES:
                 model = linear_features.LinearFeatureLearner(
                     features=features_dict,
@@ -439,7 +443,7 @@ class BaseRunner(base_runner.BaseRunner):
                     behaviour=config.behaviour,
                     target=config.target,
                     initialisation_strategy=initialisation_strategy,
-                    learning_rate=config.learning_rate,
+                    learning_rate=learning_rate,
                     gamma=config.discount_factor,
                     imputation_method=config.imputation_method,
                     update_no_op=config.update_no_op,
@@ -452,7 +456,7 @@ class BaseRunner(base_runner.BaseRunner):
                     behaviour=config.behaviour,
                     target=config.target,
                     initialisation_strategy=initialisation_strategy,
-                    learning_rate=config.learning_rate,
+                    learning_rate=learning_rate,
                     gamma=config.discount_factor,
                     imputation_method=config.imputation_method,
                     update_no_op=config.update_no_op,
@@ -465,7 +469,7 @@ class BaseRunner(base_runner.BaseRunner):
                     behaviour=config.behaviour,
                     target=config.target,
                     initialisation_strategy=initialisation_strategy,
-                    learning_rate=config.learning_rate,
+                    learning_rate=learning_rate,
                     gamma=config.discount_factor,
                     imputation_method=config.imputation_method,
                     plan_steps_per_update=config.plan_steps_per_update,
@@ -479,7 +483,7 @@ class BaseRunner(base_runner.BaseRunner):
                     behaviour=config.behaviour,
                     target=config.target,
                     initialisation_strategy=initialisation_strategy,
-                    learning_rate=config.learning_rate,
+                    learning_rate=learning_rate,
                     gamma=config.discount_factor,
                     imputation_method=config.imputation_method,
                     update_no_op=config.update_no_op,
