@@ -1,8 +1,9 @@
 import copy
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Type
 
 import numpy as np
 from rl_nav.models import tabular_learner
+from rl_nav.utils import learning_rate_schedules
 
 
 class SuccessorRepresentation(tabular_learner.TabularLearner):
@@ -12,7 +13,7 @@ class SuccessorRepresentation(tabular_learner.TabularLearner):
         self,
         action_space: List[int],
         state_space: List[Tuple[int, int]],
-        learning_rate: float,
+        learning_rate: Type[learning_rate_schedules.LearningRateSchedule],
         gamma: float,
         initialisation_strategy: Dict,
         behaviour: str,
@@ -225,9 +226,11 @@ class SuccessorRepresentation(tabular_learner.TabularLearner):
             active=active,
         )
 
+        next(self._learning_rate)
+
     def _step_reward_function(self, state_id: int, reward: float):
         error = reward - self._reward_function[state_id]
-        self._reward_function[state_id] += self._learning_rate * error
+        self._reward_function[state_id] += self._learning_rate.value * error
 
         self._sr_change = True
 
@@ -249,6 +252,6 @@ class SuccessorRepresentation(tabular_learner.TabularLearner):
             - self._successor_matrix[action][state_id]
         )
 
-        self._successor_matrix[action][state_id] += self._learning_rate * td_error
+        self._successor_matrix[action][state_id] += self._learning_rate.value * td_error
 
         self._sr_change = True
