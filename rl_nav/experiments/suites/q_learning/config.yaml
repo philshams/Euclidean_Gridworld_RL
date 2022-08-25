@@ -23,6 +23,8 @@ training:
 
     update_no_op: True
 
+    gradual_learner_window_average: 150
+
     epsilon:
         schedule: constant
 
@@ -75,6 +77,8 @@ test_environments:
         - ../circular_maps/obstacle_map.txt
         - ../circular_maps/test_map.txt
 
+    num_trials: 3
+
     episode_timeout: 500
     representation: agent_position
     start_position: [7, 12]
@@ -97,8 +101,10 @@ test_environments:
             - ../maps/hierarchy_transition_7.json
 
 logging:
+    print_frequency: 5000
     visualisation_frequency: 50000
     rollout_frequency: 50000
+    train_test_frequency: 5000
     test_frequency: 50000
     checkpoint_frequency: 50000
 
