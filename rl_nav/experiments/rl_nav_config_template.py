@@ -97,6 +97,106 @@ class RLNavConfigTemplate:
             ],
         )
 
+        _constant_lr_template = config_template.Template(
+            fields=[
+                config_field.Field(
+                    name=constants.VALUE,
+                    types=[int, float],
+                    requirements=[lambda x: x >= 0 and x <= 1],
+                )
+            ],
+            level=[
+                constants.TRAINING,
+                constants.LEARNING_RATE,
+                constants.CONSTANT,
+            ],
+            dependent_variables=[constants.SCHEDULE],
+            dependent_variables_required_values=[[constants.CONSTANT]],
+            key_prefix=constants.LEARNING_RATE,
+        )
+
+        _linear_decay_lr_template = config_template.Template(
+            fields=[
+                config_field.Field(
+                    name=constants.INITIAL_VALUE,
+                    types=[int, float],
+                    requirements=[lambda x: x >= 0 and x <= 1],
+                ),
+                config_field.Field(
+                    name=constants.FINAL_VALUE,
+                    types=[int, float],
+                    requirements=[lambda x: x >= 0 and x <= 1],
+                ),
+                config_field.Field(
+                    name=constants.ANNEAL_DURATION,
+                    types=[int],
+                    requirements=[lambda x: x > 0],
+                ),
+            ],
+            level=[
+                constants.TRAINING,
+                constants.LEARNING_RATE,
+                constants.LINEAR_DECAY,
+            ],
+            dependent_variables=[constants.SCHEDULE],
+            dependent_variables_required_values=[
+                [constants.LINEAR_DECAY],
+            ],
+            key_prefix=constants.LEARNING_RATE,
+        )
+
+        _hard_coded_lr_template = config_template.Template(
+            fields=[
+                config_field.Field(
+                    name=constants.VALUES,
+                    types=[list],
+                    requirements=[
+                        lambda x: all(
+                            [(isinstance(y, float) or isinstance(y, int)) for y in x]
+                        )
+                    ],
+                ),
+                config_field.Field(
+                    name=constants.TIMESTEP_CHANGES,
+                    types=[list],
+                    requirements=[lambda x: all([isinstance(y, int) for y in x])],
+                ),
+            ],
+            level=[
+                constants.TRAINING,
+                constants.LEARNING_RATE,
+                constants.HARD_CODED,
+            ],
+            dependent_variables=[constants.SCHEDULE],
+            dependent_variables_required_values=[
+                [constants.HARD_CODED],
+            ],
+        )
+
+        self._learning_rate_template = config_template.Template(
+            fields=[
+                config_field.Field(
+                    name=constants.SCHEDULE,
+                    types=[str],
+                    requirements=[
+                        lambda x: x
+                        in [
+                            constants.CONSTANT,
+                            constants.LINEAR_DECAY,
+                            constants.HARD_CODED,
+                        ]
+                    ],
+                ),
+            ],
+            level=[constants.TRAINING, constants.LEARNING_RATE],
+            nested_templates=[
+                _constant_lr_template,
+                _linear_decay_lr_template,
+                _hard_coded_lr_template,
+            ],
+            key_prefix=constants.LEARNING_RATE,
+        )
+
         _constant_epsilon_template = config_template.Template(
             fields=[
                 config_field.Field(
@@ -233,11 +333,6 @@ class RLNavConfigTemplate:
                     requirements=[lambda x: x >= 0 and x <= 1],
                 ),
                 config_field.Field(
-                    name=constants.LEARNING_RATE,
-                    types=[float, int],
-                    requirements=[lambda x: x > 0],
-                ),
-                config_field.Field(
                     name=constants.DISCOUNT_FACTOR,
                     types=[float, int],
                     requirements=[lambda x: x > 0 and x <= 1],
@@ -265,6 +360,7 @@ class RLNavConfigTemplate:
                 self._dyna_template,
                 self._linear_features_template,
                 self._epsilon_template,
+                self._learning_rate_template,
             ],
         )
 
