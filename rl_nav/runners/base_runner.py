@@ -31,6 +31,8 @@ class BaseRunner(base_runner.BaseRunner):
         self._train_environment = self._setup_train_environment(config=config)
         self._test_environments = self._setup_test_environments(config=config)
 
+        self._test_num_trials = config.test_num_trials
+
         test_env_excess_states = [
             set(test_env.state_space) - set(self._train_environment.state_space)
             for test_env in self._test_environments.values()
@@ -125,12 +127,13 @@ class BaseRunner(base_runner.BaseRunner):
             columns.append(
                 f"{constants.TEST_EPISODE_LENGTH}_{map_name}_{constants.FINAL_REWARD_RUN}"
             )
-            columns.append(
-                f"{constants.TEST_EPISODE_REWARD}_{map_name}_{constants.FIND_THREAT_RUN}"
-            )
-            columns.append(
-                f"{constants.TEST_EPISODE_LENGTH}_{map_name}_{constants.FIND_THREAT_RUN}"
-            )
+            for t in range(self._test_num_trials):
+                columns.append(
+                    f"{constants.TEST_EPISODE_REWARD}_{map_name}_{constants.FIND_THREAT_RUN}_{t}"
+                )
+                columns.append(
+                    f"{constants.TEST_EPISODE_LENGTH}_{map_name}_{constants.FIND_THREAT_RUN}_{t}"
+                )
 
         return columns + self._get_runner_specific_data_columns()
 
