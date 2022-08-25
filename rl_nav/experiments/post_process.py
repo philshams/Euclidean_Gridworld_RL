@@ -14,7 +14,12 @@ parser.add_argument(
 parser.add_argument(
     "--plot_trajectories",
     action="store_true",
-    help="whether to plot trajectory summaries.",
+    help="whether to plot (final) trajectory summaries.",
+)
+parser.add_argument(
+    "--plot_min_trajectories",
+    action="store_true",
+    help="whether to plot (minimum) trajectory summaries.",
 )
 parser.add_argument(
     "--plot_heatmaps",
@@ -73,7 +78,11 @@ if __name__ == "__main__":
 
     if args.plot_trajectories:
         plot_utils.plot_trajectories(
-            folder_path=args.results_folder, exp_names=exp_names
+            folder_path=args.results_folder, exp_names=exp_names, min_rollout=False
+        )
+    if args.plot_min_trajectories:
+        plot_utils.plot_trajectories(
+            folder_path=args.results_folder, exp_names=exp_names, min_rollout=True
         )
 
     if args.plot_heatmaps:
