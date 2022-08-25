@@ -668,92 +668,92 @@ class BaseRunner(base_runner.BaseRunner):
 
         for i, (map_name, test_env) in enumerate(self._test_environments.items()):
 
-            temporary_start_state = random.choice(test_env.reward_positions)
-            state = test_env.reset_environment(
-                episode_timeout=np.inf,
-                start_position=temporary_start_state,
-                reward_availability=constants.INFINITE,
-            )
-
             model_copy = copy.deepcopy(self._model)
             model_copy.env_transition_matrix = test_env.transition_matrix
 
             if not self._one_dim_blocks:
                 model_copy.allow_state_instantiation = True
 
-            while state != tuple(test_env.starting_xy):
-
-                # TODO: unclear which behaviour policy to use here...
-                action = model_copy.select_behaviour_action(
-                    state,
-                    epsilon=self._test_epsilon,
-                    excess_state_mapping=self._excess_state_mapping[i],
-                )
-                reward, new_state = test_env.step(action)
-
-                model_copy.step(
-                    state=state,
-                    action=action,
-                    reward=reward,
-                    new_state=new_state,
-                    active=test_env.active,
-                )
-                state = new_state
-
-            model_copy.allow_state_instantiation = False
-            model_copy.eval()
-
-            if planning:
-                reward, length = self._single_planning_test(
-                    test_model=model_copy,
-                    test_env=test_env,
-                    excess_state_mapping=self._excess_state_mapping[i],
-                    retain_history=True,
-                )
-            else:
-                reward, length = self._single_test(
-                    test_model=model_copy,
-                    test_env=test_env,
-                    excess_state_mapping=self._excess_state_mapping[i],
-                    retain_history=True,
+            for t in range(self._test_num_trials):
+                temporary_start_state = random.choice(test_env.reward_positions)
+                state = test_env.reset_environment(
+                    episode_timeout=np.inf,
+                    start_position=temporary_start_state,
+                    reward_availability=constants.INFINITE,
+                    retain_history=(t != 0),
                 )
 
-            test_logging_dict[
-                f"{constants.TEST_EPISODE_REWARD}_{map_name}_{constants.FIND_THREAT_RUN}"
-            ] = reward
-            test_logging_dict[
-                f"{constants.TEST_EPISODE_LENGTH}_{map_name}_{constants.FIND_THREAT_RUN}"
-            ] = length
+                while state != tuple(test_env.starting_xy):
 
-            if (
-                self._visualisations is not None
-                and constants.VALUE_FUNCTION in self._visualisations
-            ):
-                try:
-                    averaged_values = (
-                        self._train_environment.average_values_over_positional_states(
+                    # TODO: unclear which behaviour policy to use here...
+                    action = model_copy.select_behaviour_action(
+                        state,
+                        epsilon=self._test_epsilon,
+                        excess_state_mapping=self._excess_state_mapping[i],
+                    )
+                    reward, new_state = test_env.step(action)
+
+                    model_copy.step(
+                        state=state,
+                        action=action,
+                        reward=reward,
+                        new_state=new_state,
+                        active=test_env.active,
+                    )
+                    state = new_state
+
+                model_copy.allow_state_instantiation = False
+                model_copy.eval()
+
+                if planning:
+                    reward, length = self._single_planning_test(
+                        test_model=model_copy,
+                        test_env=test_env,
+                        excess_state_mapping=self._excess_state_mapping[i],
+                        retain_history=True,
+                    )
+                else:
+                    reward, length = self._single_test(
+                        test_model=model_copy,
+                        test_env=test_env,
+                        excess_state_mapping=self._excess_state_mapping[i],
+                        retain_history=True,
+                    )
+
+                test_logging_dict[
+                    f"{constants.TEST_EPISODE_REWARD}_{map_name}_{constants.FIND_THREAT_RUN}_{t}"
+                ] = reward
+                test_logging_dict[
+                    f"{constants.TEST_EPISODE_LENGTH}_{map_name}_{constants.FIND_THREAT_RUN}_{t}"
+                ] = length
+
+                if (
+                    self._visualisations is not None
+                    and constants.VALUE_FUNCTION in self._visualisations
+                ):
+                    try:
+                        averaged_values = self._train_environment.average_values_over_positional_states(
                             model_copy.state_action_values
                         )
+                        plot_values = {p: max(v) for p, v in averaged_values.items()}
+                    except AttributeError:
+                        plot_values = model_copy.state_values
+
+                    np.save(
+                        os.path.join(
+                            self._visualisations_folder_path,
+                            f"{self._step_count}_{constants.PRE_TEST}_{constants.VALUES}_{t}",
+                        ),
+                        plot_values,
                     )
-                    plot_values = {p: max(v) for p, v in averaged_values.items()}
-                except AttributeError:
-                    plot_values = model_copy.state_values
 
-                np.save(
-                    os.path.join(
-                        self._visualisations_folder_path,
-                        f"{self._step_count}_{constants.PRE_TEST}_{constants.VALUES}",
-                    ),
-                    plot_values,
-                )
-
-                self._train_environment.plot_heatmap_over_env(
-                    heatmap=plot_values,
-                    save_name=os.path.join(
-                        self._visualisations_folder_path,
-                        f"{self._step_count}_{constants.PRE_TEST}_{constants.VALUES_PDF}",
-                    ),
-                )
+                    self._train_environment.plot_heatmap_over_env(
+                        heatmap=plot_values,
+                        save_name=os.path.join(
+                            self._visualisations_folder_path,
+                            f"{self._step_count}_{constants.PRE_TEST}_{t}_{constants.VALUES_PDF}",
+                        ),
+                    )
 
         self._test_rollout(
             visualise=rollout,
