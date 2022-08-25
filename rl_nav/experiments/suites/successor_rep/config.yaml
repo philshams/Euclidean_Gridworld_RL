@@ -77,6 +77,8 @@ test_environments:
         - ../maps/square_escape_test_map.txt
         - ../maps/square_escape_map.txt
 
+    num_trials: 3
+
     episode_timeout: 500
     representation: agent_position
     start_position: [7, 12]
