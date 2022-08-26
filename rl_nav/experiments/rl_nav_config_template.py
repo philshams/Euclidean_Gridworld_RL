@@ -459,6 +459,7 @@ class RLNavConfigTemplate:
                             constants.ESCAPE_ENV,
                             constants.ESCAPE_ENV_DIAGONAL,
                             constants.HIERARCHY_NETWORK,
+                            constants.ESCAPE_ENV_DIAGONAL_HIERARCHY,
                         ]
                     ],
                 ),
@@ -519,6 +520,7 @@ class RLNavConfigTemplate:
                             constants.ESCAPE_ENV,
                             constants.ESCAPE_ENV_DIAGONAL,
                             constants.HIERARCHY_NETWORK,
+                            constants.ESCAPE_ENV_DIAGONAL_HIERARCHY,
                         ]
                     ],
                 ),
