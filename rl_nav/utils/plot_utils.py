@@ -6,9 +6,75 @@ import numpy as np
 import yaml
 from matplotlib import cm
 from rl_nav import constants
+from typing import List, Tuple
 
 
-def plot_trajectories(folder_path, exp_names):
+def _split_rollout_by_indices(
+    rollout_coordinates: List[Tuple], split_start: Tuple, split_end: Tuple
+):
+    """Take a list of (x, y) coordinates and split them into chunks based on a
+    specified splitting coordinate.
+
+    Args:
+        rollout_coordinates: List of x, y coordinates
+        split_start: Coordinates by which to split set of coordinates (start)
+        split_end: Coordinates by which to split set of coordinates (end)
+
+    Returns:
+        chunked_rollout: List of lists with split by specified coordinates
+    """
+
+    x, y = zip(*rollout_coordinates)
+
+    split_start_indices_ = np.where(
+        np.sum(rollout_coordinates == split_start, axis=1) == 2
+    )[0]
+    split_end_indices_ = np.where(
+        np.sum(rollout_coordinates == split_end, axis=1) == 2
+    )[0]
+
+    split_start_indices = []
+    split_end_indices = []
+
+    for i, ind in enumerate(split_start_indices_):
+        if i > 0 and ind == (split_start_indices_[i - 1] + 1):
+            pass
+        else:
+            split_start_indices.append(ind)
+
+    split_start_indices.append(np.inf)
+
+    for i, ind in enumerate(split_start_indices[:-1]):
+        end_indices = split_end_indices_[
+            np.where(
+                (split_end_indices_ > ind)
+                & (split_end_indices_ < split_start_indices[i + 1])
+            )[0]
+        ]
+        if len(end_indices):
+            split_end_index = end_indices[0] + 1
+        else:
+            if split_start_indices[i + 1] < np.inf:
+                split_end_index = split_start_indices[i + 1] + 1
+            else:
+                split_end_index = None
+        split_end_indices.append(split_end_index)
+
+    split_start_indices = split_start_indices[:-1]
+
+    chunked_rollout = []
+
+    for split_index_start, split_index_end in zip(
+        split_start_indices, split_end_indices
+    ):
+        x_chunk = x[split_index_start + 1 : split_index_end]
+        y_chunk = y[split_index_start + 1 : split_index_end]
+        chunked_rollout.append([x_chunk, y_chunk])
+
+    return chunked_rollout
+
+
+def plot_trajectories(folder_path, exp_names, min_rollout):
 
     cmap = cm.get_cmap("winter")
 
@@ -21,12 +87,11 @@ def plot_trajectories(folder_path, exp_names):
         save_path,
         split_by=None,
         gradient=False,
+        min_rollout=True,
     ):
 
         path_lengths = []
-        fig = plt.figure()
-
-        plt.imshow(env, origin="lower")
+        plot_coordinates = {}
 
         for seed_folder in seed_folders:
 
@@ -39,45 +104,69 @@ def plot_trajectories(folder_path, exp_names):
             except FileNotFoundError:
                 break
 
-            final_rollout = sorted(
-                all_rollouts, key=lambda x: int(x.split(".npy")[0].split("_")[-1])
-            )[-1]
-
-            final_rollout_coords = np.load(final_rollout)
-            x, y = zip(*final_rollout_coords)
-
             if split_by is not None:
-                split_indices = []
-                for split_pos in split_by:
-                    split_index = np.where(
-                        np.sum(final_rollout_coords == split_pos, axis=1) == 2
-                    )[0][0]
-                    split_indices.append(split_index)
 
-                split_index = min(split_indices)
-
-                if gradient:
-                    for xi, xi_, yi, yi_ in zip(
-                        x[split_index + 1 : -1],
-                        x[split_index + 2 :],
-                        y[split_index + 1 : -1],
-                        y[split_index + 2 :],
-                    ):
-                        xi_space = np.linspace(xi, xi_, 30)
-                        yi_space = [
-                            yi + i * (yi_ - yi) / len(xi_space)
-                            for i in range(len(xi_space))
-                        ]
-                        color = [cmap(i / len(xi_space)) for i in range(len(xi_space))]
-                        plt.scatter(
-                            xi_space,
-                            yi_space,
-                            c=color,
-                            alpha=0.6,
+                if min_rollout:
+                    all_rollout_coords = [np.load(rollout) for rollout in all_rollouts]
+                    all_chunked_rollout_coords = [
+                        _split_rollout_by_indices(rollout, split_by[0], split_by[1])
+                        for rollout in all_rollout_coords
+                    ]
+                    all_rollout_lens = [
+                        np.mean(
+                            [len(rollout_chunk) for rollout_chunk in chunked_rollouts]
                         )
+                        for chunked_rollouts in all_chunked_rollout_coords
+                    ]
+                    final_rollout_coords = all_chunked_rollout_coords[
+                        np.argmin(all_rollout_lens)
+                    ]
                 else:
-                    x_plot = np.array(x[split_index + 1 :])
-                    y_plot = np.array(y[split_index + 1 :])
+                    try:
+                        final_rollout = sorted(
+                            all_rollouts,
+                            key=lambda x: int(x.split(".npy")[0].split("_")[-1]),
+                        )[-1]
+                    except IndexError:
+                        break
+
+                    final_rollout_coords = _split_rollout_by_indices(
+                        np.load(final_rollout), split_by[0], split_by[1]
+                    )
+
+                for t, chunk in enumerate(final_rollout_coords):
+                    if t not in plot_coordinates:
+                        plot_coordinates[t] = []
+                    plot_coordinates[t].append(chunk)
+
+        for t, all_seed_coordinates in plot_coordinates.items():
+
+            fig = plt.figure()
+            plt.imshow(env, origin="lower")
+
+            if gradient:
+                for xi, xi_, yi, yi_ in zip(
+                    coordinates[0][:-1],
+                    coordinates[0][1:],
+                    coordinates[1][:-1],
+                    coordinates[1][1:],
+                ):
+                    xi_space = np.linspace(xi, xi_, 30)
+                    yi_space = [
+                        yi + i * (yi_ - yi) / len(xi_space)
+                        for i in range(len(xi_space))
+                    ]
+                    color = [cmap(i / len(xi_space)) for i in range(len(xi_space))]
+                    plt.scatter(
+                        xi_space,
+                        yi_space,
+                        c=color,
+                        alpha=0.6,
+                    )
+            else:
+                for coordinates in all_seed_coordinates:
+                    x_plot = np.array(coordinates[0])
+                    y_plot = np.array(coordinates[1])
                     plt.plot(
                         x_plot,
                         y_plot,
@@ -88,34 +177,35 @@ def plot_trajectories(folder_path, exp_names):
                     y_diffs = y_plot[1:] - y_plot[:-1]
                     distance = np.sqrt(x_diffs**2 + y_diffs**2).sum()
                     path_lengths.append(distance)
-            else:
-                plt.plot(x, y, color="skyblue", alpha=0.6)
-                path_lengths.append(len(y))
 
-        # gridlines
-        for row in range(env.shape[0]):
-            plt.plot(
-                [-0.5, env.shape[1] - 0.5],
-                [row - 0.5, row - 0.5],
-                color="gray",
-                alpha=0.2,
+            # gridlines
+            for row in range(env.shape[0]):
+                plt.plot(
+                    [-0.5, env.shape[1] - 0.5],
+                    [row - 0.5, row - 0.5],
+                    color="gray",
+                    alpha=0.2,
+                )
+            for col in range(env.shape[1]):
+                plt.plot(
+                    [col - 0.5, col - 0.5],
+                    [-0.5, env.shape[0] - 0.5],
+                    color="gray",
+                    alpha=0.2,
+                )
+
+            plt.title(
+                f"Average Path Length: {round(np.mean(path_lengths), 2)} "
+                f"+- {round(np.std(path_lengths), 2)}"
             )
-        for col in range(env.shape[1]):
-            plt.plot(
-                [col - 0.5, col - 0.5],
-                [-0.5, env.shape[0] - 0.5],
-                color="gray",
-                alpha=0.2,
-            )
 
-        plt.title(
-            f"Average Path Length: {round(np.mean(path_lengths), 2)} "
-            f"+- {round(np.std(path_lengths), 2)}"
-        )
+            fig.savefig(f"{save_path}_{t}.eps")
+            fig.savefig(f"{save_path}_{t}.png")
+            plt.close()
 
-        fig.savefig(f"{save_path}.eps")
-        fig.savefig(f"{save_path}.png")
-        plt.close()
+    # else:
+    #     plt.plot(x, y, color="skyblue", alpha=0.6)
+    #     path_lengths.append(len(y))
 
     for exp_name in exp_names:
         exp_path = os.path.join(folder_path, exp_name)
@@ -165,20 +255,22 @@ def plot_trajectories(folder_path, exp_names):
                 save_path=os.path.join(
                     exp_path, f"{env_name}_{constants.TRAJECTORIES}"
                 ),
+                min_rollout=min_rollout,
             )
 
-            _plot_trajectories(
-                exp_path=exp_path,
-                seed_folders=seed_folders,
-                env_name=env_name,
-                env=env,
-                pattern=final_reward_pattern,
-                save_path=os.path.join(
-                    exp_path,
-                    f"{env_name}_{constants.FINAL_REWARD_RUN}_{constants.TRAJECTORIES}",
-                ),
-                split_by=reward_positions,
-            )
+            # _plot_trajectories(
+            #     exp_path=exp_path,
+            #     seed_folders=seed_folders,
+            #     env_name=env_name,
+            #     env=env,
+            #     pattern=final_reward_pattern,
+            #     save_path=os.path.join(
+            #         exp_path,
+            #         f"{env_name}_{constants.FINAL_REWARD_RUN}_{constants.TRAJECTORIES}",
+            #     ),
+            #     split_by=reward_positions,
+            #     min_rollout=min_rollout,
+            # )
 
             _plot_trajectories(
                 exp_path=exp_path,
@@ -190,7 +282,8 @@ def plot_trajectories(folder_path, exp_names):
                     exp_path,
                     f"{env_name}_{constants.FIND_THREAT_RUN}_{constants.TRAJECTORIES}",
                 ),
-                split_by=[start_position],
+                split_by=[start_position, reward_positions[0]],
+                min_rollout=min_rollout,
             )
 
 
