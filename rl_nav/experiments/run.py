@@ -1,5 +1,7 @@
 import argparse
 import os
+import warnings
+warnings.filterwarnings("ignore")
 
 from rl_nav import constants, runners
 from rl_nav.experiments import rl_nav_config

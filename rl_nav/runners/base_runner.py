@@ -121,12 +121,6 @@ class BaseRunner(base_runner.BaseRunner):
         for map_name in self._test_environments.keys():
             columns.append(f"{constants.TEST_EPISODE_REWARD}_{map_name}")
             columns.append(f"{constants.TEST_EPISODE_LENGTH}_{map_name}")
-            columns.append(
-                f"{constants.TEST_EPISODE_REWARD}_{map_name}_{constants.FINAL_REWARD_RUN}"
-            )
-            columns.append(
-                f"{constants.TEST_EPISODE_LENGTH}_{map_name}_{constants.FINAL_REWARD_RUN}"
-            )
             for t in range(self._test_num_trials):
                 columns.append(
                     f"{constants.TEST_EPISODE_REWARD}_{map_name}_{constants.FIND_THREAT_RUN}_{t}"
@@ -604,12 +598,12 @@ class BaseRunner(base_runner.BaseRunner):
             find_threat_logging_dict = self._find_threat_test(
                 rollout=rollout, planning=planning
             )
-            find_reward_logging_dict = self._find_reward_test(
-                rollout=rollout, planning=planning
-            )
+            # find_reward_logging_dict = self._find_reward_test(
+            #     rollout=rollout, planning=planning
+            # )
             logging_dict = {
                 **logging_dict,
-                **find_reward_logging_dict,
+                # **find_reward_logging_dict,
                 **find_threat_logging_dict,
             }
         self._model.env_transition_matrix = self._train_environment.transition_matrix
@@ -666,18 +660,6 @@ class BaseRunner(base_runner.BaseRunner):
                     excess_state_mapping=self._excess_state_mapping[i],
                     retain_history=True,
                 )
-
-            test_logging_dict[
-                f"{constants.TEST_EPISODE_REWARD}_{map_name}_{constants.FINAL_REWARD_RUN}"
-            ] = reward
-            test_logging_dict[
-                f"{constants.TEST_EPISODE_LENGTH}_{map_name}_{constants.FINAL_REWARD_RUN}"
-            ] = length
-
-        self._test_rollout(
-            visualise=rollout,
-            save_name_base=f"{constants.INDIVIDUAL_TEST_RUN}_{constants.FINAL_REWARD_RUN}",
-        )
 
         return test_logging_dict
 

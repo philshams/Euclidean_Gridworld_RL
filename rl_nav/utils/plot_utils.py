@@ -71,6 +71,8 @@ def _split_rollout_by_indices(
         y_chunk = y[split_index_start + 1 : split_index_end]
         chunked_rollout.append([x_chunk, y_chunk])
 
+    print(min([len(c[0]) for c in chunked_rollout]))
+
     return chunked_rollout
 
 
@@ -114,13 +116,16 @@ def plot_trajectories(folder_path, exp_names, min_rollout):
                     ]
                     all_rollout_lens = [
                         np.mean(
-                            [len(rollout_chunk) for rollout_chunk in chunked_rollouts]
+                            [len(rollout_chunk[0]) for rollout_chunk in chunked_rollouts]
                         )
                         for chunked_rollouts in all_chunked_rollout_coords
                     ]
                     final_rollout_coords = all_chunked_rollout_coords[
                         np.argmin(all_rollout_lens)
                     ]
+                    print(seed_folder)
+                    print(all_rollout_lens)
+                    print("")
                 else:
                     try:
                         final_rollout = sorted(
@@ -161,7 +166,7 @@ def plot_trajectories(folder_path, exp_names, min_rollout):
                         xi_space,
                         yi_space,
                         c=color,
-                        alpha=0.6,
+                        # alpha=0.6,
                     )
             else:
                 for coordinates in all_seed_coordinates:
@@ -171,7 +176,8 @@ def plot_trajectories(folder_path, exp_names, min_rollout):
                         x_plot,
                         y_plot,
                         color="skyblue",
-                        alpha=0.6,
+                        # alpha=0.6,
+                        zorder=99,
                     )
                     x_diffs = x_plot[1:] - x_plot[:-1]
                     y_diffs = y_plot[1:] - y_plot[:-1]
@@ -183,15 +189,17 @@ def plot_trajectories(folder_path, exp_names, min_rollout):
                 plt.plot(
                     [-0.5, env.shape[1] - 0.5],
                     [row - 0.5, row - 0.5],
-                    color="gray",
-                    alpha=0.2,
+                    color=[.8,.8,.8],
+                    linewidth=0.75,
+                    # alpha=0.2,
                 )
             for col in range(env.shape[1]):
                 plt.plot(
                     [col - 0.5, col - 0.5],
                     [-0.5, env.shape[0] - 0.5],
-                    color="gray",
-                    alpha=0.2,
+                    color=[.8,.8,.8],
+                    linewidth=0.75,
+                    # alpha=0.2,
                 )
 
             plt.title(
@@ -238,10 +246,6 @@ def plot_trajectories(folder_path, exp_names, min_rollout):
                 f"{constants.INDIVIDUAL_TEST_RUN}_{env_name}_[0-9]*.npy"
             )
 
-            final_reward_pattern = re.compile(
-                f"{constants.INDIVIDUAL_TEST_RUN}_{constants.FINAL_REWARD_RUN}_{env_name}_[0-9]*.npy"
-            )
-
             find_threat_pattern = re.compile(
                 f"{constants.INDIVIDUAL_TEST_RUN}_{constants.FIND_THREAT_RUN}_{env_name}_[0-9]*.npy"
             )
@@ -257,20 +261,6 @@ def plot_trajectories(folder_path, exp_names, min_rollout):
                 ),
                 min_rollout=min_rollout,
             )
-
-            # _plot_trajectories(
-            #     exp_path=exp_path,
-            #     seed_folders=seed_folders,
-            #     env_name=env_name,
-            #     env=env,
-            #     pattern=final_reward_pattern,
-            #     save_path=os.path.join(
-            #         exp_path,
-            #         f"{env_name}_{constants.FINAL_REWARD_RUN}_{constants.TRAJECTORIES}",
-            #     ),
-            #     split_by=reward_positions,
-            #     min_rollout=min_rollout,
-            # )
 
             _plot_trajectories(
                 exp_path=exp_path,

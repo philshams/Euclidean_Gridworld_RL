@@ -1,7 +1,7 @@
 seed: 0
 
 training:
-    num_steps: 25000
+    num_steps: 30000
     model: a_star
 
     behaviour: epsilon_greedy
@@ -164,9 +164,9 @@ logging:
     print_frequency: 5000
     visualisation_frequency: 500000
     rollout_frequency: 500000
-    train_test_frequency: 25000
-    test_frequency: 25000
-    checkpoint_frequency: 25000
+    train_test_frequency: 5000
+    test_frequency: 5000
+    checkpoint_frequency: 5000
 
     visualisations: 
         # - numbered_value_function
