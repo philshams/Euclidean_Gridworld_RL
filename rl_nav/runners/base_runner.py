@@ -598,12 +598,8 @@ class BaseRunner(base_runner.BaseRunner):
             find_threat_logging_dict = self._find_threat_test(
                 rollout=rollout, planning=planning
             )
-            # find_reward_logging_dict = self._find_reward_test(
-            #     rollout=rollout, planning=planning
-            # )
             logging_dict = {
                 **logging_dict,
-                # **find_reward_logging_dict,
                 **find_threat_logging_dict,
             }
         self._model.env_transition_matrix = self._train_environment.transition_matrix
@@ -663,6 +659,33 @@ class BaseRunner(base_runner.BaseRunner):
 
         return test_logging_dict
 
+    def _start_with_reward(self, model, test_env, t):
+        """ Short behavioral sequence to start pre-test
+        phase in which the agent enters shelter and
+        receives reward"""
+        reward_state = random.choice(test_env.reward_positions)
+        above_reward_state = (reward_state[0], reward_state[1]+1)
+        state = test_env.reset_environment(
+            episode_timeout=np.inf,
+            start_position=above_reward_state,
+            reward_availability=constants.INFINITE,
+            retain_history=(t != 0),
+        )
+        action = 3 # go down
+        reward, new_state = test_env.step(action)
+
+        model.step(
+                        state=state,
+                        action=action,
+                        reward=reward,
+                        new_state=new_state,
+                        active=test_env.active,
+                    )
+
+        return new_state # reward state
+
+
+
     def _find_threat_test(self, rollout: bool, planning: bool):
         """Agent starts in shelter and explores/learns in the time until it first reaches
         the threat zone at which point a test rollout is triggered."""
@@ -677,13 +700,8 @@ class BaseRunner(base_runner.BaseRunner):
                 model_copy.allow_state_instantiation = True
 
             for t in range(self._test_num_trials):
-                temporary_start_state = random.choice(test_env.reward_positions)
-                state = test_env.reset_environment(
-                    episode_timeout=np.inf,
-                    start_position=temporary_start_state,
-                    reward_availability=constants.INFINITE,
-                    retain_history=(t != 0),
-                )
+
+                state = self._start_with_reward(model_copy, test_env, t)
 
                 while state != tuple(test_env.starting_xy):
 

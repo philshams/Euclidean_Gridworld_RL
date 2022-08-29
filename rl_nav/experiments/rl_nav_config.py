@@ -15,6 +15,7 @@ class RLNavConfig(base_configuration.BaseConfiguration):
 
     def __init__(self, config: Union[str, Dict], changes: List[Dict] = []) -> None:
         base_template = rl_nav_config_template.get_template()
+        
         super().__init__(
             configuration=config,
             template=base_template,

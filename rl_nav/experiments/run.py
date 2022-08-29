@@ -14,14 +14,14 @@ MAIN_FILE_PATH = os.path.dirname(os.path.realpath(__file__))
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument("--mode", metavar="-M", required=True, help="run experiment.")
+parser.add_argument("--mode", metavar="-M", default="serial", help="run experiment.")
 parser.add_argument(
     "--config_path",
     metavar="-C",
     default="config.yaml",
     help="path to base configuration file.",
 )
-parser.add_argument("--seeds", metavar="-S", default=None, help="list of seeds to run.")
+parser.add_argument("--seeds", metavar="-S", default=1, help="list of seeds to run.")
 parser.add_argument("--config_changes", metavar="-CC", default="config_changes.py")
 
 # cluster config
@@ -39,6 +39,8 @@ RUN_METHODS = ["train"]
 if __name__ == "__main__":
 
     args = parser.parse_args()
+    args.config_path = "config.yaml"
+    args.config_changes = "config_changes.py"
 
     results_folder = os.path.join(MAIN_FILE_PATH, constants.RESULTS)
 
