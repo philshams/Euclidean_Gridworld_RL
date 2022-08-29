@@ -9,7 +9,7 @@ from rl_nav.utils import plot_utils
 parser = argparse.ArgumentParser()
 
 parser.add_argument(
-    "--results_folder", type=str, help="path to results folder to post-process."
+    "--results_folder", type=str, default="results\MBI12", help="path to results folder to post-process."
 )
 parser.add_argument(
     "--plot_trajectories",
@@ -19,6 +19,7 @@ parser.add_argument(
 parser.add_argument(
     "--plot_min_trajectories",
     action="store_true",
+    default=True,
     help="whether to plot (minimum) trajectory summaries.",
 )
 parser.add_argument(

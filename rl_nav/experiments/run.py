@@ -39,8 +39,6 @@ RUN_METHODS = ["train"]
 if __name__ == "__main__":
 
     args = parser.parse_args()
-    args.config_path = "config.yaml"
-    args.config_changes = "config_changes.py"
 
     results_folder = os.path.join(MAIN_FILE_PATH, constants.RESULTS)
 

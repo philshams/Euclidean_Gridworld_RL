@@ -71,7 +71,7 @@ def _split_rollout_by_indices(
         y_chunk = y[split_index_start + 1 : split_index_end]
         chunked_rollout.append([x_chunk, y_chunk])
 
-    print(min([len(c[0]) for c in chunked_rollout]))
+    assert min([len(c[0]) for c in chunked_rollout]) > 2, "Index bug for failure trials"
 
     return chunked_rollout
 
@@ -79,6 +79,12 @@ def _split_rollout_by_indices(
 def plot_trajectories(folder_path, exp_names, min_rollout):
 
     cmap = cm.get_cmap("winter")
+
+    def _determine_min_trials():
+        """ This will be used to determine how many trials
+        are needed at minimum such that all seeds learn edge
+        vectors with the obstacle present"""
+        return True
 
     def _plot_trajectories(
         exp_path,
@@ -89,7 +95,7 @@ def plot_trajectories(folder_path, exp_names, min_rollout):
         save_path,
         split_by=None,
         gradient=False,
-        min_rollout=True,
+        total_learning_steps=None,
     ):
 
         path_lengths = []
@@ -108,7 +114,9 @@ def plot_trajectories(folder_path, exp_names, min_rollout):
 
             if split_by is not None:
 
-                if min_rollout:
+                if total_learning_steps:
+                    #TODO: use total learning steps to
+                    # select which rollout to use
                     all_rollout_coords = [np.load(rollout) for rollout in all_rollouts]
                     all_chunked_rollout_coords = [
                         _split_rollout_by_indices(rollout, split_by[0], split_by[1])
@@ -250,17 +258,8 @@ def plot_trajectories(folder_path, exp_names, min_rollout):
                 f"{constants.INDIVIDUAL_TEST_RUN}_{constants.FIND_THREAT_RUN}_{env_name}_[0-9]*.npy"
             )
 
-            _plot_trajectories(
-                exp_path=exp_path,
-                seed_folders=seed_folders,
-                env_name=env_name,
-                env=env,
-                pattern=plain_pattern,
-                save_path=os.path.join(
-                    exp_path, f"{env_name}_{constants.TRAJECTORIES}"
-                ),
-                min_rollout=min_rollout,
-            )
+            if min_rollout:
+                total_learning_steps = _determine_min_trials()
 
             _plot_trajectories(
                 exp_path=exp_path,
@@ -273,7 +272,7 @@ def plot_trajectories(folder_path, exp_names, min_rollout):
                     f"{env_name}_{constants.FIND_THREAT_RUN}_{constants.TRAJECTORIES}",
                 ),
                 split_by=[start_position, reward_positions[0]],
-                min_rollout=min_rollout,
+                total_learning_steps=total_learning_steps,
             )
 
 
