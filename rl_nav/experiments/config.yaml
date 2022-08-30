@@ -137,7 +137,7 @@ test_environments:
         - ../circular_maps/obstacle_map.txt
         - ../circular_maps/test_map.txt
 
-    num_trials: 101
+    num_trials: 5
 
     episode_timeout: 500
     representation: agent_position

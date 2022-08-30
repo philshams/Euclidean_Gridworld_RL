@@ -49,11 +49,13 @@ class Node:
         raise NotImplementedError
 
 
-def heuristic(state, reward_states):
+def heuristic(state, reward_states, start_state):
     def euclidean(s1, s2):
         return np.sqrt((s1[0] - s2[0]) ** 2 + (s1[1] - s2[1]) ** 2)
+    def eccentricity(s1, s2):
+        return abs(s1[0] - s2[0])/2
 
-    distances = [euclidean(state, r_state) for r_state in reward_states]
+    distances = [euclidean(state, r_state) - eccentricity(state, start_state) for r_state in reward_states]
 
     return np.min(distances)
 
@@ -79,7 +81,7 @@ def search(transition_matrix, start_state, reward_states):
 
     start_node = Node(start_state, True)
     start_node.g = 0
-    start_node.h = heuristic(start_node.position, reward_states)
+    start_node.h = heuristic(start_node.position, reward_states, start_state)
     nodes[start_state] = start_node
     open_list.append(start_node.position)
 
@@ -88,7 +90,7 @@ def search(transition_matrix, start_state, reward_states):
         node_costs = [nodes[i].cost for i in open_list]
         # randomly select the low cost node, so that paths
         # are random not deterministic across short paths
-        low_cost_indices = np.where(np.isclose(node_costs, min(node_costs), atol=.8, rtol=0))[0]
+        low_cost_indices = np.where(np.isclose(node_costs, min(node_costs), atol=0.5))[0]
         lowest_cost_index = np.random.choice(low_cost_indices)
         # lowest_cost_index = np.argmin(node_costs)
         selected_node_pos = open_list[lowest_cost_index]
@@ -121,7 +123,8 @@ def search(transition_matrix, start_state, reward_states):
                 and nodes[adj_node_pos].position not in closed_list
             ):
                 nodes[adj_node_pos].h = heuristic(
-                    nodes[adj_node_pos].position, reward_states
+                    nodes[adj_node_pos].position, reward_states,
+                    start_state
                 )
                 open_list.append(nodes[adj_node_pos].position)
 
