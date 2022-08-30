@@ -83,7 +83,7 @@ training:
 
     update_no_op: True
 
-    gradual_learner_window_average: 15
+    gradual_learner_window_average: 1
 
     epsilon:
         schedule: constant
