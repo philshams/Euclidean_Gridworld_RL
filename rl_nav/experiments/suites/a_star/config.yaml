@@ -37,7 +37,7 @@ training:
 
     update_no_op: True
 
-    gradual_learner_window_average: 1
+    gradual_learner_window_average: 10
 
     epsilon:
         schedule: constant
@@ -93,7 +93,7 @@ test_environments:
 
     num_trials: 6
 
-    episode_timeout: 500
+    episode_timeout: 100
     representation: agent_position
     start_position: [7, 12]
     reward_positions:
