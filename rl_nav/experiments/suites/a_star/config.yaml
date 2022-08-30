@@ -1,7 +1,7 @@
 seed: 0
 
 training:
-    num_steps: 50000
+    num_steps: 25000
     model: a_star
 
     behaviour: epsilon_greedy
@@ -37,7 +37,7 @@ training:
 
     update_no_op: True
 
-    gradual_learner_window_average: 10
+    gradual_learner_window_average: 20
 
     epsilon:
         schedule: constant
