@@ -1,7 +1,7 @@
 seed: 0
 
 training:
-    num_steps: 15000
+    num_steps: 10000
     model: a_star
 
     behaviour: epsilon_greedy
@@ -83,7 +83,7 @@ training:
 
     update_no_op: True
 
-    gradual_learner_window_average: 20
+    gradual_learner_window_average: 15
 
     epsilon:
         schedule: constant
@@ -137,7 +137,7 @@ test_environments:
         - ../circular_maps/obstacle_map.txt
         - ../circular_maps/test_map.txt
 
-    num_trials: 5
+    num_trials: 101
 
     episode_timeout: 500
     representation: agent_position

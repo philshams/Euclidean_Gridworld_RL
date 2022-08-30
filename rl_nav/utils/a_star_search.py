@@ -86,9 +86,9 @@ def search(transition_matrix, start_state, reward_states):
     while len(open_list):
         # select node with lowest cost
         node_costs = [nodes[i].cost for i in open_list]
-        # randomly select the lowest cost node, so that paths
-        # are random not deterministic for equally short paths
-        low_cost_indices = np.where(np.isclose(node_costs, min(node_costs), atol=1))[0]
+        # randomly select the low cost node, so that paths
+        # are random not deterministic across short paths
+        low_cost_indices = np.where(np.isclose(node_costs, min(node_costs), atol=.8, rtol=0))[0]
         lowest_cost_index = np.random.choice(low_cost_indices)
         # lowest_cost_index = np.argmin(node_costs)
         selected_node_pos = open_list[lowest_cost_index]
