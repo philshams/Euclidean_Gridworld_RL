@@ -90,7 +90,7 @@ training:
 
     update_no_op: True
 
-    gradual_learner_window_average: 20
+    gradual_learner_window_average: 15
 
     epsilon:
         schedule: constant
@@ -146,7 +146,7 @@ test_environments:
 
     num_trials: 3
 
-    episode_timeout: 100
+    episode_timeout: 500
     representation: agent_position
     start_position: [7, 12]
     reward_positions:
@@ -171,8 +171,8 @@ logging:
     print_frequency: 5000
     visualisation_frequency: 500000
     rollout_frequency: 500000
-    train_test_frequency: 5000
-    test_frequency: 5000
-    checkpoint_frequency: 5000
+    train_test_frequency: 10000
+    test_frequency: 10000
+    checkpoint_frequency: 10000
 
     visualisations: 

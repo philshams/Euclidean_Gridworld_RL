@@ -53,9 +53,11 @@ def heuristic(state, reward_states, start_state):
     def euclidean(s1, s2):
         return np.sqrt((s1[0] - s2[0]) ** 2 + (s1[1] - s2[1]) ** 2)
     def eccentricity(s1, s2):
-        return abs(s1[0] - s2[0])/2
+        return abs(s1[0] - s2[0])*.5
+    def not_obstructed(state):
+        return int(not (6<=state[1]<=8 and 3<= state[0] <=11))
 
-    distances = [euclidean(state, r_state) - eccentricity(state, start_state) for r_state in reward_states]
+    distances = [euclidean(state, r_state) - eccentricity(state, start_state) - not_obstructed(state) for r_state in reward_states]
 
     return np.min(distances)
 

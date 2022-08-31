@@ -190,7 +190,7 @@ def plot_trajectories(folder_path, exp_names, min_rollout):
                         x_plot,
                         y_plot,
                         color="skyblue",
-                        # alpha=0.6,
+                        alpha=0.08,
                         zorder=99,
                     )
                     x_diffs = x_plot[1:] - x_plot[:-1]
@@ -271,6 +271,17 @@ def plot_trajectories(folder_path, exp_names, min_rollout):
                 )
             else:
                 num_training_steps = None
+
+            # _plot_trajectories(
+            #     seed_folders=seed_folders,
+            #     env=env,
+            #     pattern=plain_pattern,
+            #     save_path=os.path.join(
+            #         exp_path, f"{env_name}_{constants.TRAJECTORIES}"
+            #     ),
+            #     split_by=[start_position, reward_positions[0]],
+            #     num_training_steps=num_training_steps,
+            # )
 
             _plot_trajectories(
                 seed_folders=seed_folders,
