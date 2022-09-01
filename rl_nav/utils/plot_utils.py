@@ -190,7 +190,7 @@ def plot_trajectories(folder_path, exp_names, min_rollout):
                         x_plot,
                         y_plot,
                         color="skyblue",
-                        alpha=0.08,
+                        # alpha=0.08,
                         zorder=99,
                     )
                     x_diffs = x_plot[1:] - x_plot[:-1]
