@@ -1,7 +1,7 @@
 seed: 0
 
 training:
-    num_steps: 250000
+    num_steps: 50000
     model: q_learning
 
     behaviour: epsilon_greedy
@@ -37,7 +37,7 @@ training:
 
     update_no_op: True
 
-    gradual_learner_window_average: 150
+    gradual_learner_window_average: 1
 
     epsilon:
         schedule: constant
@@ -82,7 +82,7 @@ train_environment:
                 variance: 0
 
     train_hierarchy_network:
-        transition_structure_path: ../maps/vector_blocked_hierarchy_transition_7.json
+        transition_structure_path: ../maps/vector_blocked_hierarchy_transition_7X.json
 
 test_environments:
 
@@ -111,8 +111,8 @@ test_environments:
 
     test_hierarchy_network:
         transition_structure_paths: 
-            - ../maps/test_hierarchy_transition_7.json
-            - ../maps/hierarchy_transition_7.json
+            - ../maps/test_hierarchy_transition_7X.json
+            - ../maps/hierarchy_transition_7X.json
 
 logging:
     print_frequency: 5000
