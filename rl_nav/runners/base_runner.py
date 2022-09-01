@@ -323,12 +323,12 @@ class BaseRunner(base_runner.BaseRunner):
 
     def _setup_lr(self, config):
         if config.learning_rate_schedule == constants.CONSTANT:
-            return learning_rate_schedules.ConstantLearningRate(value=config.value)
+            return learning_rate_schedules.ConstantLearningRate(value=config.learning_rate_value)
         elif config.learning_rate_schedule == constants.LINEAR_DECAY:
             return learning_rate_schedules.LinearDecayLearningRate(
-                initial_value=config.initial_value,
-                final_value=config.final_value,
-                anneal_duration=config.anneal_duration,
+                initial_value=config.learning_rate_initial_value,
+                final_value=config.learning_rate_final_value,
+                anneal_duration=config.learning_rate_anneal_duration,
             )
         elif config.learning_rate_schedule == constants.HARD_CODED:
             return learning_rate_schedules.HardCodedLearningRate(
