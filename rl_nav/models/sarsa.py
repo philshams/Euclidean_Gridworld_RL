@@ -185,6 +185,7 @@ class SarsaLearner(tabular_learner.TabularLearner):
             self.prev_state = state
             self.prev_action = action
             self.prev_reward = reward
+            self.eligibility_trace = np.zeros_like(self._state_action_values)
             return
 
         if state == new_state and not self._update_no_op:
@@ -223,19 +224,46 @@ class SarsaLearner(tabular_learner.TabularLearner):
         discount,
         new_state,
     ):
+        decay_factor = 0.5
+        self.eligibility_trace*=(discount*decay_factor)
+        self.eligibility_trace[prev_state_id][prev_action] += 1
+
         initial_state_action_value = self._state_action_values[prev_state_id][prev_action]
         next_state_action_value = self._state_action_values[state_id][action]
 
-        if new_state not in self._state_id_mapping and self._allow_state_instantiation:
-            self._impute_randomly(state=new_state, store_imputation=True)
-
-        updated_state_action_value = (
-            initial_state_action_value
-            + self._learning_rate.value
+        self._state_action_values += self.eligibility_trace * (
+            self._learning_rate.value
             * (
                 prev_reward
                 + discount * next_state_action_value
                 - initial_state_action_value
             )
         )
-        self._state_action_values[prev_state_id][prev_action] = updated_state_action_value
+
+
+    # def _step(
+    #     self,
+    #     state_id,
+    #     action,
+    #     prev_state_id,
+    #     prev_action,
+    #     prev_reward,
+    #     discount,
+    #     new_state,
+    # ):
+        # initial_state_action_value = self._state_action_values[prev_state_id][prev_action]
+        # next_state_action_value = self._state_action_values[state_id][action]
+
+        # if new_state not in self._state_id_mapping and self._allow_state_instantiation:
+        #     self._impute_randomly(state=new_state, store_imputation=True)
+
+        # updated_state_action_value = (
+        #     initial_state_action_value
+        #     + self._learning_rate.value
+        #     * (
+        #         prev_reward
+        #         + discount * next_state_action_value
+        #         - initial_state_action_value
+        #     )
+        # )
+        # self._state_action_values[prev_state_id][prev_action] = updated_state_action_value

@@ -126,7 +126,7 @@ class VisualisationEnv(wrapper.Wrapper):
             )[:-1]
 
         fig = plt.figure()
-        plt.imshow(environment_map, origin="lower", cmap=self.COLORMAP)
+        plt.imshow(environment_map, origin="lower", cmap=self.COLORMAP, vmin=0, vmax=0.05)
         plt.colorbar()
         fig.savefig(save_name, dpi=60)
         plt.close()

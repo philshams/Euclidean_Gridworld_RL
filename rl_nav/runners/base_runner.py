@@ -767,34 +767,6 @@ class BaseRunner(base_runner.BaseRunner):
                     f"{constants.TEST_EPISODE_LENGTH}_{map_name}_{constants.FIND_THREAT_RUN}_{t}"
                 ] = length
 
-                if (
-                    self._visualisations is not None
-                    and constants.VALUE_FUNCTION in self._visualisations
-                ):
-                    try:
-                        averaged_values = self._train_environment.average_values_over_positional_states(
-                            model_copy.state_action_values
-                        )
-                        plot_values = {p: max(v) for p, v in averaged_values.items()}
-                    except AttributeError:
-                        plot_values = model_copy.state_values
-
-                    np.save(
-                        os.path.join(
-                            self._visualisations_folder_path,
-                            f"{self._step_count}_{constants.PRE_TEST}_{constants.VALUES}_{t}",
-                        ),
-                        plot_values,
-                    )
-
-                    self._train_environment.plot_heatmap_over_env(
-                        heatmap=plot_values,
-                        save_name=os.path.join(
-                            self._visualisations_folder_path,
-                            f"{self._step_count}_{constants.PRE_TEST}_{t}_{constants.VALUES_PDF}",
-                        ),
-                    )
-
         self._test_rollout(
             visualise=rollout,
             save_name_base=f"{constants.INDIVIDUAL_TEST_RUN}_{constants.FIND_THREAT_RUN}",
