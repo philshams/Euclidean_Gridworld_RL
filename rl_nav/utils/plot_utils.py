@@ -26,49 +26,29 @@ def _split_rollout_by_indices(
 
     x, y = zip(*rollout_coordinates)
 
-    split_start_indices_ = np.where(
+    start_idx_ = np.where(
         np.sum(rollout_coordinates == split_start, axis=1) == 2
     )[0]
-    split_end_indices_ = np.where(
+    end_idx_ = np.where(
         np.sum(rollout_coordinates == split_end, axis=1) == 2
     )[0]
 
-    split_start_indices = []
-    split_end_indices = []
-
-    for i, ind in enumerate(split_start_indices_):
-        if i > 0 and ind == (split_start_indices_[i - 1] + 1):
-            pass
-        else:
-            split_start_indices.append(ind)
-
-    split_start_indices.append(np.inf)
-
-    for i, ind in enumerate(split_start_indices[:-1]):
-        end_indices = split_end_indices_[
-            np.where(
-                (split_end_indices_ > ind)
-                & (split_end_indices_ < split_start_indices[i + 1])
-            )[0]
-        ]
-        if len(end_indices):
-            split_end_index = end_indices[0] + 1
-        else:
-            if split_start_indices[i + 1] < np.inf:
-                split_end_index = split_start_indices[i + 1] + 1
-            else:
-                split_end_index = None
-        split_end_indices.append(split_end_index)
-
-    split_start_indices = split_start_indices[:-1]
+    start_idx = []
+    prev_end_idx = -1
+    for end_idx in end_idx_:
+        start_idx_trial = start_idx_[
+            np.logical_and(start_idx_>prev_end_idx, start_idx_<end_idx)
+            ]
+        start_idx.append(min(start_idx_trial))
+        prev_end_idx = end_idx
 
     chunked_rollout = []
 
-    for split_index_start, split_index_end in zip(
-        split_start_indices, split_end_indices
+    for s, e in zip(
+        start_idx, end_idx_
     ):
-        x_chunk = x[split_index_start + 1 : split_index_end]
-        y_chunk = y[split_index_start + 1 : split_index_end]
+        x_chunk = x[s + 1 : e]
+        y_chunk = y[s + 1 : e]
         chunked_rollout.append([x_chunk, y_chunk])
 
     return chunked_rollout
@@ -159,6 +139,7 @@ def plot_trajectories(folder_path, exp_names, min_rollout):
                     plot_coordinates[t].append(chunk)
 
         for t, all_seed_coordinates in plot_coordinates.items():
+            if t>5: break
 
             fig = plt.figure()
             plt.imshow(env, origin="lower")
@@ -224,11 +205,12 @@ def plot_trajectories(folder_path, exp_names, min_rollout):
             fig.savefig(f"{save_path}_{t}.eps")
             fig.savefig(f"{save_path}_{t}.png")
             plt.close()
+        print(plot_rollout)
 
     # else:
     #     plt.plot(x, y, color="skyblue", alpha=0.6)
     #     path_lengths.append(len(y))
-
+    num_training_steps = None
     for exp_name in exp_names:
         exp_path = os.path.join(folder_path, exp_name)
         seed_folders = [
@@ -279,7 +261,7 @@ def plot_trajectories(folder_path, exp_names, min_rollout):
                 save_path=os.path.join(
                     exp_path, f"{env_name}_{constants.TRAJECTORIES}"
                 ),
-                split_by=[start_position, reward_positions[0]],
+                split_by=[start_position, (0,0)],
                 num_training_steps=num_training_steps,
             )
 
@@ -291,7 +273,7 @@ def plot_trajectories(folder_path, exp_names, min_rollout):
                     exp_path,
                     f"{env_name}_{constants.FIND_THREAT_RUN}_{constants.TRAJECTORIES}",
                 ),
-                split_by=[start_position, reward_positions[0]],
+                split_by=[start_position, (0,0)],
                 num_training_steps=num_training_steps,
             )
 

@@ -181,6 +181,9 @@ class BaseRunner(base_runner.BaseRunner):
                 new_state=new_state,
                 active=self._train_environment.active,
             )
+            if state==new_state:
+                # if hit an obstacle, end the sequence
+                self._current_train_run_action_sequence = []
             state = new_state
         else:
             state, reward = self._model_train_step(state)
@@ -740,6 +743,9 @@ class BaseRunner(base_runner.BaseRunner):
                         retain_history=True,
                     )
 
+                # Pad trials with a (0,0) to facilitate post-hoc analysis
+                test_env._env._test_episode_position_history.append((0,0))
+
                 test_logging_dict[
                     f"{constants.TEST_EPISODE_REWARD}_{map_name}_{constants.FIND_THREAT_RUN}_{t}"
                 ] = reward
@@ -805,6 +811,9 @@ class BaseRunner(base_runner.BaseRunner):
                     test_env=test_env,
                     excess_state_mapping=self._excess_state_mapping[i],
                 )
+
+            # Pad trials with a (0,0) to facilitate post-hoc analysis
+            test_env._env._test_episode_position_history.append((0,0))
 
             test_logging_dict[f"{constants.TEST_EPISODE_REWARD}_{map_name}"] = reward
             test_logging_dict[f"{constants.TEST_EPISODE_LENGTH}_{map_name}"] = length
