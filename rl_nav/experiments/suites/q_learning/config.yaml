@@ -1,7 +1,7 @@
 seed: 0
 
 training:
-    num_steps: 60000
+    num_steps: 90000
     model: q_learning
 
     behaviour: epsilon_greedy
@@ -9,10 +9,10 @@ training:
     test_epsilon: 0.99
 
     train_run_trigger_states: 
-        - [7, 12]
+        # - [7, 12]
         # - [7, 11]
         # - [7, 13]
-        - [7, 12]
+        # - [7, 12]
         # - [7, 11]
         # - [7, 13]
         # - [8, 11]
@@ -30,13 +30,13 @@ training:
         # - [10, 11]
         # - [10, 12]
 
-        - [3, 7]
-        - [11, 7]
+        # - [3, 7]
+        # - [11, 7]
     train_run_action_sequences:
-        - [7, 7, 7, 7, 3]    # 7, 12
+        # - [7, 7, 7, 7, 3]    # 7, 12
         # - [7, 7, 7, 7]       # 7, 11
         # - [3, 7, 7, 7, 7, 3] # 7, 13
-        - [6, 6, 6, 6, 3]    # 7, 12
+        # - [6, 6, 6, 6, 3]    # 7, 12
         # - [6, 6, 6, 6]       # 7, 11
         # - [3, 6, 6, 6, 6, 3] # 7, 13
         # - [6, 6, 6, 3]       # 8, 11
@@ -54,11 +54,11 @@ training:
         # - [6, 3, 3, 3]       # 10, 11
         # - [6, 3, 3, 3, 3]    # 10, 12
 
-        - [3, 6, 6, 6, 6, 3] # 3, 7
-        - [3, 7, 7, 7, 7, 3] # 11, 7
+        # - [3, 6, 6, 6, 6, 3] # 3, 7
+        # - [3, 7, 7, 7, 7, 3] # 11, 7
     train_run_trigger_probabilities: 
         # [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.5, 0.5]
-        [0.2, 0.2, 0.0, 0.0]
+        # [0.2, 0.2, 0.0, 0.0]
     learning_rate: 
         schedule: constant
 
@@ -163,9 +163,9 @@ logging:
     print_frequency: 30000
     visualisation_frequency: 90000
     rollout_frequency: 900000
-    train_test_frequency: 60000
-    test_frequency: 60000
-    checkpoint_frequency: 60000
+    train_test_frequency: 90000
+    test_frequency: 90000
+    checkpoint_frequency: 90000
 
     visualisations: 
         # - numbered_value_function
