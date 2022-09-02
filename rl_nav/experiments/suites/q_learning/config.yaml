@@ -1,7 +1,7 @@
 seed: 0
 
 training:
-    num_steps: 90000
+    num_steps: 20000
     model: q_learning
 
     behaviour: epsilon_greedy
@@ -54,8 +54,8 @@ training:
         - [6, 3, 3, 3]       # 10, 11
         - [6, 3, 3, 3, 3]    # 10, 12
 
-        - [6, 6, 6, 6, 3, 3] # 3, 7
-        - [7, 7, 7, 7, 3, 3] # 11, 7
+        - [3, 6, 6, 6, 6, 3] # 3, 7
+        - [3, 7, 7, 7, 7, 3] # 11, 7
     train_run_trigger_probabilities: 
         [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.5, 0.5]
 
@@ -138,7 +138,7 @@ test_environments:
 
     num_trials: 3
 
-    episode_timeout: 500
+    episode_timeout: 50
     representation: agent_position
     start_position: [7, 12]
     reward_positions:
@@ -160,14 +160,14 @@ test_environments:
             - ../maps/hierarchy_transition_7X.json
 
 logging:
-    print_frequency: 5000
-    visualisation_frequency: 50000
-    rollout_frequency: 500000
-    train_test_frequency: 50000
-    test_frequency: 50000
-    checkpoint_frequency: 50000
+    print_frequency: 30000
+    visualisation_frequency: 300000
+    rollout_frequency: 300000
+    train_test_frequency: 20000
+    test_frequency: 20000
+    checkpoint_frequency: 20000
 
     visualisations: 
         # - numbered_value_function
         # - visitation_counts
-        - value_function
+        # - value_function

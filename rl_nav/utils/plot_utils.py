@@ -80,6 +80,7 @@ def plot_trajectories(folder_path, exp_names, min_rollout):
                 )
             all_rollout_coords = [np.load(rollout) for rollout in all_rollouts_sorted]
             all_rollout_lens = [len(rollout) for rollout in all_rollout_coords]
+            # first_fast_rollout_idx.append(np.where(np.array(all_rollout_lens)<50)[0][0])
             first_fast_rollout_idx.append(np.argmin(all_rollout_lens))
             fastest_rollout_lens.append(min(all_rollout_lens))
         first_fast_rollout_idx_all = max(first_fast_rollout_idx)
@@ -205,7 +206,7 @@ def plot_trajectories(folder_path, exp_names, min_rollout):
             fig.savefig(f"{save_path}_{t}.eps")
             fig.savefig(f"{save_path}_{t}.png")
             plt.close()
-        print(plot_rollout)
+        # print(plot_rollout)
 
     # else:
     #     plt.plot(x, y, color="skyblue", alpha=0.6)

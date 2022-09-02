@@ -1,8 +1,8 @@
 seed: 0
 
 training:
-    num_steps: 20000
-    model: q_learning
+    num_steps: 40000
+    model: sarsa
 
     behaviour: epsilon_greedy
     target: greedy

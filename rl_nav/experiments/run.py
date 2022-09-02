@@ -7,7 +7,7 @@ from rl_nav import constants, runners
 from rl_nav.experiments import rl_nav_config
 from rl_nav.runners import (a_star_runner, dyna_linear_feature_runner,
                             dyna_runner, linear_feature_runner,
-                            q_learning_runner, successor_rep_runner)
+                            q_learning_runner, sarsa_runner, successor_rep_runner)
 from run_modes import cluster_run, parallel_run, serial_run, single_run, utils
 
 MAIN_FILE_PATH = os.path.dirname(os.path.realpath(__file__))
@@ -59,6 +59,16 @@ if __name__ == "__main__":
         else:
             runner_class = q_learning_runner.EpisodicQLearningRunner
             runner_class_name = "EpisodicQLearningRunner"
+
+    if config.model == constants.SARSA:
+        runner_module_name = "sarsa_runner"
+        runner_module_path = os.path.join(runners_module_path, "sarsa_runner.py")
+        if config.train_episode_timeout is None:
+            runner_class = sarsa_runner.LifelongSarsaRunner
+            runner_class_name = "LifelongSarsaRunner"
+        else:
+            runner_class = sarsa_runner.EpisodicSarsaRunner
+            runner_class_name = "EpisodicSarsaRunner"
 
     elif config.model == constants.SUCCESSOR_REP:
         runner_module_name = "successor_rep_runner"

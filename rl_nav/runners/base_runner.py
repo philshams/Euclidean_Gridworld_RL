@@ -18,6 +18,7 @@ from rl_nav.models import (
     dyna_linear_features,
     linear_features,
     q_learning,
+    sarsa,
     state_linear_features,
     successor_representation,
 )
@@ -344,6 +345,19 @@ class BaseRunner(base_runner.BaseRunner):
         if config.model == constants.Q_LEARNING:
             learning_rate = self._setup_lr(config=config)
             model = q_learning.QLearner(
+                action_space=self._train_environment.action_space,
+                state_space=self._train_environment.state_space,
+                behaviour=config.behaviour,
+                target=config.target,
+                initialisation_strategy=initialisation_strategy,
+                learning_rate=learning_rate,
+                gamma=config.discount_factor,
+                imputation_method=config.imputation_method,
+                update_no_op=config.update_no_op,
+            )
+        elif config.model == constants.SARSA:
+            learning_rate = self._setup_lr(config=config)
+            model = sarsa.SarsaLearner(
                 action_space=self._train_environment.action_space,
                 state_space=self._train_environment.state_space,
                 behaviour=config.behaviour,

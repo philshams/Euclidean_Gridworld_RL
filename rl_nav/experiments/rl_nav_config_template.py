@@ -286,6 +286,7 @@ class RLNavConfigTemplate:
                             constants.A_STAR,
                             constants.LINEAR_FEATURES,
                             constants.STATE_LINEAR_FEATURES,
+                            constants.SARSA,
                         ]
                     ],
                 ),
