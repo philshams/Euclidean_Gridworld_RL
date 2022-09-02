@@ -83,6 +83,7 @@ def plot_trajectories(folder_path, exp_names, min_rollout):
             # first_fast_rollout_idx.append(np.where(np.array(all_rollout_lens)<50)[0][0])
             first_fast_rollout_idx.append(np.argmin(all_rollout_lens))
             fastest_rollout_lens.append(min(all_rollout_lens))
+            print(all_rollout_lens)
         first_fast_rollout_idx_all = max(first_fast_rollout_idx)
         num_steps_in_rollout = int(all_rollouts_sorted[
                 first_fast_rollout_idx_all

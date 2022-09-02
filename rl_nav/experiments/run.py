@@ -60,7 +60,7 @@ if __name__ == "__main__":
             runner_class = q_learning_runner.EpisodicQLearningRunner
             runner_class_name = "EpisodicQLearningRunner"
 
-    if config.model == constants.SARSA:
+    elif config.model == constants.SARSA:
         runner_module_name = "sarsa_runner"
         runner_module_path = os.path.join(runners_module_path, "sarsa_runner.py")
         if config.train_episode_timeout is None:

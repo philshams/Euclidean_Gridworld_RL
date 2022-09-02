@@ -122,11 +122,11 @@ class VisualisationEnv(wrapper.Wrapper):
             # remove alpha from rgba in colormap return
             # normalise value for color mapping
             environment_map[position[::-1]] = self.COLORMAP(
-                (value - current_min_value) / (current_max_value - current_min_value)
+                10*(value - current_min_value) / (current_max_value - current_min_value)
             )[:-1]
 
         fig = plt.figure()
-        plt.imshow(environment_map, origin="lower", cmap=self.COLORMAP, vmin=0, vmax=0.05)
+        plt.imshow(environment_map, origin="lower", cmap=self.COLORMAP)
         plt.colorbar()
         fig.savefig(save_name, dpi=60)
         plt.close()

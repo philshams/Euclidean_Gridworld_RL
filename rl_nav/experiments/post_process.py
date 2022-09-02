@@ -9,7 +9,7 @@ from rl_nav.utils import plot_utils
 parser = argparse.ArgumentParser()
 
 parser.add_argument(
-    "--results_folder", type=str, default="results\QL_Aex", help="path to results folder to post-process."
+    "--results_folder", type=str, default="results\look", help="path to results folder to post-process."
 )
 parser.add_argument(
     "--plot_trajectories",
