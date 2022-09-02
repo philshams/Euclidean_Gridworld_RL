@@ -111,7 +111,7 @@ initialisation:
 
     random_normal:
         mean: 0
-        variance: 0.1
+        variance: 0.01
 
 train_environment: 
 

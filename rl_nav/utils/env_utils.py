@@ -161,7 +161,7 @@ def setup_rewards(reward_positions, reward_attributes) -> Dict[Tuple, Callable]:
 
 
 def configure_state_space(
-    map_outline, reward_positions: Optional, one_dim_blocks: bool = True
+    map_outline, reward_positions: Optional[List], one_dim_blocks: bool = True
 ):
     """Get state space for the environment from the parsed map.
     Further split state space into walls, valid positions, key possessions etc.

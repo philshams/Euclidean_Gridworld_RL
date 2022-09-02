@@ -241,6 +241,9 @@ class SuccessorRepresentation(tabular_learner.TabularLearner):
             active=active,
         )
 
+        self.prev_state = state
+        self.prev_action = action
+
         next(self._learning_rate)
 
     def _step_reward_function(self, state_id: int, reward: float):
@@ -250,9 +253,10 @@ class SuccessorRepresentation(tabular_learner.TabularLearner):
         self._sr_change = True
 
     def _step_successor_matrix(self, state_id, action, discount, new_state_id, prev_state_id, active):
+
         decay_factor = 0.5
         self.eligibility_trace*=(discount*decay_factor)
-        self.eligibility_trace[prev_action][prev_state_id] += 1
+        self.eligibility_trace[self.prev_action][prev_state_id] += 1
 
         if active:
             target_ = self._successor_matrix[action][state_id]
@@ -262,7 +266,7 @@ class SuccessorRepresentation(tabular_learner.TabularLearner):
         td_error = (
             self._one_hot_matrix[prev_state_id]
             + discount * target_
-            - self._successor_matrix[prev_action][prev_state_id]
+            - self._successor_matrix[self.prev_action][prev_state_id]
         )
 
         self._successor_matrix += self.eligibility_trace * self._learning_rate.value * td_error

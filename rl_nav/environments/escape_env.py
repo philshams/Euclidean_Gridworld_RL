@@ -58,6 +58,8 @@ class EscapeEnv(base_env.BaseEnvironment, abc.ABC):
 
         self._reward_positions = [tuple(p) for p in reward_positions]
         self._reward_attributes = reward_attributes
+        # if self._reward_attributes["availability"]=="infinite":
+        #     self._reward_attributes["availability"]=[np.inf]
         self._starting_xy = start_position
         self._step_cost_factor = step_cost_factor
 

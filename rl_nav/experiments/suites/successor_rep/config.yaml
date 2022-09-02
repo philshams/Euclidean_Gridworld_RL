@@ -1,7 +1,7 @@
 seed: 0
 
 training:
-    num_steps: 1500000
+    num_steps: 100000
     model: successor_rep
 
     behaviour: epsilon_greedy
@@ -26,11 +26,11 @@ training:
             anneal_duration: 250000
 
         hard_coded:
-            values: [0.1, 0.001]
-            timestep_changes: [100000]
+            values: [0.1, 0.05]
+            timestep_changes: [400000]
             
-    discount_factor: 0.9
-    train_step_cost_factor: 0.01
+    discount_factor: 0.99
+    train_step_cost_factor: 0.0001
 
     one_dim_blocks: True
     imputation_method: random
@@ -59,14 +59,14 @@ initialisation:
 
     random_normal:
         mean: 0
-        variance: 0.1
+        variance: 0.01
 
 train_environment: 
 
     env_name: escape_env_diagonal
-    map_path: ../maps/square_escape_map.txt
+    map_path: ../circular_maps/obstacle_map.txt
 
-    episode_timeout: 500
+    episode_timeout:
     representation: agent_position
     start_position:
     reward_positions:
@@ -75,7 +75,7 @@ train_environment:
     # provide either one set of attributes (used for all rewards)
     # or one set for each reward
     reward_attributes:
-        availability: [1] # integer specifying number available or "infinite"
+        availability: ["infinite"] #[1] # integer specifying number available or "infinite"
         statistics:
             - gaussian:
                 mean: 1
@@ -88,17 +88,17 @@ test_environments:
 
     env_name: escape_env_diagonal
     map_paths: 
-        - ../maps/square_escape_test_map.txt
-        - ../maps/square_escape_map.txt
+        - ../circular_maps/obstacle_map.txt
+        - ../circular_maps/test_map.txt
 
     num_trials: 3
 
-    episode_timeout: 500
+    episode_timeout: 50
     representation: agent_position
     start_position: [7, 12]
     reward_positions:
         - [7, 1]
-    step_cost_factor: 0.01
+    step_cost_factor: 0.0001
 
     # provide either one set of attributes (used for all rewards)
     # or one set for each reward
@@ -115,12 +115,12 @@ test_environments:
             - ../maps/hierarchy_transition_7.json
 
 logging:
-    print_frequency: 5000
-    visualisation_frequency: 100000
-    rollout_frequency: 100000
-    train_test_frequency: 5000
-    test_frequency: 100000
-    checkpoint_frequency: 100000
+    print_frequency: 20000
+    visualisation_frequency: 20000
+    rollout_frequency: 200000
+    train_test_frequency: 20000
+    test_frequency: 20000
+    checkpoint_frequency: 20000
 
     visualisations: 
         # - numbered_value_function
