@@ -78,11 +78,11 @@ if __name__ == "__main__":
 
             exp_names = [name for name in exp_names if name not in excluded_experiments]
 
-    if args.plot_trajectories:
+    if args.plot_t:
         plot_utils.plot_trajectories(
             folder_path=args.results_folder, exp_names=exp_names, min_rollout=False
         )
-    if args.plot_min_trajectories:
+    if args.plot_mint:
         plot_utils.plot_trajectories(
             folder_path=args.results_folder, exp_names=exp_names, min_rollout=True
         )
