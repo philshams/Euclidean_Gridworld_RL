@@ -56,6 +56,14 @@ class Wrapper(base_env.BaseEnvironment):
         return self._env.state_space
 
     @property
+    def sub_action_space(self) -> List[int]:
+        return self._env._action_space
+
+    @property
+    def sub_state_space(self) -> List[Tuple[int, int]]:
+        return self._env._state_space
+
+    @property
     def positional_state_space(self):
         return self._env.positional_state_space
 
@@ -106,6 +114,12 @@ class Wrapper(base_env.BaseEnvironment):
     @property
     def transition_matrix(self) -> Dict:
         return self._env.transition_matrix
+
+    def get_partition(self, state: Tuple):
+        return self._env.get_partition(state)
+
+    def get_centroid(self, partition):
+        return self._env.get_centroid(partition)
 
     def get_state_representation(self, tuple_state: Optional[Tuple] = None):
         return self._env.get_state_representation(tuple_state=tuple_state)
