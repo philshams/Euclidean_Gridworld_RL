@@ -248,7 +248,7 @@ def plot_trajectories(folder_path, exp_names, min_rollout):
                 f"{constants.INDIVIDUAL_TEST_RUN}_{constants.FIND_THREAT_RUN}_{env_name}_[0-9]*.npy"
             )
 
-            if min_rollout and exp_name=="condition_1" and env_name=="obstacle_map":
+            if min_rollout and exp_name=="condition_3" and env_name=="obstacle_map":
                 num_training_steps = _determine_min_trials(
                     seed_folders=seed_folders,
                     pattern=plain_pattern,

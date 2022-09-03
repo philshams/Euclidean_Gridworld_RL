@@ -255,8 +255,11 @@ class SuccessorRepresentation(tabular_learner.TabularLearner):
     def _step_successor_matrix(self, state_id, action, discount, new_state_id, prev_state_id, active):
 
         decay_factor = 0.5
-        self.eligibility_trace*=(discount*decay_factor)
-        self.eligibility_trace[self.prev_action][prev_state_id] += 1
+
+        self.eligibility_trace[self.prev_action][prev_state_id] += 1/(discount*decay_factor)
+        eligible_idx = self.eligibility_trace!=0
+        self.eligibility_trace[eligible_idx]*=(discount*decay_factor)
+
 
         if active:
             target_ = self._successor_matrix[action][state_id]
@@ -269,6 +272,7 @@ class SuccessorRepresentation(tabular_learner.TabularLearner):
             - self._successor_matrix[self.prev_action][prev_state_id]
         )
 
-        self._successor_matrix += self.eligibility_trace * self._learning_rate.value * td_error
-
+        update = self.eligibility_trace * self._learning_rate.value * td_error
+        self._successor_matrix[eligible_idx] += update[eligible_idx]
+        
         self._sr_change = True
