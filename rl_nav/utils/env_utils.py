@@ -3,6 +3,7 @@ from typing import Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import yaml
+import json
 from rl_nav import constants
 
 
@@ -281,3 +282,25 @@ def rgb_to_grayscale(rgb: np.ndarray) -> np.ndarray:
     # rgb channel last
     grayscale = np.dot(rgb[..., :3], [[0.299], [0.587], [0.114]])
     return grayscale
+
+
+def setup_partitions(partitions_path: str):
+
+    geometry = parse_map_outline(map_file_path=partitions_path, mapping=None)
+
+    unzipped_partitions = {
+        item: np.where(geometry == item) for item in set(geometry.flatten())
+    }
+
+    partitions = {int(k): list(zip(v[1], v[0])) for k, v in unzipped_partitions.items()}
+
+    return partitions
+
+
+def setup_centroids(centroids_path: str):
+
+    with open(centroids_path, "r") as json_file:
+        centroids = json.load(json_file)
+        centroids = {k: tuple(v) for k, v in centroids.items()}
+
+    return centroids
