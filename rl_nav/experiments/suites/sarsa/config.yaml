@@ -1,7 +1,7 @@
 seed: 0
 
 training:
-    num_steps: 500000
+    num_steps: 20000
     model: sarsa
 
     behaviour: epsilon_greedy
@@ -32,7 +32,7 @@ training:
         schedule: hard_coded
 
         constant:
-            value: 0.1
+            value: 0.2
         
         linear_decay:
             initial_value: 0.2
@@ -43,7 +43,7 @@ training:
             values: [0.1, 0.05]
             timestep_changes: [400000]
             
-    discount_factor: 0.99
+    discount_factor: 0.999
     train_step_cost_factor: 0.0001
 
     one_dim_blocks: True
@@ -73,7 +73,7 @@ initialisation:
 
     random_normal:
         mean: 0
-        variance: 0.01
+        variance: 0.1
 
 train_environment: 
 
@@ -129,14 +129,14 @@ test_environments:
             - ../maps/hierarchy_transition_7X.json
 
 logging:
-    print_frequency: 100000
+    print_frequency: 20000
     visualisation_frequency: 100000
     rollout_frequency: 5000000
-    train_test_frequency: 100000
-    test_frequency: 100000
-    checkpoint_frequency: 100000
+    train_test_frequency: 5000
+    test_frequency: 5000
+    checkpoint_frequency: 5000
 
     visualisations: 
         # - numbered_value_function
         # - visitation_counts
-        # - value_function
+        - value_function
