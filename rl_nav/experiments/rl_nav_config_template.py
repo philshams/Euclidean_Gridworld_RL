@@ -278,6 +278,7 @@ class RLNavConfigTemplate:
                         lambda x: x
                         in [
                             constants.Q_LEARNING,
+                            constants.HIERARCHICAL_Q_LEARNING,
                             constants.SUCCESSOR_REP,
                             constants.DYNA,
                             constants.DYNA_LINEAR_FEATURES,
@@ -339,6 +340,11 @@ class RLNavConfigTemplate:
                 ),
                 config_field.Field(
                     name=constants.TRAIN_STEP_COST_FACTOR,
+                    types=[float, int],
+                    requirements=[lambda x: x >= 0],
+                ),
+                config_field.Field(
+                    name=constants.TRAIN_SUPER_STEP_COST_FACTOR,
                     types=[float, int],
                     requirements=[lambda x: x >= 0],
                 ),
@@ -445,7 +451,9 @@ class RLNavConfigTemplate:
                 f"{constants.TRAIN}_{constants.HIERARCHY_NETWORK}",
             ],
             dependent_variables=[[f"{constants.TRAIN}_{constants.ENV_NAME}"]],
-            dependent_variables_required_values=[[constants.HIERARCHY_NETWORK]],
+            dependent_variables_required_values=[
+                [constants.HIERARCHY_NETWORK, constants.ESCAPE_ENV_DIAGONAL_HIERARCHY]
+            ],
         )
 
         self._train_environment_template = config_template.Template(
@@ -464,6 +472,8 @@ class RLNavConfigTemplate:
                     ],
                 ),
                 config_field.Field(name=constants.MAP_PATH, types=[str]),
+                config_field.Field(name=constants.PARTITIONS_PATH, types=[str]),
+                config_field.Field(name=constants.CENTROIDS_PATH, types=[str]),
                 config_field.Field(
                     name=constants.EPISODE_TIMEOUT,
                     types=[int, type(None)],
@@ -552,6 +562,11 @@ class RLNavConfigTemplate:
                 ),
                 config_field.Field(
                     name=constants.STEP_COST_FACTOR,
+                    types=[int, float],
+                    requirements=[lambda x: x >= 0],
+                ),
+                config_field.Field(
+                    name=constants.SUPER_STEP_COST_FACTOR,
                     types=[int, float],
                     requirements=[lambda x: x >= 0],
                 ),
