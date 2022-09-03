@@ -3,9 +3,15 @@ import os
 
 from rl_nav import constants, runners
 from rl_nav.experiments import rl_nav_config
-from rl_nav.runners import (a_star_runner, dyna_linear_feature_runner,
-                            dyna_runner, linear_feature_runner,
-                            q_learning_runner, successor_rep_runner)
+from rl_nav.runners import (
+    a_star_runner,
+    dyna_linear_feature_runner,
+    dyna_runner,
+    linear_feature_runner,
+    q_learning_runner,
+    successor_rep_runner,
+    q_learning_hierarchy_runner,
+)
 from run_modes import cluster_run, parallel_run, serial_run, single_run, utils
 
 MAIN_FILE_PATH = os.path.dirname(os.path.realpath(__file__))
@@ -49,14 +55,44 @@ if __name__ == "__main__":
     runners_module_path = os.path.dirname(os.path.abspath(runners.__file__))
 
     if config.model == constants.Q_LEARNING:
-        runner_module_name = "q_learning_runner"
-        runner_module_path = os.path.join(runners_module_path, "q_learning_runner.py")
-        if config.train_episode_timeout is None:
-            runner_class = q_learning_runner.LifelongQLearningRunner
-            runner_class_name = "LifelongQLearningRunner"
+        if config.train_env_name == constants.ESCAPE_ENV_DIAGONAL_HIERARCHY:
+            runner_module_name = "q_learning_hierarchy_runner"
+            runner_module_path = os.path.join(
+                runners_module_path, "q_learning_hierarchy_runner.py"
+            )
+            if config.train_episode_timeout is None:
+                runner_class = (
+                    q_learning_hierarchy_runner.LifelongQLearningHierarchyRunner
+                )
+                runner_class_name = "LifelongQLearningHierarchyRunner"
+            else:
+                runner_class = (
+                    q_learning_hierarchy_runner.EpisodicQLearningHierarchyRunner
+                )
+                runner_class_name = "EpisodicQLearningHierarchyRunner"
         else:
-            runner_class = q_learning_runner.EpisodicQLearningRunner
-            runner_class_name = "EpisodicQLearningRunner"
+            runner_module_name = "q_learning_runner"
+            runner_module_path = os.path.join(
+                runners_module_path, "q_learning_runner.py"
+            )
+            if config.train_episode_timeout is None:
+                runner_class = q_learning_runner.LifelongQLearningRunner
+                runner_class_name = "LifelongQLearningRunner"
+            else:
+                runner_class = q_learning_runner.EpisodicQLearningRunner
+                runner_class_name = "EpisodicQLearningRunner"
+
+    elif config.model == constants.HIERARCHICAL_Q_LEARNING:
+        runner_module_name = "q_learning_hierarchy_runner"
+        runner_module_path = os.path.join(
+            runners_module_path, "q_learning_hierarchy_runner.py"
+        )
+        if config.train_episode_timeout is None:
+            runner_class = q_learning_hierarchy_runner.LifelongQLearningHierarchyRunner
+            runner_class_name = "LifelongQLearningHierarchyRunner"
+        else:
+            runner_class = q_learning_hierarchy_runner.EpisodicQLearningHierarchyRunner
+            runner_class_name = "EpisodicQLearningHierarchyRunner"
 
     elif config.model == constants.SUCCESSOR_REP:
         runner_module_name = "successor_rep_runner"
