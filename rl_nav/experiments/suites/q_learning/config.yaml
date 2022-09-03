@@ -43,7 +43,7 @@ training:
             values: [0.1, 0.01]
             timestep_changes: [100000]
             
-    discount_factor: 0.99
+    discount_factor: 0.9
     train_step_cost_factor: 0.01
 
     one_dim_blocks: True
@@ -129,12 +129,12 @@ test_environments:
             - ../maps/hierarchy_transition_7X.json
 
 logging:
-    print_frequency: 30000
+    print_frequency: 20000
     visualisation_frequency: 60000
     rollout_frequency: 900000
-    train_test_frequency: 5000
-    test_frequency: 5000
-    checkpoint_frequency: 5000
+    train_test_frequency: 30000
+    test_frequency: 30000
+    checkpoint_frequency: 30000
 
     visualisations: 
         # - numbered_value_function

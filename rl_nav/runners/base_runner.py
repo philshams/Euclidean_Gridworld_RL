@@ -713,10 +713,9 @@ class BaseRunner(base_runner.BaseRunner):
             model_copy = copy.deepcopy(self._model)
             model_copy.env_transition_matrix = test_env.transition_matrix
 
-            tz_savalues = model_copy.state_action_values[(7,12)]
-            print(tz_savalues)
-            print(np.argmax(tz_savalues))
-            print(np.max(tz_savalues))
+            # tz_savalues = model_copy.state_action_values[(7,12)]
+            # print(tz_savalues)
+            # print(np.argmax(tz_savalues))
 
             if not self._one_dim_blocks:
                 model_copy.allow_state_instantiation = True

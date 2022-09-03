@@ -1,7 +1,7 @@
 seed: 0
 
 training:
-    num_steps: 20000
+    num_steps: 35000
     model: sarsa
 
     behaviour: epsilon_greedy
@@ -29,10 +29,10 @@ training:
         [0.2, 0.2, 0.4, 0.4, 0.2, 0.2]
 
     learning_rate: 
-        schedule: hard_coded
+        schedule: constant
 
         constant:
-            value: 0.2
+            value: 0.1
         
         linear_decay:
             initial_value: 0.2
@@ -44,7 +44,7 @@ training:
             timestep_changes: [400000]
             
     discount_factor: 0.999
-    train_step_cost_factor: 0.0001
+    train_step_cost_factor: 0.001
 
     one_dim_blocks: True
     imputation_method: random
@@ -131,12 +131,12 @@ test_environments:
 logging:
     print_frequency: 20000
     visualisation_frequency: 100000
-    rollout_frequency: 5000000
-    train_test_frequency: 5000
-    test_frequency: 5000
-    checkpoint_frequency: 5000
+    rollout_frequency: 3500000
+    train_test_frequency: 35000
+    test_frequency: 35000
+    checkpoint_frequency: 35000
 
     visualisations: 
         # - numbered_value_function
         # - visitation_counts
-        - value_function
+        # - value_function

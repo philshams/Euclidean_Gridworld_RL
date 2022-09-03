@@ -18,7 +18,7 @@ parser.add_argument("--mode", metavar="-M", default="serial", help="run experime
 parser.add_argument(
     "--config_path",
     metavar="-C",
-    default="suites\\sarsa\\config.yaml",
+    default="suites\\successor_rep\\config.yaml",
     help="path to base configuration file.",
 )
 parser.add_argument("--seeds", metavar="-S", default=1, help="list of seeds to run.")
