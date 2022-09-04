@@ -122,7 +122,7 @@ class VisualisationEnv(wrapper.Wrapper):
             # remove alpha from rgba in colormap return
             # normalise value for color mapping
             environment_map[position[::-1]] = self.COLORMAP(
-                10*(value - current_min_value) / (current_max_value - current_min_value)
+                (value - current_min_value) / (current_max_value - current_min_value)
             )[:-1]
 
         fig = plt.figure()

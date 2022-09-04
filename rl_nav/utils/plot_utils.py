@@ -1,5 +1,7 @@
 import os
 import re
+import matplotlib
+matplotlib.set_loglevel("critical")
 
 import matplotlib.pyplot as plt
 import numpy as np

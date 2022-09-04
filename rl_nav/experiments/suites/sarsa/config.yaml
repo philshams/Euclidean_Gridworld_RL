@@ -29,10 +29,10 @@ training:
         [0.2, 0.2, 0.4, 0.4, 0.2, 0.2]
 
     learning_rate: 
-        schedule: hard_coded
+        schedule: constant
 
         constant:
-            value: 0.2
+            value: 0.1
         
         linear_decay:
             initial_value: 0.2
@@ -44,7 +44,7 @@ training:
             timestep_changes: [400000]
             
     discount_factor: 0.999
-    train_step_cost_factor: 0.0001
+    train_step_cost_factor: 0.001
 
     one_dim_blocks: True
     imputation_method: random
@@ -139,4 +139,4 @@ logging:
     visualisations: 
         # - numbered_value_function
         # - visitation_counts
-        - value_function
+        # - value_function

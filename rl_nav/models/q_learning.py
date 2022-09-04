@@ -55,6 +55,7 @@ class QLearner(tabular_learner.TabularLearner):
             self._id_state_mapping[i]: action_values
             for i, action_values in enumerate(self._state_action_values)
         }
+        self.prev_state = None
 
     @property
     def state_action_values(self) -> Dict[Tuple[int, int], np.ndarray]:
@@ -174,6 +175,9 @@ class QLearner(tabular_learner.TabularLearner):
         """
         self._state_visitation_counts[state] += 1
 
+        if self.prev_state is None or (abs(state[0]-self.prev_state[0])>1) or (abs(state[1]-self.prev_state[1])>1):
+            self.eligibility_trace = np.zeros_like(self._state_action_values)
+
         if state == new_state and not self._update_no_op:
             return
 
@@ -191,6 +195,8 @@ class QLearner(tabular_learner.TabularLearner):
             new_state=new_state,
         )
 
+        self.prev_state = state
+
         next(self._learning_rate)
 
     def _step(
@@ -201,18 +207,21 @@ class QLearner(tabular_learner.TabularLearner):
         discount,
         new_state,
     ):
+        decay_factor = 0.5
+        self.eligibility_trace*=(discount*decay_factor)
+        self.eligibility_trace[state_id][action] += 1
+
         initial_state_action_value = self._state_action_values[state_id][action]
 
         if new_state not in self._state_id_mapping and self._allow_state_instantiation:
             self._impute_randomly(state=new_state, store_imputation=True)
 
-        updated_state_action_value = (
-            initial_state_action_value
-            + self._learning_rate.value
+        self._state_action_values += (
+            self._learning_rate.value
+            * self.eligibility_trace
             * (
                 reward
                 + discount * self._max_state_action_value(state=new_state)
                 - initial_state_action_value
             )
         )
-        self._state_action_values[state_id][action] = updated_state_action_value

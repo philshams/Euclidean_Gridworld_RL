@@ -224,7 +224,7 @@ class SarsaLearner(tabular_learner.TabularLearner):
         discount,
         new_state,
     ):
-        decay_factor = 0.9
+        decay_factor = 0.75
         self.eligibility_trace*=(discount*decay_factor)
         self.eligibility_trace[prev_state_id][prev_action] += 1
 
