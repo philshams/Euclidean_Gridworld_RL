@@ -26,8 +26,8 @@ training:
         - [3, 7, 7, 7, 7, 3] # 11, 7
     
     train_run_trigger_probabilities: 
-        # [0.2, 0.2, 0.4, 0.4, 0.2, 0.2]
-        [0., 0., 0., 0., 0., 0., 0. ]
+        [0.2, 0.2, 0.4, 0.4, 0.2, 0.2]
+        # [0., 0., 0., 0., 0., 0., 0. ]
 
     learning_rate: 
         schedule: hard_coded
