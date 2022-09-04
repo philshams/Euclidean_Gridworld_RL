@@ -1,7 +1,7 @@
 seed: 0
 
 training:
-    num_steps: 60000
+    num_steps: 50000
     model: q_learning
 
     behaviour: epsilon_greedy
@@ -133,9 +133,9 @@ logging:
     print_frequency: 10000
     visualisation_frequency: 600000
     rollout_frequency: 900000
-    train_test_frequency: 200
-    test_frequency: 200
-    checkpoint_frequency: 200
+    train_test_frequency: 50000
+    test_frequency: 50000
+    checkpoint_frequency: 50000
 
     visualisations: 
         # - numbered_value_function

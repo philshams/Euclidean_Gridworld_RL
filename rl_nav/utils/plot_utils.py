@@ -46,12 +46,18 @@ def _split_rollout_by_indices(
 
     chunked_rollout = []
 
+    # x_chunk = x[0 : start_idx[0]+1]
+    # y_chunk = y[0 : start_idx[0]+1]
+    # chunked_rollout.append([x_chunk, y_chunk])
+
     for s, e in zip(
         start_idx, end_idx_
     ):
         x_chunk = x[s + 1 : e]
         y_chunk = y[s + 1 : e]
         chunked_rollout.append([x_chunk, y_chunk])
+
+
 
     return chunked_rollout
 
@@ -108,7 +114,6 @@ def plot_trajectories(folder_path, exp_names, min_rollout):
         num_training_steps=None,
     ):
 
-        path_lengths = []
         plot_coordinates = {}
 
         for seed_folder in seed_folders:
@@ -146,7 +151,7 @@ def plot_trajectories(folder_path, exp_names, min_rollout):
                     plot_coordinates[t].append(chunk)
 
         for t, all_seed_coordinates in plot_coordinates.items():
-            if t>5: break
+            path_lengths = []
 
             fig = plt.figure()
             plt.imshow(env, origin="lower")

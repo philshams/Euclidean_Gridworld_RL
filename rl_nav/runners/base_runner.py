@@ -65,6 +65,7 @@ class BaseRunner(base_runner.BaseRunner):
         self._test_frequency = config.test_frequency
         self._checkpoint_frequency = config.checkpoint_frequency
         self._one_dim_blocks = config.one_dim_blocks
+        self.num_seqs = 0
 
         if config.train_run_trigger_states is not None:
             self._train_run_trigger_states = [
@@ -172,6 +173,8 @@ class BaseRunner(base_runner.BaseRunner):
                 self._current_train_run_action_sequence = (
                     self._train_run_action_sequences[trigger_state_index][::-1]
                 )
+                if state[1] > 9:
+                    self.num_seqs += 1
         if len(self._current_train_run_action_sequence):
             action = self._current_train_run_action_sequence.pop()
             reward, new_state = self._train_environment.step(action)
@@ -716,6 +719,7 @@ class BaseRunner(base_runner.BaseRunner):
             # tz_savalues = model_copy.state_action_values[(7,12)]
             # print(tz_savalues)
             # print(np.argmax(tz_savalues))
+            # print(self.num_seqs)
 
             if not self._one_dim_blocks:
                 model_copy.allow_state_instantiation = True
