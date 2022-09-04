@@ -93,17 +93,7 @@ if __name__ == "__main__":
 
     if args.plot_scalars:
 
-        plot_functions.plot_all_multi_seed_multi_run(
-            folder_path=args.results_folder,
-            exp_names=exp_names,
-            window_width=args.smoothing,
-            linewidth=args.linewidth,
-            colormap=args.cmap,
-            index=constants.STEP,
-            averaging_method=constants.INTERPOLATION,
-        )
-
-        # plot_functions.plot_multi_seed_multi_run(
+        # plot_functions.plot_all_multi_seed_multi_run(
         #     folder_path=args.results_folder,
         #     exp_names=exp_names,
         #     window_width=args.smoothing,
@@ -112,3 +102,13 @@ if __name__ == "__main__":
         #     index=constants.STEP,
         #     averaging_method=constants.INTERPOLATION,
         # )
+
+        plot_utils.plot_learning_curve(
+            folder_path=args.results_folder,
+            exp_names=exp_names,
+            window_width=args.smoothing,
+            linewidth=args.linewidth,
+            colormap=args.cmap,
+            index=constants.STEP,
+            averaging_method=constants.INTERPOLATION,
+        )

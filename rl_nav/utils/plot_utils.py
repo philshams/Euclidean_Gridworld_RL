@@ -5,10 +5,12 @@ matplotlib.set_loglevel("critical")
 
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import yaml
 from matplotlib import cm
 from rl_nav import constants
-from typing import List, Tuple
+from typing import List, Tuple, Union, Optional
+from plotter import plot_functions
 
 
 def _split_rollout_by_indices(
@@ -376,3 +378,107 @@ def plot_heatmaps(folder_path, exp_names):
             os.path.join(exp_path, constants.AVERAGE_PRETEST_HEATMAP_PDF),
             average_pre_test_heatmap,
         )
+
+
+def plot_learning_curve(
+    folder_path: str,
+    exp_names: List[str],
+    window_width: int,
+    averaging_method: str,
+    linewidth: int = 3,
+    colormap: Union[str, None] = None,
+    index: Optional[str] = None,
+):
+    """Plot all data in one single figure (all exps, all repeats.)
+
+    Expected structure of folder_path is:
+
+    - folder_path
+        |_ run_1
+        |   |_ seed_0
+        |   |_ seed_1
+        |   |_ ...
+        |   |_ seed_M
+        |
+        |_ run_2
+        |   |_ seed_0
+        |   |_ seed_1
+        |   |_ ...
+        |   |_ seed_M
+        |
+        |_ ...
+        |_ ...
+        |_ run_N
+            |_ seed_0
+            |_ seed_1
+            |_ ...
+            |_ seed_M
+
+    with a file called data_logger.csv in each leaf folder.
+
+    Args:
+        folder_path: path to data folder.
+        exp_names: list of experiment names within folder path.
+        window_width: moving average smoothing parameter.
+        linewidth: width of line on plot.
+        colormap: name of colormap to use.
+    """
+    experiment_folders = {
+        exp_name: os.path.join(folder_path, exp_name) for exp_name in exp_names
+    }
+
+    tag_set = {}
+
+    # arbitrarily select one seed's dataframe for each run to find set of column names
+    for exp, exp_path in experiment_folders.items():
+        ex_seed = [
+            f for f in os.listdir(exp_path) if os.path.isdir(os.path.join(exp_path, f))
+        ][0]
+
+        data_logger_file_path = plot_functions._get_csv_path(os.path.join(exp_path, ex_seed))
+
+        ex_df = pd.read_csv(data_logger_file_path)
+        tag_subset = list(ex_df.columns)
+        for tag in tag_subset:
+            if tag not in tag_set:
+                tag_set[tag] = []
+            tag_set[tag].append(exp)
+
+    cmap, cmap_type = plot_functions._get_cmap(colormap)
+
+    num_graphs = len(tag_set)
+    if index is not None:
+        num_graphs -= 1
+
+    # tag_list = [t for t in tag_set.keys() if t != index]
+    tag_list = ["test_episode_length_obstacle_map", "test_episode_reward_obstacle_map"]
+    exp_list = list(tag_set.values())
+
+    for tag in tag_list:
+
+        fig, spec = plot_functions.get_figure_skeleton(
+            height=4, width=5, num_columns=1, num_rows=1
+        )
+
+        fig_sub = fig.add_subplot(spec[0, 0])
+
+        _ = plot_functions.plot_multi_seed_run(
+            fig=fig_sub,
+            tag=tag,
+            relevant_experiments=exp_list[0],
+            experiment_folders=experiment_folders,
+            window_width=window_width,
+            linewidth=linewidth,
+            cmap=cmap,
+            cmap_type=cmap_type,
+            legend=False,
+            averaging_method=averaging_method,
+            index=index,
+        )
+
+        save_path_eps = os.path.join(folder_path, f"{tag}.eps")
+        save_path_png = os.path.join(folder_path, f"{tag}.png")
+        plt.tight_layout()
+        fig.savefig(save_path_eps)
+        fig.savefig(save_path_png, dpi=100)
+        plt.close()
