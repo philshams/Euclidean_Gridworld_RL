@@ -86,7 +86,8 @@ def search(transition_matrix, start_state, reward_states):
     start_node.h = heuristic(start_node.position, reward_states, start_state)
     nodes[start_state] = start_node
     open_list.append(start_node.position)
-
+    if start_node.position not in transition_matrix:
+        return None
     while len(open_list):
         # select node with lowest cost
         node_costs = [nodes[i].cost for i in open_list]

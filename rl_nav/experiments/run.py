@@ -18,11 +18,11 @@ parser.add_argument("--mode", metavar="-M", default="serial", help="run experime
 parser.add_argument(
     "--config_path",
     metavar="-C",
-    default="suites\\q_learning\\config.yaml",
+    default="suites\\a_star\\config.yaml",
     help="path to base configuration file.",
 )
 parser.add_argument("--seeds", metavar="-S", default=1, help="list of seeds to run.")
-parser.add_argument("--config_changes", metavar="-CC", default="config_changes.py")
+parser.add_argument("--config_changes_C1", metavar="-CC", default="config_changes.py")
 
 # cluster config
 parser.add_argument("--scheduler", type=str, help="univa or slurm", default="univa")
