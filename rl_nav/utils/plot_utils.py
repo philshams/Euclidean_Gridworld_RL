@@ -80,9 +80,12 @@ def plot_trajectories(folder_path, exp_names, min_rollout):
                 )
             all_rollout_coords = [np.load(rollout) for rollout in all_rollouts_sorted]
             all_rollout_lens = [len(rollout) for rollout in all_rollout_coords]
-            # first_fast_rollout_idx.append(np.where(np.array(all_rollout_lens)<50)[0][0])
-            first_fast_rollout_idx.append(np.argmin(all_rollout_lens))
-            fastest_rollout_lens.append(min(all_rollout_lens))
+            successful_routes = np.where(np.array(all_rollout_lens)<50)[0]
+            if successful_routes.size:
+                first_fast_rollout_idx.append(successful_routes[0])
+            else:
+                first_fast_rollout_idx.append(len(all_rollout_lens)-1)
+            fastest_rollout_lens.append(all_rollout_lens[first_fast_rollout_idx[-1]])
             print(all_rollout_lens)
         first_fast_rollout_idx_all = max(first_fast_rollout_idx)
         num_steps_in_rollout = int(all_rollouts_sorted[
@@ -90,7 +93,7 @@ def plot_trajectories(folder_path, exp_names, min_rollout):
             ].split(".npy")[0].split("_")[-1])
         print(f"\nType of test: {all_rollouts_sorted[0]}"
               + f"\nTrajectory convergence step: {num_steps_in_rollout}"
-              + f"\nMax num steps: {max(fastest_rollout_lens)}")
+              + f"\nProjected max num steps: {max(fastest_rollout_lens)}")
         return num_steps_in_rollout
 
     def _plot_trajectories(
@@ -173,7 +176,7 @@ def plot_trajectories(folder_path, exp_names, min_rollout):
                         x_plot,
                         y_plot,
                         color="skyblue",
-                        # alpha=0.08,
+                        alpha=0.08,
                         zorder=99,
                     )
                     x_diffs = x_plot[1:] - x_plot[:-1]

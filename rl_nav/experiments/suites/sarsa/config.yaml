@@ -1,7 +1,7 @@
 seed: 0
 
 training:
-    num_steps: 20000
+    num_steps: 40000
     model: sarsa
 
     behaviour: epsilon_greedy
@@ -132,9 +132,9 @@ logging:
     print_frequency: 20000
     visualisation_frequency: 100000
     rollout_frequency: 5000000
-    train_test_frequency: 5000
-    test_frequency: 5000
-    checkpoint_frequency: 5000
+    train_test_frequency: 20000
+    test_frequency: 20000
+    checkpoint_frequency: 20000
 
     visualisations: 
         # - numbered_value_function

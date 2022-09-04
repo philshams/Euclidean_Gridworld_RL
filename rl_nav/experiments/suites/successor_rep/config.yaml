@@ -1,7 +1,7 @@
 seed: 0
 
 training:
-    num_steps: 10000
+    num_steps: 125000
     model: successor_rep
 
     behaviour: epsilon_greedy
@@ -9,23 +9,23 @@ training:
     test_epsilon: 0.99
 
     train_run_trigger_states: 
-        - [9, 12] # 
-        - [5, 12] #
-        - [7, 12]
-        - [7, 12]
-        - [3, 7]
-        - [11, 7]
+        # - [9, 12] # 
+        # - [5, 12] #
+        # - [7, 12]
+        # - [7, 12]
+        # - [3, 7]
+        # - [11, 7]
 
     train_run_action_sequences:
-        - [6, 3, 3, 6, 3]    # 9, 12 #
-        - [7, 3, 3, 7, 3]    # 5, 12 #
-        - [7, 7, 7, 7, 3]    # 7, 12
-        - [6, 6, 6, 6, 3]    # 7, 12
+        # - [6, 3, 3, 6, 3]    # 9, 12 #
+        # - [7, 3, 3, 7, 3]    # 5, 12 #
+        # - [7, 7, 7, 7, 3]    # 7, 12
+        # - [6, 6, 6, 6, 3]    # 7, 12
 
-        - [3, 6, 6, 6, 6, 3] # 3, 7
-        - [3, 7, 7, 7, 7, 3] # 11, 7
+        # - [3, 6, 6, 6, 6, 3] # 3, 7
+        # - [3, 7, 7, 7, 7, 3] # 11, 7
     train_run_trigger_probabilities:
-        [0.2, 0.2, 0.4, 0.4, 0.2, 0.2]
+        # [0.2, 0.2, 0.4, 0.4, 0.2, 0.2]
 
     learning_rate: 
         schedule: constant
@@ -43,7 +43,7 @@ training:
             timestep_changes: [400000]
             
     discount_factor: 0.99
-    train_step_cost_factor: 0.0001
+    train_step_cost_factor: 0.001
 
     one_dim_blocks: True
     imputation_method: random
@@ -128,14 +128,14 @@ test_environments:
             - ../maps/hierarchy_transition_7.json
 
 logging:
-    print_frequency: 5000
-    visualisation_frequency: 20000
-    rollout_frequency: 200000
-    train_test_frequency: 5000
-    test_frequency: 5000
-    checkpoint_frequency: 5000
+    print_frequency: 25000
+    visualisation_frequency: 250000
+    rollout_frequency: 250000
+    train_test_frequency: 125000
+    test_frequency: 125000
+    checkpoint_frequency: 125000
 
     visualisations: 
         # - numbered_value_function
         # - visitation_counts
-        - value_function
+        # - value_function
