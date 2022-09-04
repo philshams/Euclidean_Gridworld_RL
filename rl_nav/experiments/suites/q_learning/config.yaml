@@ -1,7 +1,7 @@
 seed: 0
 
 training:
-    num_steps: 30000
+    num_steps: 60000
     model: q_learning
 
     behaviour: epsilon_greedy
@@ -26,7 +26,8 @@ training:
         - [3, 7, 7, 7, 7, 3] # 11, 7
     
     train_run_trigger_probabilities:
-        [0.2, 0.2, 0.4, 0.4, 0.2, 0.2]
+        # [0.2, 0.2, 0.4, 0.4, 0.2, 0.2]
+        [0., 0., 0., 0., 0., 0., 0. ]
 
     learning_rate: 
         schedule: constant
@@ -129,12 +130,12 @@ test_environments:
             - ../maps/hierarchy_transition_7X.json
 
 logging:
-    print_frequency: 20000
-    visualisation_frequency: 60000
+    print_frequency: 10000
+    visualisation_frequency: 600000
     rollout_frequency: 900000
-    train_test_frequency: 30000
-    test_frequency: 30000
-    checkpoint_frequency: 30000
+    train_test_frequency: 200
+    test_frequency: 200
+    checkpoint_frequency: 200
 
     visualisations: 
         # - numbered_value_function

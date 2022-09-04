@@ -9,7 +9,7 @@ from rl_nav.utils import plot_utils
 parser = argparse.ArgumentParser()
 
 parser.add_argument(
-    "--results_folder", type=str, default="results\QL_C1_final", help="path to results folder to post-process."
+    "--results_folder", type=str, default="results\lc_test", help="path to results folder to post-process."
 )
 parser.add_argument(
     "--plot_t",
@@ -31,7 +31,7 @@ parser.add_argument(
 parser.add_argument(
     "--plot_scalars",
     action="store_true",
-    # default=True,
+    default=True,
     help="whether to plot logged scalars.",
 )
 parser.add_argument(
