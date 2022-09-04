@@ -78,6 +78,7 @@ class LinearFeatureLearner(tabular_learner.TabularLearner):
 
         self._wm_change: bool
         self._compute_state_action_values()
+        self.prev_state = None
 
     @property
     def state_action_id_mapping(self):
@@ -191,6 +192,9 @@ class LinearFeatureLearner(tabular_learner.TabularLearner):
         """
         self._state_visitation_counts[state] += 1
 
+        if self.prev_state is None or (abs(state[0]-self.prev_state[0])>1) or (abs(state[1]-self.prev_state[1])>1):
+            self.eligibility_trace = np.zeros_like(self._weight_matrix)
+
         if state == new_state and not self._update_no_op:
             return
 
@@ -208,6 +212,8 @@ class LinearFeatureLearner(tabular_learner.TabularLearner):
             new_state=new_state,
         )
 
+        self.prev_state = state
+
         next(self._learning_rate)
 
     def _step(
@@ -218,9 +224,15 @@ class LinearFeatureLearner(tabular_learner.TabularLearner):
         discount,
         new_state,
     ):
+
         initial_state_action_value = self._state_action_values[state_id][action]
         state_action_features = self._state_action_features[state_id][action]
+
+        decay_factor = 0.0
+        self.eligibility_trace*=(discount*decay_factor)
+        self.eligibility_trace[state_action_features.astype(bool)] += 1
+
         q_target = self._max_state_action_value(state=new_state)
         delta = reward + discount * q_target - initial_state_action_value
-        self._weight_matrix += self._learning_rate.value * delta * state_action_features
+        self._weight_matrix += self._learning_rate.value * delta * state_action_features * self.eligibility_trace
         self._wm_change = True

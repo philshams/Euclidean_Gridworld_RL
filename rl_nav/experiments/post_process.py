@@ -9,7 +9,7 @@ from rl_nav.utils import plot_utils
 parser = argparse.ArgumentParser()
 
 parser.add_argument(
-    "--results_folder", type=str, default="results\look", help="path to results folder to post-process."
+    "--results_folder", type=str, default="results\QL_C1_final", help="path to results folder to post-process."
 )
 parser.add_argument(
     "--plot_t",
@@ -31,10 +31,11 @@ parser.add_argument(
 parser.add_argument(
     "--plot_scalars",
     action="store_true",
+    # default=True,
     help="whether to plot logged scalars.",
 )
 parser.add_argument(
-    "--smoothing", type=int, help="window width for moving averaging.", default=40
+    "--smoothing", type=int, help="window width for moving averaging.", default=1
 )
 parser.add_argument(
     "--cmap", type=str, help="matplotlib colormap to use for plots.", default=None
@@ -102,12 +103,12 @@ if __name__ == "__main__":
             averaging_method=constants.INTERPOLATION,
         )
 
-        plot_functions.plot_multi_seed_multi_run(
-            folder_path=args.results_folder,
-            exp_names=exp_names,
-            window_width=args.smoothing,
-            linewidth=args.linewidth,
-            colormap=args.cmap,
-            index=constants.STEP,
-            averaging_method=constants.INTERPOLATION,
-        )
+        # plot_functions.plot_multi_seed_multi_run(
+        #     folder_path=args.results_folder,
+        #     exp_names=exp_names,
+        #     window_width=args.smoothing,
+        #     linewidth=args.linewidth,
+        #     colormap=args.cmap,
+        #     index=constants.STEP,
+        #     averaging_method=constants.INTERPOLATION,
+        # )
