@@ -179,8 +179,8 @@ class EscapeEnvDiagonalHierarchy2(escape_env.EscapeEnv):
 
         return new_state
 
-    def _high_step(self, action: int):
-        reward = self._move_agent(delta=self._deltas[action])
+    def _high_step(self, state: Tuple, action: int):
+        reward = self._move_agent(delta=action)
         new_state = self.get_state_representation()
         skeleton = self._env_skeleton()
 
@@ -191,7 +191,9 @@ class EscapeEnvDiagonalHierarchy2(escape_env.EscapeEnv):
         return reward, new_state
 
     def step(self, action: int) -> Tuple[float, Tuple[int, int]]:
-        """Take step in environment according to action of agent.
+        """Overrides step method in escape_env.py
+
+        Take step in environment according to action of agent.
 
         Args:
             action: 0: left, 1: up, 2: right, 3: down
@@ -256,7 +258,7 @@ class EscapeEnvDiagonalHierarchy2(escape_env.EscapeEnv):
 
     @property
     def action_deltas(self) -> Dict[int, np.ndarray]:
-        return self._deltas
+        return None
 
     @property
     def delta_actions(self) -> Dict[Tuple[int], int]:
