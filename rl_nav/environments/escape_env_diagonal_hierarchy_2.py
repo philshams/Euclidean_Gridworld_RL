@@ -88,28 +88,71 @@ class EscapeEnvDiagonalHierarchy2(escape_env.EscapeEnv):
             7: 5,
         }
 
-        self._partitions = env_utils.setup_partitions(partitions_path)
+        partitions_ = env_utils.setup_partitions(partitions_path)
+
+        with open(transition_structure, "r") as transition_json:
+            env_structure = json.load(transition_json)
+
+        letter_int_mapping = {
+            k: int(i)
+            for i, k in enumerate(
+                [
+                    node
+                    for node in partitions_.keys()
+                    if node in env_structure[constants.NODES].keys()
+                ]
+            )
+        }
+
+        # we want to specify partitions using letters in our txt files.
+        # here it is far easier to deal with state/action spaces with integers.
+        # the above is messy/hacky but deals with this dichotomy.
+        self._partitions = {
+            letter_int_mapping[k]: v
+            for k, v in partitions_.items()
+            if k in letter_int_mapping
+        }
+
+        self._state_position_mapping = {
+            letter_int_mapping[i]: tuple(k)
+            for i, k in env_structure[constants.NODES].items()
+        }
+        self._position_state_mapping = {
+            tuple(k): letter_int_mapping[i]
+            for i, k in env_structure[constants.NODES].items()
+        }
+        self._available_actions = {
+            letter_int_mapping[i]: [letter_int_mapping[e] for e in k]
+            for i, k in env_structure[constants.EDGES].items()
+        }
+
         self._inverse_partition_mapping = {}
         for partition_index, partition_coordinates in self._partitions.items():
             for coordinate in partition_coordinates:
                 self._inverse_partition_mapping[coordinate] = partition_index
 
-        with open(transition_structure, "r") as transition_json:
-            env_structure = json.load(transition_json)
-
-        self._state_position_mapping = {
-            i: tuple(k) for i, k in env_structure[constants.NODES].items()
-        }
-        self._position_state_mapping = {
-            tuple(k): i for i, k in env_structure[constants.NODES].items()
-        }
-        self._available_actions = {
-            i: k for i, k in env_structure[constants.EDGES].items()
-        }
-
         self._state_space = list(self._position_state_mapping.keys())
-        self._action_space = list(self._state_position_mapping.keys())
-        self._deltas = {a: a for a in self._action_space}
+        self._action_space = list(range(len(self._state_position_mapping.keys())))
+
+        # self._state_state_deltas = {
+        #     state: {
+        #         next_state: np.sqrt((np.array(state) - np.array(next_state)).sum())
+        #         for next_state in self._state_space
+        #     }
+        #     for state in self._state_space
+        # }
+        # self._state_action_deltas = {
+        #     state: {
+        #         action: np.sqrt(
+        #             (
+        #                 np.array(state) - np.array(self._state_position_mapping[action])
+        #             ).sum()
+        #         )
+        #         for action in self._action_space
+        #     }
+        #     for state in self._state_space
+        # }
+
         self._start_state_space = list(self._position_state_mapping.keys())
 
         self._inverse_action_mapping = {
@@ -118,6 +161,10 @@ class EscapeEnvDiagonalHierarchy2(escape_env.EscapeEnv):
             }
             for state in self._state_space
         }
+
+    @property
+    def position_state_mapping(self):
+        return self._position_state_mapping
 
     def _low_step(self, action: int):
 
