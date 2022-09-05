@@ -268,9 +268,7 @@ class EscapeEnvDiagonalHierarchy2(escape_env.EscapeEnv):
     ):
         current_position = copy.deepcopy(self._agent_position)
         state = self._position_state_mapping[tuple(self._agent_position)]
-        import pdb
 
-        pdb.set_trace()
         if delta in self._available_actions[state]:
             self._agent_position = np.array(self._state_position_mapping[delta])
 
