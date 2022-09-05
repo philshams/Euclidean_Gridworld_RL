@@ -211,25 +211,49 @@ class EscapeEnvDiagonalHierarchy2(escape_env.EscapeEnv):
             ), f"Action given as {action}; must be 0: left, 1: up, 2: right or 3: down."
 
         low_state = copy.deepcopy(tuple(self._agent_position))
-        state = self._inverse_partition_mapping[low_state]
-        state_sub_states = self._partitions[state]
-        low_new_state = copy.deepcopy(tuple(self._agent_position))
+        state_index = self._inverse_partition_mapping[low_state]
+        state = self._state_position_mapping[state_index]
+        state_sub_states = self._partitions[state_index]
+        low_new_state = copy.deepcopy(low_state)
 
         if self._training:
             while low_new_state in state_sub_states:
                 action = np.random.choice(self._sub_action_space)
                 low_new_state = self._low_step(action=action)
             # use compute_reward here for high level state reward / new_state
-            new_state = self._inverse_partition_mapping[low_new_state]
-            delta = np.array(low_state) - np.array(low_new_state)
+            new_state_index = self._inverse_partition_mapping[low_new_state]
+            new_state = self._state_position_mapping[new_state_index]
+            delta = np.array(state) - np.array(new_state)
             reward = self._compute_reward(delta=delta)
 
         else:
-            new_state = self._high_step(action=action)
+            reward, new_state = self._high_step(state=state, action=action)
 
-        import pdb
+        skeleton = self._env_skeleton()
+        self._active = self._remain_active(reward=reward)
+        self._episode_step_count += 1
 
-        pdb.set_trace()
+        if self._training:
+            self._visitation_counts[self._agent_position[1]][
+                self._agent_position[0]
+            ] += 1
+            self._train_episode_position_history.append(tuple(self._agent_position))
+            self._train_episode_history.append(skeleton)
+            if self._representation == constants.PO_PIXEL:
+                self._train_episode_partial_history.append(
+                    self._partial_observation(
+                        state=skeleton, agent_position=self._agent_position
+                    )
+                )
+        else:
+            self._test_episode_position_history.append(tuple(self._agent_position))
+            self._test_episode_history.append(skeleton)
+            if self._representation == constants.PO_PIXEL:
+                self._test_episode_partial_history.append(
+                    self._partial_observation(
+                        state=skeleton, agent_position=self._agent_position
+                    )
+                )
 
         # if training move on low level. If evaluating move on high level?
 
