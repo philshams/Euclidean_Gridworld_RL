@@ -115,6 +115,10 @@ class Wrapper(base_env.BaseEnvironment):
     def transition_matrix(self) -> Dict:
         return self._env.transition_matrix
 
+    @property
+    def position_state_mapping(self):
+        return self._env.position_state_mapping
+
     def get_partition(self, state: Tuple):
         return self._env.get_partition(state)
 
