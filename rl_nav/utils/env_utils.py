@@ -38,7 +38,7 @@ def parse_map_outline(
 
     multi_room_grid = np.array(map_rows, dtype=float)
 
-    return multi_room_grid
+    return {constants.GRID: multi_room_grid, constants.MAPPING: mapping}
 
 
 def parse_x_positions(map_yaml_path: str, data_key: str):
@@ -287,12 +287,15 @@ def rgb_to_grayscale(rgb: np.ndarray) -> np.ndarray:
 def setup_partitions(partitions_path: str):
 
     geometry = parse_map_outline(map_file_path=partitions_path, mapping=None)
+    grid = geometry[constants.GRID]
+    mapping = geometry[constants.MAPPING]
+    inverse_mapping = {v: k for k, v in mapping.items()}
 
     unzipped_partitions = {
-        item: np.where(geometry == item) for item in set(geometry.flatten())
+        inverse_mapping[item]: np.where(grid == item) for item in set(grid.flatten())
     }
 
-    partitions = {int(k): list(zip(v[1], v[0])) for k, v in unzipped_partitions.items()}
+    partitions = {k: list(zip(v[1], v[0])) for k, v in unzipped_partitions.items()}
 
     return partitions
 
