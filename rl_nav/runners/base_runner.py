@@ -124,12 +124,6 @@ class BaseRunner(base_runner.BaseRunner):
         for map_name in self._test_environments.keys():
             columns.append(f"{constants.TEST_EPISODE_REWARD}_{map_name}")
             columns.append(f"{constants.TEST_EPISODE_LENGTH}_{map_name}")
-            columns.append(
-                f"{constants.TEST_EPISODE_REWARD}_{map_name}_{constants.FINAL_REWARD_RUN}"
-            )
-            columns.append(
-                f"{constants.TEST_EPISODE_LENGTH}_{map_name}_{constants.FINAL_REWARD_RUN}"
-            )
             for t in range(self._test_num_trials):
                 columns.append(
                     f"{constants.TEST_EPISODE_REWARD}_{map_name}_{constants.FIND_THREAT_RUN}_{t}"
