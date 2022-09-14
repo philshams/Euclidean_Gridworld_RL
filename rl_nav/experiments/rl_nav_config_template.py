@@ -102,7 +102,7 @@ class RLNavConfigTemplate:
                 config_field.Field(
                     name=constants.VALUE,
                     types=[int, float],
-                    requirements=[lambda x: x >= 0 and x <= 1],
+                    requirements=[lambda x: x > 0],
                 )
             ],
             level=[
