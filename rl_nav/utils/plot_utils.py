@@ -55,8 +55,10 @@ def _split_rollout_by_indices(
     for s, e in zip(
         start_idx, end_idx_
     ):
-        x_chunk = x[s + 1 : e]
-        y_chunk = y[s + 1 : e]
+        # x_chunk = x[s + 1 : e]
+        # y_chunk = y[s + 1 : e]
+        x_chunk = x[s : e]
+        y_chunk = y[s : e]
         chunked_rollout.append([x_chunk, y_chunk])
 
 
@@ -185,7 +187,7 @@ def plot_trajectories(folder_path, exp_names, min_rollout):
                         x_plot,
                         y_plot,
                         color="skyblue",
-                        alpha=0.08,
+                        # alpha=0.08,
                         zorder=99,
                     )
                     x_diffs = x_plot[1:] - x_plot[:-1]

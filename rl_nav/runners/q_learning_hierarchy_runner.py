@@ -89,6 +89,9 @@ class LifelongQLearningHierarchyRunner(lifelong_runner.LifelongRunner):
                         retain_history=True,
                     )
 
+                # Pad trials with a (0,0) to facilitate post-hoc analysis
+                test_env._env._test_episode_position_history.append((0,0))
+
                 test_logging_dict[
                     f"{constants.TEST_EPISODE_REWARD}_{map_name}_{constants.FIND_THREAT_RUN}_{t}"
                 ] = reward
@@ -336,6 +339,9 @@ class EpisodicQLearningHierarchyRunner(episodic_runner.EpisodicRunner):
                         excess_state_mapping=self._excess_state_mapping[i],
                         retain_history=True,
                     )
+
+                # Pad trials with a (0,0) to facilitate post-hoc analysis
+                test_env._env._test_episode_position_history.append((0,0))
 
                 test_logging_dict[
                     f"{constants.TEST_EPISODE_REWARD}_{map_name}_{constants.FIND_THREAT_RUN}_{t}"

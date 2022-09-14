@@ -257,9 +257,9 @@ class EscapeEnvDiagonalHierarchy(escape_env.EscapeEnv):
             ] += 1
             self._train_episode_position_history.append(tuple(self._agent_position))
             self._train_episode_history.append(skeleton)
-        else:
-            self._test_episode_position_history.append(tuple(self._agent_position))
-            self._test_episode_history.append(skeleton)
+        # else:
+            # self._test_episode_position_history.append(tuple(self._agent_position))
+            # self._test_episode_history.append(skeleton)
 
         # if training move on low level. If evaluating move on high level?
 

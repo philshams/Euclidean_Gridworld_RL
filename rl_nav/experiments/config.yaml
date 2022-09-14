@@ -1,7 +1,7 @@
 seed: 0
 
 training:
-    num_steps: 250000
+    num_steps: 2000
     model: q_learning
 
     behaviour: epsilon_greedy
@@ -15,7 +15,7 @@ training:
     train_run_trigger_probabilities: 
 
     learning_rate: 
-        schedule: hard_coded
+        schedule: constant
 
         constant:
             value: 0.1
@@ -90,7 +90,7 @@ train_environment:
     partitions_path: ../circular_maps/hierarchy_partition.txt
     centroids_path: ../circular_maps/hierarchy_partition.json
 
-    episode_timeout: 500
+    episode_timeout:
     representation: agent_position
     start_position:
     reward_positions:
@@ -99,7 +99,7 @@ train_environment:
     # provide either one set of attributes (used for all rewards)
     # or one set for each reward
     reward_attributes:
-        availability: [1] # integer specifying number available or "infinite"
+        availability: ["infinite"] # integer specifying number available or "infinite"
         statistics:
             - gaussian:
                 mean: 1
@@ -117,7 +117,7 @@ test_environments:
 
     num_trials: 3
 
-    episode_timeout: 500
+    episode_timeout: 50
     representation: agent_position
     start_position: [7, 12]
     reward_positions:
@@ -141,11 +141,11 @@ test_environments:
 
 logging:
     print_frequency: 5000
-    visualisation_frequency: 5000
-    rollout_frequency: 5000
-    train_test_frequency: 5000
-    test_frequency: 5000
-    checkpoint_frequency: 5000
+    visualisation_frequency: 50000
+    rollout_frequency: 500000
+    train_test_frequency: 1000
+    test_frequency: 1000
+    checkpoint_frequency: 1000
 
     visualisations: 
         # - numbered_value_function
