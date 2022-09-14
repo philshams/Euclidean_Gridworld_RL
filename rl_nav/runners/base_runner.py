@@ -11,6 +11,7 @@ from rl_nav.environments import (
     escape_env_diagonal,
     hierarchy_network,
     visualisation_env,
+    escape_env_diagonal_hierarchy,
 )
 from rl_nav.models import (
     a_star,
@@ -123,6 +124,12 @@ class BaseRunner(base_runner.BaseRunner):
         for map_name in self._test_environments.keys():
             columns.append(f"{constants.TEST_EPISODE_REWARD}_{map_name}")
             columns.append(f"{constants.TEST_EPISODE_LENGTH}_{map_name}")
+            columns.append(
+                f"{constants.TEST_EPISODE_REWARD}_{map_name}_{constants.FINAL_REWARD_RUN}"
+            )
+            columns.append(
+                f"{constants.TEST_EPISODE_LENGTH}_{map_name}_{constants.FINAL_REWARD_RUN}"
+            )
             for t in range(self._test_num_trials):
                 columns.append(
                     f"{constants.TEST_EPISODE_REWARD}_{map_name}_{constants.FIND_THREAT_RUN}_{t}"
@@ -211,6 +218,10 @@ class BaseRunner(base_runner.BaseRunner):
             environment = escape_env_diagonal.EscapeEnvDiagonal(**environment_args)
         elif config.train_env_name == constants.HIERARCHY_NETWORK:
             environment = hierarchy_network.HierarchyNetwork(**environment_args)
+        elif config.train_env_name == constants.ESCAPE_ENV_DIAGONAL_HIERARCHY:
+            environment = escape_env_diagonal_hierarchy.EscapeEnvDiagonalHierarchy(
+                **environment_args
+            )
 
         environment = visualisation_env.VisualisationEnv(environment)
 
@@ -253,6 +264,14 @@ class BaseRunner(base_runner.BaseRunner):
                     environments[map_name] = visualisation_env.VisualisationEnv(
                         environment
                     )
+        if config.test_env_name == constants.ESCAPE_ENV_DIAGONAL_HIERARCHY:
+            for map_path in config.test_map_paths:
+                map_name = map_path.split("/")[-1].rstrip(".txt")
+                environment_args[constants.MAP_PATH] = map_path
+                environment = escape_env_diagonal_hierarchy.EscapeEnvDiagonalHierarchy(
+                    **environment_args
+                )
+                environments[map_name] = visualisation_env.VisualisationEnv(environment)
 
         return environments
 
@@ -271,6 +290,7 @@ class BaseRunner(base_runner.BaseRunner):
             constants.ESCAPE_ENV,
             constants.ESCAPE_ENV_DIAGONAL,
             constants.HIERARCHY_NETWORK,
+            constants.ESCAPE_ENV_DIAGONAL_HIERARCHY,
         ]:
             env_args = {
                 **env_args,
@@ -316,6 +336,11 @@ class BaseRunner(base_runner.BaseRunner):
                     constants.TRANSITION_STRUCTURE
                 ] = config.transition_structure_path
 
+        if env_name == constants.ESCAPE_ENV_DIAGONAL_HIERARCHY:
+            env_args[constants.PARTITIONS_PATH] = config.train_partitions_path
+            env_args[constants.TRANSITION_STRUCTURE] = config.transition_structure_path
+            # env_args[constants.CENTROIDS_PATH] = config.train_centroids_path
+
         return env_args
 
     def _setup_epsilon(self, config):
@@ -350,6 +375,21 @@ class BaseRunner(base_runner.BaseRunner):
             model = q_learning.QLearner(
                 action_space=self._train_environment.action_space,
                 state_space=self._train_environment.state_space,
+                behaviour=config.behaviour,
+                target=config.target,
+                initialisation_strategy=initialisation_strategy,
+                learning_rate=learning_rate,
+                gamma=config.discount_factor,
+                imputation_method=config.imputation_method,
+                update_no_op=config.update_no_op,
+            )
+        elif config.model == constants.HIERARCHICAL_Q_LEARNING:
+            learning_rate = self._setup_lr(config=config)
+            model = hierarchical_q_learning.HierarchicalQLearner(
+                action_space=self._train_environment.action_space,
+                state_space=self._train_environment.state_space,
+                sub_action_space=self._train_environment.sub_action_space,
+                sub_state_space=self._train_environment.sub_state_space,
                 behaviour=config.behaviour,
                 target=config.target,
                 initialisation_strategy=initialisation_strategy,

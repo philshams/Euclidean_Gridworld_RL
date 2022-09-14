@@ -18,6 +18,8 @@ def get_initialisation_strategy(config):
         }
     elif config.initialisation_type == constants.ZEROS:
         initialisation_strategy = {constants.ZEROS: {}}
+    elif config.initialisation_type == constants.ONES:
+        initialisation_strategy = {constants.ONES: {}}
     else:
         raise ValueError("Unrecognised initialisation_type")
     return initialisation_strategy

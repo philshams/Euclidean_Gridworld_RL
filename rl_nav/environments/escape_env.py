@@ -58,8 +58,6 @@ class EscapeEnv(base_env.BaseEnvironment, abc.ABC):
 
         self._reward_positions = [tuple(p) for p in reward_positions]
         self._reward_attributes = reward_attributes
-        # if self._reward_attributes["availability"]=="infinite":
-        #     self._reward_attributes["availability"]=[np.inf]
         self._starting_xy = start_position
         self._step_cost_factor = step_cost_factor
 
@@ -370,6 +368,10 @@ class EscapeEnv(base_env.BaseEnvironment, abc.ABC):
         else:
             np.save(save_path, np.array(self._test_episode_position_history))
 
+    @abc.abstractmethod
+    def _env_specific_reset(self):
+        pass
+
     def reset_environment(
         self,
         map_yaml_path: Optional[str] = None,
@@ -461,5 +463,7 @@ class EscapeEnv(base_env.BaseEnvironment, abc.ABC):
                         state=skeleton, agent_position=self._agent_position
                     )
                 )
+
+        self._env_specific_reset(retain_history=retain_history)
 
         return initial_state

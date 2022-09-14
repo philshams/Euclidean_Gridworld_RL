@@ -3,6 +3,7 @@ from typing import Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import yaml
+import json
 from rl_nav import constants
 
 
@@ -37,7 +38,7 @@ def parse_map_outline(
 
     multi_room_grid = np.array(map_rows, dtype=float)
 
-    return multi_room_grid
+    return {constants.GRID: multi_room_grid, constants.MAPPING: mapping}
 
 
 def parse_x_positions(map_yaml_path: str, data_key: str):
@@ -161,7 +162,7 @@ def setup_rewards(reward_positions, reward_attributes) -> Dict[Tuple, Callable]:
 
 
 def configure_state_space(
-    map_outline, reward_positions: Optional[List], one_dim_blocks: bool = True
+    map_outline, reward_positions: Optional, one_dim_blocks: bool = True
 ):
     """Get state space for the environment from the parsed map.
     Further split state space into walls, valid positions, key possessions etc.
@@ -281,3 +282,28 @@ def rgb_to_grayscale(rgb: np.ndarray) -> np.ndarray:
     # rgb channel last
     grayscale = np.dot(rgb[..., :3], [[0.299], [0.587], [0.114]])
     return grayscale
+
+
+def setup_partitions(partitions_path: str):
+
+    geometry = parse_map_outline(map_file_path=partitions_path, mapping=None)
+    grid = geometry[constants.GRID]
+    mapping = geometry[constants.MAPPING]
+    inverse_mapping = {v: k for k, v in mapping.items()}
+
+    unzipped_partitions = {
+        inverse_mapping[item]: np.where(grid == item) for item in set(grid.flatten())
+    }
+
+    partitions = {k: list(zip(v[1], v[0])) for k, v in unzipped_partitions.items()}
+
+    return partitions
+
+
+def setup_centroids(centroids_path: str):
+
+    with open(centroids_path, "r") as json_file:
+        centroids = json.load(json_file)
+        centroids = {k: tuple(v) for k, v in centroids.items()}
+
+    return centroids
