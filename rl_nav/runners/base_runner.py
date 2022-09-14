@@ -11,7 +11,7 @@ from rl_nav.environments import (
     escape_env_diagonal,
     hierarchy_network,
     visualisation_env,
-    escape_env_diagonal_hierarchy_2,
+    escape_env_diagonal_hierarchy,
 )
 from rl_nav.models import (
     a_star,
@@ -213,7 +213,7 @@ class BaseRunner(base_runner.BaseRunner):
         elif config.train_env_name == constants.HIERARCHY_NETWORK:
             environment = hierarchy_network.HierarchyNetwork(**environment_args)
         elif config.train_env_name == constants.ESCAPE_ENV_DIAGONAL_HIERARCHY:
-            environment = escape_env_diagonal_hierarchy_2.EscapeEnvDiagonalHierarchy2(
+            environment = escape_env_diagonal_hierarchy.EscapeEnvDiagonalHierarchy(
                 **environment_args
             )
 
@@ -262,10 +262,8 @@ class BaseRunner(base_runner.BaseRunner):
             for map_path in config.test_map_paths:
                 map_name = map_path.split("/")[-1].rstrip(".txt")
                 environment_args[constants.MAP_PATH] = map_path
-                environment = (
-                    escape_env_diagonal_hierarchy_2.EscapeEnvDiagonalHierarchy2(
-                        **environment_args
-                    )
+                environment = escape_env_diagonal_hierarchy.EscapeEnvDiagonalHierarchy(
+                    **environment_args
                 )
                 environments[map_name] = visualisation_env.VisualisationEnv(environment)
 
@@ -742,7 +740,6 @@ class BaseRunner(base_runner.BaseRunner):
 
                 while state != tuple(test_env.starting_xy):
 
-                    # TODO: unclear which behaviour policy to use here...
                     action = model_copy.select_behaviour_action(
                         state,
                         epsilon=self._test_epsilon,
