@@ -9,29 +9,29 @@ training:
     test_epsilon: 0.99
 
     train_run_trigger_states: 
-        - [7, 12]
-        - [7, 11]
-        - [7, 10]
-        - [7, 13]
-        - [8, 10]
-        - [8, 11]
-        - [8, 12]
-        - [8, 13]
-        - [6, 10]
-        - [6, 11]
-        - [6, 12]
-        - [6, 13]
-        - [9, 11]
-        - [9, 12]
-        - [5, 11]
-        - [5, 12]
-        - [4, 11]
-        - [4, 12]
-        - [10, 11]
-        - [10, 12]
+        # - [7, 12]
+        # - [7, 11]
+        # - [7, 10]
+        # - [7, 13]
+        # - [8, 10]
+        # - [8, 11]
+        # - [8, 12]
+        # - [8, 13]
+        # - [6, 10]
+        # - [6, 11]
+        # - [6, 12]
+        # - [6, 13]
+        # - [9, 11]
+        # - [9, 12]
+        # - [5, 11]
+        # - [5, 12]
+        # - [4, 11]
+        # - [4, 12]
+        # - [10, 11]
+        # - [10, 12]
 
-        - [4, 7]
-        - [12, 7]
+        # - [4, 7]
+        # - [12, 7]
 
     train_run_action_sequences:
         - [7, 7, 7, 7, 3] # 7, 12
@@ -76,7 +76,7 @@ training:
             timestep_changes: [100000]
 
     discount_factor: 0.9
-    train_step_cost_factor: 0
+    train_step_cost_factor: 0.01
     train_super_step_cost_factor: 0.01
 
     one_dim_blocks: True
@@ -126,11 +126,11 @@ initialisation:
 
     random_normal:
         mean: 0
-        variance: 0.1
+        variance: 0.01
 
 train_environment: 
 
-    env_name: escape_env_diagonal
+    env_name: escape_env_diagonal_hierarchy
     map_path: ../circular_maps/obstacle_map.txt
 
     partitions_path: ../circular_maps/hierarchy_partition.txt
@@ -152,11 +152,11 @@ train_environment:
                 variance: 0
 
     train_hierarchy_network:
-        transition_structure_path: ../maps/vector_blocked_hierarchy_transition_7.json
+        transition_structure_path: ../circular_maps/obstacle_map_transition.json
 
 test_environments:
 
-    env_name: escape_env_diagonal
+    env_name: escape_env_diagonal_hierarchy
     map_paths: 
         - ../circular_maps/obstacle_map.txt
         - ../circular_maps/test_map.txt
@@ -168,7 +168,7 @@ test_environments:
     start_position: [7, 12]
     reward_positions:
         - [7, 1]
-    step_cost_factor: 0.0
+    step_cost_factor: 0.01
     super_step_cost_factor: 0.01
 
     # provide either one set of attributes (used for all rewards)
@@ -182,18 +182,18 @@ test_environments:
 
     test_hierarchy_network:
         transition_structure_paths: 
-            - ../maps/test_hierarchy_transition_7.json
-            - ../maps/hierarchy_transition_7.json
+            - ../circular_maps/obstacle_map_transition.json
+            - ../circular_maps/test_map_transition.json
 
 logging:
     print_frequency: 5000
-    visualisation_frequency: 50000
-    rollout_frequency: 50000
-    train_test_frequency: 50000
-    test_frequency: 50000
-    checkpoint_frequency: 50000
+    visualisation_frequency: 5000
+    rollout_frequency: 5000
+    train_test_frequency: 5000
+    test_frequency: 5000
+    checkpoint_frequency: 5000
 
     visualisations: 
         # - numbered_value_function
         # - visitation_counts
-        # - value_function
+        - hierarchical_value_function
