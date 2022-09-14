@@ -1,5 +1,9 @@
 from rl_nav.runners import episodic_runner, lifelong_runner
 import numpy as np
+from rl_nav import constants
+import os
+import copy
+import random
 
 
 class LifelongQLearningHierarchyRunner(lifelong_runner.LifelongRunner):
@@ -14,36 +18,230 @@ class LifelongQLearningHierarchyRunner(lifelong_runner.LifelongRunner):
 
     def _model_train_step(self, state) -> float:
         """Perform single training step."""
-        original_partition = self._train_environment.get_partition(state)
-        new_state = state
+        reward, new_state = self._train_environment.step(action=None)
 
-        reward = 0
-
-        while self._train_environment.get_partition(new_state) == original_partition:
-            action = np.random.choice(self._train_environment.sub_action_space)
-            sub_reward, new_state = self._train_environment.step(action)
-            reward += sub_reward
-
-        new_partition = self._train_environment.get_partition(new_state)
-
-        original_centroid = self._train_environment.get_centroid(original_partition)
-        new_centroid = self._train_environment.get_centroid(new_partition)
-
-        distance = np.sqrt(((original_centroid - new_centroid) ** 2).sum())
-        reward -= self._train_step_cost_factor * distance
+        action = self._train_environment.position_state_mapping[new_state]
 
         self._model.step(
-            state=original_partition,
-            action=new_partition,
+            state=state,
+            action=action,
             reward=reward,
-            new_state=new_partition,
+            new_state=new_state,
             active=self._train_environment.active,
         )
 
         return new_state, reward
 
+    def _find_threat_test(self, rollout: bool, planning: bool):
+        """Overrides base runner method.
+
+        Agent starts in shelter and explores/learns in the time until it first reaches
+        the threat zone at which point a test rollout is triggered."""
+        test_logging_dict = {}
+
+        for i, (map_name, test_env) in enumerate(self._test_environments.items()):
+
+            model_copy = copy.deepcopy(self._model)
+            model_copy.env_transition_matrix = test_env.transition_matrix
+
+            if not self._one_dim_blocks:
+                model_copy.allow_state_instantiation = True
+
+            for t in range(self._test_num_trials):
+                temporary_start_state = random.choice(test_env.reward_positions)
+                state = test_env.reset_environment(
+                    episode_timeout=np.inf,
+                    start_position=temporary_start_state,
+                    reward_availability=constants.INFINITE,
+                    retain_history=(t != 0),
+                )
+
+                while state != tuple(test_env.starting_xy):
+
+                    reward, new_state = self._train_environment.step(action=None)
+
+                    action = test_env.position_state_mapping[new_state]
+
+                    model_copy.step(
+                        state=state,
+                        action=action,
+                        reward=reward,
+                        new_state=new_state,
+                        active=test_env.active,
+                    )
+                    state = new_state
+
+                model_copy.allow_state_instantiation = False
+                model_copy.eval()
+
+                if planning:
+                    reward, length = self._single_planning_test(
+                        test_model=model_copy,
+                        test_env=test_env,
+                        excess_state_mapping=self._excess_state_mapping[i],
+                        retain_history=True,
+                    )
+                else:
+                    reward, length = self._single_test(
+                        test_model=model_copy,
+                        test_env=test_env,
+                        excess_state_mapping=self._excess_state_mapping[i],
+                        retain_history=True,
+                    )
+
+                test_logging_dict[
+                    f"{constants.TEST_EPISODE_REWARD}_{map_name}_{constants.FIND_THREAT_RUN}_{t}"
+                ] = reward
+                test_logging_dict[
+                    f"{constants.TEST_EPISODE_LENGTH}_{map_name}_{constants.FIND_THREAT_RUN}_{t}"
+                ] = length
+
+                if (
+                    self._visualisations is not None
+                    and constants.VALUE_FUNCTION in self._visualisations
+                ):
+                    try:
+                        averaged_values = self._train_environment.average_values_over_positional_states(
+                            model_copy.state_action_values
+                        )
+                        plot_values = {p: max(v) for p, v in averaged_values.items()}
+                    except AttributeError:
+                        plot_values = model_copy.state_values
+
+                    np.save(
+                        os.path.join(
+                            self._visualisations_folder_path,
+                            f"{self._step_count}_{constants.PRE_TEST}_{constants.VALUES}_{t}",
+                        ),
+                        plot_values,
+                    )
+
+                    self._train_environment.plot_heatmap_over_env(
+                        heatmap=plot_values,
+                        save_name=os.path.join(
+                            self._visualisations_folder_path,
+                            f"{self._step_count}_{constants.PRE_TEST}_{t}_{constants.VALUES_PDF}",
+                        ),
+                    )
+
+        self._test_rollout(
+            visualise=rollout,
+            save_name_base=f"{constants.INDIVIDUAL_TEST_RUN}_{constants.FIND_THREAT_RUN}",
+        )
+
+        return test_logging_dict
+
+    def _find_reward_test(self, rollout: bool, planning: bool):
+        """Overrides base runner method.
+
+        Allow agent one more 'period' of exploration to find the reward
+        (in the test environment), before test rollout."""
+        test_logging_dict = {}
+
+        for i, (map_name, test_env) in enumerate(self._test_environments.items()):
+
+            state = test_env.reset_environment(episode_timeout=np.inf)
+
+            model_copy = copy.deepcopy(self._model)
+            model_copy.env_transition_matrix = test_env.transition_matrix
+
+            if not self._one_dim_blocks:
+                model_copy.allow_state_instantiation = True
+
+            while test_env.active:
+
+                reward, new_state = self._train_environment.step(action=None)
+
+                action = test_env.position_state_mapping[new_state]
+
+                model_copy.step(
+                    state=state,
+                    action=action,
+                    reward=reward,
+                    new_state=new_state,
+                    active=test_env.active,
+                )
+                state = new_state
+
+            model_copy.allow_state_instantiation = False
+            model_copy.eval()
+
+            if planning:
+                reward, length = self._single_planning_test(
+                    test_model=model_copy,
+                    test_env=test_env,
+                    excess_state_mapping=self._excess_state_mapping[i],
+                    retain_history=True,
+                )
+            else:
+                reward, length = self._single_test(
+                    test_model=model_copy,
+                    test_env=test_env,
+                    excess_state_mapping=self._excess_state_mapping[i],
+                    retain_history=True,
+                )
+
+            test_logging_dict[
+                f"{constants.TEST_EPISODE_REWARD}_{map_name}_{constants.FINAL_REWARD_RUN}"
+            ] = reward
+            test_logging_dict[
+                f"{constants.TEST_EPISODE_LENGTH}_{map_name}_{constants.FINAL_REWARD_RUN}"
+            ] = length
+
+        self._test_rollout(
+            visualise=rollout,
+            save_name_base=f"{constants.INDIVIDUAL_TEST_RUN}_{constants.FINAL_REWARD_RUN}",
+        )
+
+        return test_logging_dict
+
     def _runner_specific_visualisations(self):
-        pass
+        if (
+            self._visualisations is not None
+            and constants.HIERARCHICAL_VALUE_FUNCTION in self._visualisations
+        ):
+            high_state_value_function = self._model.state_action_values
+            low_state_value_function = {}
+
+            state_position_mapping = (
+                self._train_environment._env._state_position_mapping
+            )
+            partitions = self._train_environment._env._partitions
+            for (
+                centroid,
+                coordinates,
+            ) in partitions.items():
+                for coordinate in coordinates:
+                    low_state_value_function[coordinate] = high_state_value_function[
+                        state_position_mapping[centroid]
+                    ]
+
+            try:
+                averaged_values = (
+                    self._train_environment.average_values_over_positional_states(
+                        low_state_value_function
+                    )
+                )
+                plot_values = {p: max(v) for p, v in averaged_values.items()}
+
+            except AttributeError:
+                plot_values = self._model.state_values
+
+            np.save(
+                os.path.join(
+                    self._visualisations_folder_path,
+                    f"{self._step_count}_{constants.VALUES}",
+                ),
+                plot_values,
+            )
+
+            self._train_environment.plot_heatmap_over_env(
+                heatmap=plot_values,
+                save_name=os.path.join(
+                    self._visualisations_folder_path,
+                    f"{self._step_count}_{constants.VALUES_PDF}",
+                ),
+            )
 
 
 class EpisodicQLearningHierarchyRunner(episodic_runner.EpisodicRunner):
@@ -63,41 +261,9 @@ class EpisodicQLearningHierarchyRunner(episodic_runner.EpisodicRunner):
 
     def _model_train_step(self, state) -> float:
         """Perform single training step."""
-        # original_partition = self._train_environment.get_partition(state)
-        # new_state = state
-
-        # reward = 0
-        # while (
-        #     self._train_environment.get_partition(new_state) == original_partition
-        #     and self._train_environment.active
-        # ):
-        #     action = self._model.select_behaviour_action(
-        #         state, epsilon=self._epsilon.value
-        #     )
-        #     # action = np.random.choice(self._train_environment.sub_action_space)
-        #     sub_reward, new_state = self._train_environment.step(action)
-        #     reward += sub_reward
-
-        # new_partition = self._train_environment.get_partition(new_state)
-
-        # import pdb
-
-        # pdb.set_trace()
-
-        # original_centroid = np.array(
-        #     self._train_environment.get_centroid(original_partition)
-        # )
-        # new_centroid = np.array(self._train_environment.get_centroid(new_partition))
-
-        # distance = np.sqrt(((original_centroid - new_centroid) ** 2).sum())
-        # reward -= self._train_step_cost_factor * distance
-
-        # action = self._model.select_behaviour_action(state, epsilon=self._epsilon.value)
         reward, new_state = self._train_environment.step(action=None)
 
         action = self._train_environment.position_state_mapping[new_state]
-
-        print(state, action, new_state)
 
         self._model.step(
             state=state,
@@ -109,5 +275,218 @@ class EpisodicQLearningHierarchyRunner(episodic_runner.EpisodicRunner):
 
         return new_state, reward
 
+    def _find_threat_test(self, rollout: bool, planning: bool):
+        """Overrides base runner method.
+
+        Agent starts in shelter and explores/learns in the time until it first reaches
+        the threat zone at which point a test rollout is triggered."""
+        test_logging_dict = {}
+
+        for i, (map_name, test_env) in enumerate(self._test_environments.items()):
+
+            model_copy = copy.deepcopy(self._model)
+            model_copy.env_transition_matrix = test_env.transition_matrix
+
+            if not self._one_dim_blocks:
+                model_copy.allow_state_instantiation = True
+
+            for t in range(self._test_num_trials):
+
+                temporary_start_state = random.choice(test_env.reward_positions)
+                state = test_env.reset_environment(
+                    episode_timeout=np.inf,
+                    start_position=temporary_start_state,
+                    reward_availability=constants.INFINITE,
+                    retain_history=(t != 0),
+                )
+
+                test_env._env._fine_tuning = True
+
+                while state != tuple(test_env.starting_xy):
+
+                    reward, new_state = test_env.step(action=None)
+
+                    action = test_env.position_state_mapping[new_state]
+
+                    model_copy.step(
+                        state=state,
+                        action=action,
+                        reward=reward,
+                        new_state=new_state,
+                        active=test_env.active,
+                    )
+                    state = new_state
+
+                test_env._env._fine_tuning = False
+
+                model_copy.allow_state_instantiation = False
+                model_copy.eval()
+
+                if planning:
+                    reward, length = self._single_planning_test(
+                        test_model=model_copy,
+                        test_env=test_env,
+                        excess_state_mapping=self._excess_state_mapping[i],
+                        retain_history=True,
+                    )
+                else:
+                    reward, length = self._single_test(
+                        test_model=model_copy,
+                        test_env=test_env,
+                        excess_state_mapping=self._excess_state_mapping[i],
+                        retain_history=True,
+                    )
+
+                test_logging_dict[
+                    f"{constants.TEST_EPISODE_REWARD}_{map_name}_{constants.FIND_THREAT_RUN}_{t}"
+                ] = reward
+                test_logging_dict[
+                    f"{constants.TEST_EPISODE_LENGTH}_{map_name}_{constants.FIND_THREAT_RUN}_{t}"
+                ] = length
+
+                if (
+                    self._visualisations is not None
+                    and constants.VALUE_FUNCTION in self._visualisations
+                ):
+                    try:
+                        averaged_values = self._train_environment.average_values_over_positional_states(
+                            model_copy.state_action_values
+                        )
+                        plot_values = {p: max(v) for p, v in averaged_values.items()}
+                    except AttributeError:
+                        plot_values = model_copy.state_values
+
+                    np.save(
+                        os.path.join(
+                            self._visualisations_folder_path,
+                            f"{self._step_count}_{constants.PRE_TEST}_{constants.VALUES}_{t}",
+                        ),
+                        plot_values,
+                    )
+
+                    self._train_environment.plot_heatmap_over_env(
+                        heatmap=plot_values,
+                        save_name=os.path.join(
+                            self._visualisations_folder_path,
+                            f"{self._step_count}_{constants.PRE_TEST}_{t}_{constants.VALUES_PDF}",
+                        ),
+                    )
+
+        self._test_rollout(
+            visualise=rollout,
+            save_name_base=f"{constants.INDIVIDUAL_TEST_RUN}_{constants.FIND_THREAT_RUN}",
+        )
+
+        return test_logging_dict
+
+    def _find_reward_test(self, rollout: bool, planning: bool):
+        """Overrides base runner method.
+
+        Allow agent one more 'period' of exploration to find the reward
+        (in the test environment), before test rollout."""
+        test_logging_dict = {}
+
+        for i, (map_name, test_env) in enumerate(self._test_environments.items()):
+
+            state = test_env.reset_environment(episode_timeout=np.inf)
+
+            model_copy = copy.deepcopy(self._model)
+            model_copy.env_transition_matrix = test_env.transition_matrix
+
+            if not self._one_dim_blocks:
+                model_copy.allow_state_instantiation = True
+
+            while test_env.active:
+
+                reward, new_state = test_env.step(action=None)
+
+                action = test_env.position_state_mapping[new_state]
+
+                model_copy.step(
+                    state=state,
+                    action=action,
+                    reward=reward,
+                    new_state=new_state,
+                    active=test_env.active,
+                )
+                state = new_state
+
+            model_copy.allow_state_instantiation = False
+            model_copy.eval()
+
+            if planning:
+                reward, length = self._single_planning_test(
+                    test_model=model_copy,
+                    test_env=test_env,
+                    excess_state_mapping=self._excess_state_mapping[i],
+                    retain_history=True,
+                )
+            else:
+                reward, length = self._single_test(
+                    test_model=model_copy,
+                    test_env=test_env,
+                    excess_state_mapping=self._excess_state_mapping[i],
+                    retain_history=True,
+                )
+
+            test_logging_dict[
+                f"{constants.TEST_EPISODE_REWARD}_{map_name}_{constants.FINAL_REWARD_RUN}"
+            ] = reward
+            test_logging_dict[
+                f"{constants.TEST_EPISODE_LENGTH}_{map_name}_{constants.FINAL_REWARD_RUN}"
+            ] = length
+
+        self._test_rollout(
+            visualise=rollout,
+            save_name_base=f"{constants.INDIVIDUAL_TEST_RUN}_{constants.FINAL_REWARD_RUN}",
+        )
+
+        return test_logging_dict
+
     def _runner_specific_visualisations(self):
-        pass
+        if (
+            self._visualisations is not None
+            and constants.HIERARCHICAL_VALUE_FUNCTION in self._visualisations
+        ):
+            high_state_value_function = self._model.state_action_values
+            low_state_value_function = {}
+
+            state_position_mapping = (
+                self._train_environment._env._state_position_mapping
+            )
+            partitions = self._train_environment._env._partitions
+            for (
+                centroid,
+                coordinates,
+            ) in partitions.items():
+                for coordinate in coordinates:
+                    low_state_value_function[coordinate] = high_state_value_function[
+                        state_position_mapping[centroid]
+                    ]
+
+            try:
+                averaged_values = (
+                    self._train_environment.average_values_over_positional_states(
+                        low_state_value_function
+                    )
+                )
+                plot_values = {p: max(v) for p, v in averaged_values.items()}
+
+            except AttributeError:
+                plot_values = self._model.state_values
+
+            np.save(
+                os.path.join(
+                    self._visualisations_folder_path,
+                    f"{self._step_count}_{constants.VALUES}",
+                ),
+                plot_values,
+            )
+
+            self._train_environment.plot_heatmap_over_env(
+                heatmap=plot_values,
+                save_name=os.path.join(
+                    self._visualisations_folder_path,
+                    f"{self._step_count}_{constants.VALUES_PDF}",
+                ),
+            )
