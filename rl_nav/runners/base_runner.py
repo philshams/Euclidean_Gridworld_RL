@@ -866,7 +866,7 @@ class BaseRunner(base_runner.BaseRunner):
 
         state = test_env.reset_environment(retain_history=retain_history)
 
-        while test_env.active:
+        while test_env.active and episode_reward <= 0:
 
             action = test_model.select_target_action(
                 state, excess_state_mapping=excess_state_mapping

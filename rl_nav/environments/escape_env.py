@@ -320,7 +320,7 @@ class EscapeEnv(base_env.BaseEnvironment, abc.ABC):
 
         return reward, new_state
 
-    def _compute_reward(self, delta: np.ndarray) -> float:
+    def _compute_reward(self, delta: np.ndarray, neg_reward_only: Optional[bool]=False) -> float:
         """Check for reward, i.e. whether agent position is equal to a reward position.
         If reward is found, add to rewards received log. Step cost factor added as penalty.
 
@@ -328,7 +328,7 @@ class EscapeEnv(base_env.BaseEnvironment, abc.ABC):
             delta: distance travelled in x, y directions.
         """
         reward = 0.0
-        if tuple(self._agent_position) in self._rewards:
+        if tuple(self._agent_position) in self._rewards and not neg_reward_only:
             reward_availability = self._rewards[
                 tuple(self._agent_position)
             ].availability

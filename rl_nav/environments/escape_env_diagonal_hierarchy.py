@@ -90,6 +90,8 @@ class EscapeEnvDiagonalHierarchy(escape_env.EscapeEnv):
             7: 5,
         }
 
+        self.cum_reward = 0
+
         partitions_ = env_utils.setup_partitions(partitions_path)
 
         with open(transition_structure, "r") as transition_json:
@@ -181,7 +183,12 @@ class EscapeEnvDiagonalHierarchy(escape_env.EscapeEnv):
 
     def _low_step(self, action: int):
 
-        reward = self._low_level_move_agent(delta=self._sub_deltas[action])
+        if tuple(self._agent_position) in self._inverse_reward_partitions:
+            neg_reward_only = True
+        else:
+            neg_reward_only = False
+
+        reward = self._low_level_move_agent(delta=self._sub_deltas[action], neg_reward_only=neg_reward_only)
         new_state = self.get_state_representation()
         skeleton = self._env_skeleton()
 
@@ -232,23 +239,25 @@ class EscapeEnvDiagonalHierarchy(escape_env.EscapeEnv):
         state = self._state_position_mapping[state_index]
         state_sub_states = self._partitions[state_index]
         low_new_state = copy.deepcopy(low_state)
-
         if self._training or self._fine_tuning:
-            reward = 0
-            while low_new_state in state_sub_states:
-                action = np.random.choice(self._sub_action_space)
-                low_reward, low_new_state = self._low_step(action=action)
-                reward += low_reward
+            # reward = 0
+            # while low_new_state in state_sub_states:
+            action = np.random.choice(self._sub_action_space)
+            low_reward, low_new_state = self._low_step(action=action)
+            self.cum_reward += low_reward
             # use compute_reward here for high level state reward / new_state
-            new_state_index = self._inverse_partition_mapping[low_new_state]
-            new_state = self._state_position_mapping[new_state_index]
+            # new_state_index = self._inverse_partition_mapping[low_new_state]
+            # new_state = self._state_position_mapping[new_state_index]
+            new_state = low_new_state
+
             # delta = np.array(state) - np.array(new_state)
             # reward = self._compute_reward(delta=delta)
         else:
             reward, new_state = self._high_step(state=state, action=action)
+            self.cum_reward = reward
 
         skeleton = self._env_skeleton()
-        self._active = self._remain_active(reward=reward)
+        self._active = self._remain_active(reward=self.cum_reward)
         self._episode_step_count += 1
 
         if self._training:
@@ -267,7 +276,7 @@ class EscapeEnvDiagonalHierarchy(escape_env.EscapeEnv):
         # Implement a sub-level history (for visualisation etc.)
         # a sub-level everything etc.
 
-        return reward, new_state
+        return self.cum_reward, new_state
 
     def _move_agent(
         self, delta: np.ndarray, phantom_position: Optional[np.ndarray] = None
@@ -382,7 +391,7 @@ class EscapeEnvDiagonalHierarchy(escape_env.EscapeEnv):
                 self._test_episode_sub_history = []
 
     def _low_level_move_agent(
-        self, delta: np.ndarray, phantom_position: Optional[np.ndarray] = None
+        self, delta: np.ndarray, phantom_position: Optional[np.ndarray] = None, neg_reward_only: Optional[bool] = False
     ) -> float:
         """Move agent. If provisional new position is a wall, no-op."""
         if phantom_position is None:
@@ -561,11 +570,12 @@ class EscapeEnvDiagonalHierarchy(escape_env.EscapeEnv):
                 return tuple(current_position)
         else:
             if move_permissible:
-                if tuple(self._agent_position) in self._inverse_reward_partitions:
-                    self._agent_position = provisional_new_position
-                else:
-                    self._agent_position = self._inverse_reward_partitions.get(
-                        tuple(provisional_new_position), provisional_new_position
-                    )
+                self._agent_position = provisional_new_position
+                # if tuple(self._agent_position) in self._inverse_reward_partitions:
+                #     self._agent_position = provisional_new_position
+                # else:
+                #     self._agent_position = self._inverse_reward_partitions.get(
+                #         tuple(provisional_new_position), provisional_new_position
+                #     )
 
-            return self._compute_reward(delta=delta)
+            return self._compute_reward(delta=delta, neg_reward_only=neg_reward_only)

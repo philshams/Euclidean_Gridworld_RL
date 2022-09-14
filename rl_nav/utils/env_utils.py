@@ -147,11 +147,9 @@ def setup_rewards(reward_positions, reward_attributes) -> Dict[Tuple, Callable]:
 
     rewards = {}
 
-    for reward_position, reward_availability, reward_specifications in zip(
-        reward_positions,
-        reward_attributes[constants.AVAILABILITY],
-        reward_attributes[constants.PARAMETERS],
-    ):
+    reward_availability = reward_attributes[constants.AVAILABILITY][0]
+    reward_specifications = reward_attributes[constants.PARAMETERS][0]
+    for reward_position in reward_positions:
         reward_type, reward_parameters = zip(*reward_specifications.items())
 
         rewards[reward_position] = _get_reward_function(

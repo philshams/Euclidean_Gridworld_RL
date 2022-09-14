@@ -16,19 +16,29 @@ class LifelongQLearningHierarchyRunner(lifelong_runner.LifelongRunner):
         self._train_step_cost_factor = config.train_super_step_cost_factor
         self._test_step_cost_factor = config.train_super_step_cost_factor
 
+    def get_high_state(self, state):
+        state_index = self._train_environment._env._inverse_partition_mapping[state]
+        high_state = self._train_environment._env._state_position_mapping[state_index]
+        return high_state
+
     def _model_train_step(self, state) -> float:
         """Perform single training step."""
+        high_state = self.get_high_state(state)
         reward, new_state = self._train_environment.step(action=None)
+        new_high_state = self.get_high_state(new_state)
 
-        action = self._train_environment.position_state_mapping[new_state]
+        if high_state != new_high_state:
+            action = self._train_environment.position_state_mapping[new_high_state]
 
-        self._model.step(
-            state=state,
-            action=action,
-            reward=reward,
-            new_state=new_state,
-            active=self._train_environment.active,
-        )
+            self._model.step(
+                state=high_state,
+                action=action,
+                reward=reward,
+                new_state=new_high_state,
+                active=self._train_environment.active,
+            )
+
+            self._train_environment._env.cum_reward = 0
 
         return new_state, reward
 
@@ -55,20 +65,25 @@ class LifelongQLearningHierarchyRunner(lifelong_runner.LifelongRunner):
                     reward_availability=constants.INFINITE,
                     retain_history=(t != 0),
                 )
+                # state = self._start_with_reward(model_copy, test_env, t)
+                self._train_environment._env.cum_reward = 0
 
                 while state != tuple(test_env.starting_xy):
-
+                    high_state = self.get_high_state(state)
                     reward, new_state = self._train_environment.step(action=None)
+                    new_high_state = self.get_high_state(new_state)
+                            
+                    if high_state != new_high_state:
+                        action = test_env.position_state_mapping[new_high_state]
 
-                    action = test_env.position_state_mapping[new_state]
-
-                    model_copy.step(
-                        state=state,
-                        action=action,
-                        reward=reward,
-                        new_state=new_state,
-                        active=test_env.active,
-                    )
+                        model_copy.step(
+                            state=high_state,
+                            action=action,
+                            reward=reward,
+                            new_state=new_high_state,
+                            active=test_env.active,
+                        )
+                        self._train_environment._env.cum_reward = 0
                     state = new_state
 
                 model_copy.allow_state_instantiation = False
