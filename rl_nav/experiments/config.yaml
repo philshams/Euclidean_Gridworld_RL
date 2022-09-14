@@ -141,7 +141,7 @@ test_environments:
 
 logging:
     print_frequency: 5000
-    visualisation_frequency: 50000
+    visualisation_frequency: 1000
     rollout_frequency: 500000
     train_test_frequency: 1000
     test_frequency: 1000
