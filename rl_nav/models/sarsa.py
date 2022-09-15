@@ -147,7 +147,7 @@ class SarsaLearner(tabular_learner.TabularLearner):
             return np.random.rand(len(self._state_space), len(self._action_space))
         elif initialisation_strategy_name == constants.RANDOM_NORMAL:
             return np.random.normal(
-                loc=0, scale=0.1, size=(len(self._state_space), len(self._action_space))
+                loc=0, scale=0.01, size=(len(self._state_space), len(self._action_space))
             )
         elif initialisation_strategy_name == constants.ZEROS:
             return np.zeros((len(self._state_space), len(self._action_space)))
@@ -180,7 +180,7 @@ class SarsaLearner(tabular_learner.TabularLearner):
         """
         self._state_visitation_counts[state] += 1
 
-        if self.prev_state is None or (abs(state[0]-self.prev_state[0])>1) or (abs(state[1]-self.prev_state[1])>1):
+        if self.prev_state is None: # or (abs(state[0]-self.prev_state[0])>1) or (abs(state[1]-self.prev_state[1])>1):
             # if a new episode has started
             self.prev_state = state
             self.prev_action = action

@@ -18,7 +18,7 @@ parser.add_argument("--mode", metavar="-M", default="serial", help="run experime
 parser.add_argument(
     "--config_path",
     metavar="-C",
-    default="config.yaml",
+    default="suites\HSS_sarsa\config.yaml",
     help="path to base configuration file.",
 )
 parser.add_argument("--seeds", metavar="-S", default=1, help="list of seeds to run.")
@@ -76,27 +76,31 @@ if __name__ == "__main__":
                 runner_class = q_learning_runner.EpisodicQLearningRunner
                 runner_class_name = "EpisodicQLearningRunner"
 
-    elif config.model == constants.HIERARCHICAL_Q_LEARNING:
-        runner_module_name = "q_learning_hierarchy_runner"
-        runner_module_path = os.path.join(
-            runners_module_path, "q_learning_hierarchy_runner.py"
-        )
-        if config.train_episode_timeout is None:
-            runner_class = q_learning_hierarchy_runner.LifelongQLearningHierarchyRunner
-            runner_class_name = "LifelongQLearningHierarchyRunner"
-        else:
-            runner_class = q_learning_hierarchy_runner.EpisodicQLearningHierarchyRunner
-            runner_class_name = "EpisodicQLearningHierarchyRunner"
-
     elif config.model == constants.SARSA:
-        runner_module_name = "sarsa_runner"
-        runner_module_path = os.path.join(runners_module_path, "sarsa_runner.py")
-        if config.train_episode_timeout is None:
-            runner_class = sarsa_runner.LifelongSarsaRunner
-            runner_class_name = "LifelongSarsaRunner"
+        if config.train_env_name == constants.ESCAPE_ENV_DIAGONAL_HIERARCHY:
+            runner_module_name = "q_learning_hierarchy_runner"
+            runner_module_path = os.path.join(
+                runners_module_path, "q_learning_hierarchy_runner.py"
+            )
+            if config.train_episode_timeout is None:
+                runner_class = (
+                    q_learning_hierarchy_runner.LifelongQLearningHierarchyRunner
+                )
+                runner_class_name = "LifelongQLearningHierarchyRunner"
+            else:
+                runner_class = (
+                    q_learning_hierarchy_runner.EpisodicQLearningHierarchyRunner
+                )
+                runner_class_name = "EpisodicQLearningHierarchyRunner"
         else:
-            runner_class = sarsa_runner.EpisodicSarsaRunner
-            runner_class_name = "EpisodicSarsaRunner"
+            runner_module_name = "sarsa_runner"
+            runner_module_path = os.path.join(runners_module_path, "sarsa_runner.py")
+            if config.train_episode_timeout is None:
+                runner_class = sarsa_runner.LifelongSarsaRunner
+                runner_class_name = "LifelongSarsaRunner"
+            else:
+                runner_class = sarsa_runner.EpisodicSarsaRunner
+                runner_class_name = "EpisodicSarsaRunner"
 
     elif config.model == constants.SUCCESSOR_REP:
         runner_module_name = "successor_rep_runner"

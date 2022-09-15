@@ -20,7 +20,7 @@ parser.add_argument(
 parser.add_argument(
     "--plot_mint",
     action="store_true",
-    default=True,
+    # default=True,
     help="whether to plot (minimum) trajectory summaries.",
 )
 parser.add_argument(

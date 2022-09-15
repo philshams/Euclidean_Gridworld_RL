@@ -285,6 +285,7 @@ class RLNavConfigTemplate:
                             constants.UNDIRECTED_DYNA_LINEAR_FEATURES,
                             constants.UNDIRECTED_DYNA,
                             constants.A_STAR,
+                            constants.SARSA,
                             constants.LINEAR_FEATURES,
                             constants.STATE_LINEAR_FEATURES,
                         ]

@@ -377,21 +377,6 @@ class BaseRunner(base_runner.BaseRunner):
                 imputation_method=config.imputation_method,
                 update_no_op=config.update_no_op,
             )
-        elif config.model == constants.HIERARCHICAL_Q_LEARNING:
-            learning_rate = self._setup_lr(config=config)
-            model = hierarchical_q_learning.HierarchicalQLearner(
-                action_space=self._train_environment.action_space,
-                state_space=self._train_environment.state_space,
-                sub_action_space=self._train_environment.sub_action_space,
-                sub_state_space=self._train_environment.sub_state_space,
-                behaviour=config.behaviour,
-                target=config.target,
-                initialisation_strategy=initialisation_strategy,
-                learning_rate=learning_rate,
-                gamma=config.discount_factor,
-                imputation_method=config.imputation_method,
-                update_no_op=config.update_no_op,
-            )
         elif config.model == constants.SARSA:
             learning_rate = self._setup_lr(config=config)
             model = sarsa.SarsaLearner(

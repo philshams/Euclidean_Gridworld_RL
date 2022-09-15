@@ -1,8 +1,8 @@
 seed: 0
 
 training:
-    num_steps: 1500
-    model: q_learning
+    num_steps: 3000
+    model: sarsa
 
     behaviour: epsilon_greedy
     target: greedy
@@ -44,8 +44,8 @@ training:
             values: [0.1, 0.001]
             timestep_changes: [100000]
 
-    discount_factor: 0.9
-    train_step_cost_factor: 0.01
+    discount_factor: 0.999
+    train_step_cost_factor: 0.001
     train_super_step_cost_factor: 0.01
 
     one_dim_blocks: True
@@ -188,11 +188,11 @@ test_environments:
 
 logging:
     print_frequency: 5000
-    visualisation_frequency: 50000
-    rollout_frequency: 1500000
-    train_test_frequency: 1500
-    test_frequency: 1500
-    checkpoint_frequency: 1500
+    visualisation_frequency: 5000
+    rollout_frequency: 500000
+    train_test_frequency: 500
+    test_frequency: 500
+    checkpoint_frequency: 500
 
     visualisations: 
         # - numbered_value_function
