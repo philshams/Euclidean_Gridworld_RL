@@ -21,6 +21,69 @@ class LifelongQLearningHierarchyRunner(lifelong_runner.LifelongRunner):
         high_state = self._train_environment._env._state_position_mapping[state_index]
         return high_state
 
+    def _train_step(self, state):
+        """ Overrides base runner method """
+
+        if self._step_count % self._print_frequency == 0:
+            self._logger.info(f"Step: {self._step_count}")
+        self._step_count += 1
+
+        logging_dict = {}
+        if (
+            self._step_count % self._visualisation_frequency == 0
+            and self._step_count != 1
+        ):
+            self._generate_visualisations()
+        if self._step_count % self._train_test_frequency == 0:
+            logging_dict = self._perform_tests(
+                rollout=(self._step_count % self._rollout_frequency == 0),
+                planning=self._planner,
+            )
+
+        if state in self._train_run_trigger_states and not len(
+            self._current_train_run_action_sequence
+        ):
+            trigger_state_indices = [
+                i for i, x in enumerate(self._train_run_trigger_states) if x == state
+            ]
+            trigger_state_index = random.choice(trigger_state_indices)
+            trigger_state_probability = self._train_run_trigger_probabilities[
+                trigger_state_index
+            ]
+            if random.random() < trigger_state_probability:
+                self._current_train_run_action_sequence = (
+                    self._train_run_action_sequences[trigger_state_index][::-1]
+                )
+                if state[1] > 9:
+                    self.num_seqs += 1
+        if len(self._current_train_run_action_sequence):
+            high_state = self.get_high_state(state)
+            low_action = self._current_train_run_action_sequence.pop()
+            reward, new_state = self._train_environment.step(action=low_action)
+            new_high_state = self.get_high_state(new_state)
+
+            if high_state != new_high_state:
+                high_action = self._train_environment.position_state_mapping[new_high_state]
+                
+                self._model.step(
+                    state=high_state,
+                    action=high_action,
+                    reward=reward,
+                    new_state=new_high_state,
+                    active=self._train_environment.active,
+                )
+                self._train_environment._env.cum_reward = 0
+            if state==new_state:
+                # if hit an obstacle, end the sequence
+                self._current_train_run_action_sequence = []
+            state = new_state
+        else:
+            state, reward = self._model_train_step(state)
+
+        next(self._epsilon)
+
+        return state, reward, logging_dict
+
     def _model_train_step(self, state) -> float:
         """Perform single training step."""
         high_state = self.get_high_state(state)

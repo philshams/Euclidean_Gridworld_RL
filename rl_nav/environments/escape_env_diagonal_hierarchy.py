@@ -242,7 +242,8 @@ class EscapeEnvDiagonalHierarchy(escape_env.EscapeEnv):
         if self._training or self._fine_tuning:
             # reward = 0
             # while low_new_state in state_sub_states:
-            action = np.random.choice(self._sub_action_space)
+            if action is None:
+                action = np.random.choice(self._sub_action_space)
             low_reward, low_new_state = self._low_step(action=action)
             self.cum_reward += low_reward
             # use compute_reward here for high level state reward / new_state
