@@ -1,1 +1,7 @@
 *.pyc
+*.DS_Store
+*__pycache__*
+*.egg-info
+rl_nav/experiments/results
+*.ipynb_checkpoints
+launch.json

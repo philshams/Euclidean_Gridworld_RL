@@ -1,0 +1,163 @@
+seed: 0
+
+training:
+    num_steps: 100000
+    model: linear_features
+
+    behaviour: epsilon_greedy
+    target: greedy
+    test_epsilon: 0.99
+
+    train_run_trigger_states: 
+        - [9, 12] # 
+        - [5, 12] #
+        - [7, 12]
+        - [7, 12]
+        - [3, 7]
+        - [11, 7]
+
+    train_run_action_sequences:
+        - [6, 3, 3, 6, 3]    # 9, 12 #
+        - [7, 3, 3, 7, 3]    # 5, 12 #
+        - [7, 7, 7, 7, 3]    # 7, 12
+        - [6, 6, 6, 6, 3]    # 7, 12
+
+        - [3, 6, 6, 6, 6, 3] # 3, 7
+        - [3, 7, 7, 7, 7, 3] # 11, 7
+    
+    train_run_trigger_probabilities:
+        # [0.2, 0.2, 0.4, 0.4, 0.2, 0.2]
+        [0., 0., 0., 0., 0., 0.]
+
+    learning_rate: 
+        schedule: constant
+
+        constant:
+            value: 0.1
+        
+        linear_decay:
+            initial_value: 0.1
+            final_value: 0.01
+            anneal_duration: 250000
+
+        hard_coded:
+            values: [0.1, 0.001]
+            timestep_changes: [100000]
+            
+    discount_factor: 0.9
+    train_step_cost_factor: 0.01
+
+    one_dim_blocks: True
+    imputation_method: random
+
+    update_no_op: True
+
+    gradual_learner_window_average: 150
+
+    epsilon:
+        schedule: constant
+
+        constant:
+            value: 0.99
+        
+        linear_decay:
+            initial_value: 0.99
+            final_value: 0.1
+            anneal_duration: 250000
+
+    dyna:
+        plan_steps_per_update: 10
+
+    linear_features:
+        features:
+            - coarse_coding
+            # - hard_coded_geometry
+
+        coarse_coding:
+            coding_widths: [2, 3]
+            coding_heights: [2, 3]
+            augment_actions: True
+
+        hard_coded_geometry:
+            geometry_outline_paths: 
+                - ../maps/hierarchy_geometry_7_1.txt
+                - ../maps/hierarchy_geometry_7_2.txt
+                - ../maps/hierarchy_geometry_7_3.txt
+            hc_augment_actions: True
+
+initialisation:
+    type: random_normal
+
+    random_uniform:
+        lower_bound: 0
+        upper_bound: 1
+
+    random_normal:
+        mean: 0
+        variance: 0.1
+
+train_environment: 
+
+    env_name: escape_env_diagonal
+    map_path: ../circular_maps/obstacle_map.txt
+
+    episode_timeout:
+    representation: agent_position
+    start_position:
+    reward_positions:
+        - [7, 1]
+
+    # provide either one set of attributes (used for all rewards)
+    # or one set for each reward
+    reward_attributes:
+        availability: ["infinite"] # integer specifying number available or "infinite"
+        statistics:
+            - gaussian:
+                mean: 1
+                variance: 0
+
+    train_hierarchy_network:
+        transition_structure_path: ../maps/vector_blocked_hierarchy_transition_7.json
+
+test_environments:
+
+    env_name: escape_env_diagonal
+    map_paths: 
+        - ../circular_maps/obstacle_map.txt
+        - ../circular_maps/test_map.txt
+
+    num_trials: 3
+
+    episode_timeout: 50
+    representation: agent_position
+    start_position: [7, 12]
+    reward_positions:
+        - [7, 1]
+    step_cost_factor: 0.01
+
+    # provide either one set of attributes (used for all rewards)
+    # or one set for each reward
+    reward_attributes:
+        availability: [1] # integer specifying number available or "infinite"
+        statistics:
+            - gaussian:
+                mean: 1
+                variance: 0
+
+    test_hierarchy_network:
+        transition_structure_paths: 
+            - ../maps/test_hierarchy_transition_7.json
+            - ../maps/hierarchy_transition_7.json
+
+logging:
+    print_frequency: 50000
+    visualisation_frequency: 20000
+    rollout_frequency: 5000000
+    train_test_frequency: 50000
+    test_frequency: 50000
+    checkpoint_frequency: 50000
+
+    visualisations: 
+        # - numbered_value_function
+        # - visitation_counts
+        - value_function

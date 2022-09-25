@@ -1,0 +1,123 @@
+seed: 0
+
+training:
+    num_steps: 250000
+    model: dyna
+
+    behaviour: epsilon_greedy
+    target: greedy
+    test_epsilon: 0.99
+
+    train_run_trigger_states: 
+        # - [7, 12]
+    train_run_action_sequences:
+        # - [7, 7, 7, 7, 3]
+    train_run_trigger_probabilities: # [0.5]
+
+    learning_rate: 
+        schedule: hard_coded
+
+        constant:
+            value: 0.1
+        
+        linear_decay:
+            initial_value: 0.1
+            final_value: 0.01
+            anneal_duration: 250000
+
+        hard_coded:
+            values: [0.1, 0.001]
+            timestep_changes: [100000]
+            
+    discount_factor: 0.9
+    train_step_cost_factor: 0.01
+
+    one_dim_blocks: True
+    imputation_method: random
+
+    update_no_op: True
+
+    epsilon:
+        schedule: constant
+
+        constant:
+            value: 0.99
+        
+        linear_decay:
+            initial_value: 0.99
+            final_value: 0.1
+            anneal_duration: 250000
+
+    dyna:
+        plan_steps_per_update: 10
+
+initialisation:
+    type: random_normal
+
+    random_uniform:
+        lower_bound: 0
+        upper_bound: 1
+
+    random_normal:
+        mean: 0
+        variance: 0.1
+
+train_environment: 
+
+    env_name: escape_env_diagonal
+    map_path: ../maps/square_escape_map.txt
+
+    episode_timeout: 500
+    representation: agent_position
+    start_position:
+    reward_positions:
+        - [7, 1]
+
+    # provide either one set of attributes (used for all rewards)
+    # or one set for each reward
+    reward_attributes:
+        availability: [1] # integer specifying number available or "infinite"
+        statistics:
+            - gaussian:
+                mean: 1
+                variance: 0
+
+    train_hierarchy_network:
+        transition_structure_path: ../maps/vector_blocked_hierarchy_transition_7.json
+
+test_environments:
+
+    env_name: escape_env_diagonal
+    map_paths: 
+        - ../maps/square_escape_test_map.txt
+        - ../maps/square_escape_map.txt
+
+    episode_timeout: 500
+    representation: agent_position
+    start_position: [7, 12]
+    reward_positions:
+        - [7, 1]
+    step_cost_factor: 0.01
+
+    # provide either one set of attributes (used for all rewards)
+    # or one set for each reward
+    reward_attributes:
+        availability: [1] # integer specifying number available or "infinite"
+        statistics:
+            - gaussian:
+                mean: 1
+                variance: 0
+
+    test_hierarchy_network:
+        transition_structure_paths: 
+            - ../maps/test_hierarchy_transition_7.json
+            - ../maps/hierarchy_transition_7.json
+
+logging:
+    visualisation_frequency: 50000
+    rollout_frequency: 50000
+    test_frequency: 50000
+    checkpoint_frequency: 50000
+
+    visualisations:
+        - value_function
