@@ -1,7 +1,7 @@
 seed: 0
 
 training:
-    num_steps: 3000
+    num_steps: 2000
     model: sarsa
 
     behaviour: epsilon_greedy
@@ -29,6 +29,59 @@ training:
         [0.2, 0.2, 0.4, 0.4, 0.2, 0.2]
         # [0., 0., 0., 0., 0., 0., 0. ]
 
+    # train_run_trigger_states: 
+    #     - [7, 12]
+    #     - [7, 11]
+    #     - [7, 13]
+    #     - [7, 12]
+    #     - [7, 11]
+    #     - [7, 13]
+    #     - [8, 11]
+    #     - [8, 12]
+    #     - [8, 13]
+    #     - [6, 11]
+    #     - [6, 12]
+    #     - [6, 13]
+    #     - [9, 11]
+    #     - [9, 12]
+    #     - [5, 11]
+    #     - [5, 12]
+    #     - [4, 11]
+    #     - [4, 12]
+    #     - [10, 11]
+    #     - [10, 12]
+
+    #     - [4, 7]
+    #     - [12, 7]
+
+    # train_run_action_sequences:
+    #     - [7, 7, 7, 7, 3] # 7, 12
+    #     - [0, 7, 7, 7, 3] # 7, 11
+    #     - [3, 7, 7, 7, 7, 3] # 7, 13
+    #     - [6, 6, 6, 6, 3] # 7, 12
+    #     - [2, 6, 6, 6, 3] # 7, 11
+    #     - [3, 7, 7, 7, 7, 3] # 7, 13
+    #     - [6, 6, 6, 3] # 8, 11
+    #     - [3, 6, 6, 6, 3] # 8, 12
+    #     - [3, 3, 6, 6, 6, 3] # 8, 13
+    #     - [7, 7, 7, 3] # 6, 11
+    #     - [3, 7, 7, 7, 3] # 6, 12
+    #     - [3, 3, 7, 7, 7, 3] # 6, 13
+    #     - [3, 6, 6, 3] # 9, 11
+    #     - [3, 3, 6, 6, 3] # 9, 12
+    #     - [3, 7, 7, 3] # 5, 11
+    #     - [3, 3, 7, 7, 3] # 5, 12
+    #     - [3, 3, 3, 7] # 4, 11
+    #     - [3, 3, 3, 3, 7] # 4, 12
+    #     - [3, 3, 3, 6] # 10, 11
+    #     - [3, 3, 3, 3, 6] # 10, 12
+
+    #     - [6, 6, 6, 6, 3, 3]
+    #     - [7, 7, 7, 7, 3, 3]
+
+    # train_run_trigger_probabilities: 
+    #     [0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2]
+
     learning_rate: 
         schedule: constant
 
@@ -44,8 +97,8 @@ training:
             values: [0.1, 0.001]
             timestep_changes: [100000]
 
-    discount_factor: 0.999
-    train_step_cost_factor: 0.001
+    discount_factor: 0.99 # 0.999
+    train_step_cost_factor: 0.001 # 0.001
     train_super_step_cost_factor: 0.01
 
     one_dim_blocks: True
@@ -188,11 +241,11 @@ test_environments:
 
 logging:
     print_frequency: 5000
-    visualisation_frequency: 5000
-    rollout_frequency: 500000
-    train_test_frequency: 500
-    test_frequency: 500
-    checkpoint_frequency: 500
+    visualisation_frequency: 2000
+    rollout_frequency: 1500000
+    train_test_frequency: 2000
+    test_frequency: 2000
+    checkpoint_frequency: 2000
 
     visualisations: 
         # - numbered_value_function

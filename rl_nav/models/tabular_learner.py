@@ -160,7 +160,7 @@ class TabularLearner(base_learner.BaseLearner):
                 excess_state_mapping=excess_state_mapping,
                 store_imputation=False,
             )
-
+        
         return np.argmax(state_action_values)
 
     def _non_repeat_greedy_action(
