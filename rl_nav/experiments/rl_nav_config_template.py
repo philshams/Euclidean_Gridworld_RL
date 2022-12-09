@@ -1,4 +1,5 @@
 from config_manager import config_field, config_template
+
 from rl_nav import constants
 
 
@@ -31,6 +32,35 @@ class RLNavConfigTemplate:
                 ]
             ],
             level=[constants.TRAINING, constants.DYNA],
+        )
+
+        self._a_star_template = config_template.Template(
+            fields=[
+                config_field.Field(
+                    name=constants.NODE_COST_RESOLUTION,
+                    types=[str],
+                    requirements=[
+                        lambda x: x
+                        in [
+                            constants.RANDOM_MIN,
+                            constants.DETERMINISTIC_MIN,
+                            constants.RANDOM_MIN_WINDOW,
+                        ]
+                    ],
+                ),
+                config_field.Field(
+                    name=constants.TOLERANCE,
+                    types=[int, float],
+                    requirements=[lambda x: x >= 0],
+                ),
+            ],
+            dependent_variables=[constants.MODEL],
+            dependent_variables_required_values=[
+                [
+                    constants.A_STAR,
+                ]
+            ],
+            level=[constants.TRAINING, constants.A_STAR],
         )
 
         self._coarse_coding_template = config_template.Template(
@@ -358,6 +388,7 @@ class RLNavConfigTemplate:
             level=[constants.TRAINING],
             nested_templates=[
                 self._dyna_template,
+                self._a_star_template,
                 self._linear_features_template,
                 self._epsilon_template,
                 self._learning_rate_template,
