@@ -636,13 +636,37 @@ class BaseRunner(base_runner.BaseRunner):
                 model_copy.allow_state_instantiation = True
 
             for t in range(self._test_num_trials):
-                temporary_start_state = random.choice(test_env.reward_positions)
+                """Start with minimal action sequence to ensure agent enters shelter and
+                receives reward."""
+                reward_state = random.choice(test_env.reward_positions)
                 state = test_env.reset_environment(
                     episode_timeout=np.inf,
-                    start_position=temporary_start_state,
+                    start_position=reward_state,
                     reward_availability=constants.INFINITE,
                     retain_history=(t != 0),
                 )
+
+                initial_action = np.random.choice(test_env.action_space)
+                secondary_action = test_env.inverse_action_mapping[initial_action]
+
+                reward, new_state = test_env.step(initial_action)
+                model_copy.step(
+                    state=state,
+                    action=initial_action,
+                    reward=reward,
+                    new_state=new_state,
+                    active=test_env.active,
+                )
+                state = new_state
+                reward, new_state = test_env.step(secondary_action)
+                model_copy.step(
+                    state=state,
+                    action=secondary_action,
+                    reward=reward,
+                    new_state=new_state,
+                    active=test_env.active,
+                )
+                state = new_state
 
                 while state != tuple(test_env.starting_xy):
 
