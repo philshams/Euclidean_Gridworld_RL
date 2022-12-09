@@ -72,6 +72,11 @@ def _split_rollout_by_indices(
         y_chunk = y[split_index_start + 1 : split_index_end]
         chunked_rollout.append([x_chunk, y_chunk])
 
+    import pdb
+
+    pdb.set_trace()
+    print(min([len(c[0]) for c in chunked_rollout]))
+
     return chunked_rollout
 
 
@@ -113,9 +118,17 @@ def plot_trajectories(folder_path, exp_names, min_rollout):
                         _split_rollout_by_indices(rollout, split_by[0], split_by[1])
                         for rollout in all_rollout_coords
                     ]
+
+                    import pdb
+
+                    pdb.set_trace()
+
                     all_rollout_lens = [
                         np.mean(
-                            [len(rollout_chunk) for rollout_chunk in chunked_rollouts]
+                            [
+                                len(rollout_chunk[0])
+                                for rollout_chunk in chunked_rollouts
+                            ]
                         )
                         for chunked_rollouts in all_chunked_rollout_coords
                     ]
