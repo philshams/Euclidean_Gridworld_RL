@@ -37,31 +37,39 @@ def _split_rollout_by_indices(
     split_start_indices = []
     split_end_indices = []
 
-    for i, ind in enumerate(split_start_indices_):
-        if i > 0 and ind == (split_start_indices_[i - 1] + 1):
-            pass
+    for i, end_index in enumerate(split_end_indices_):
+        if split_start_indices:
+            end_index_bound = split_end_indices_[i - 1]
         else:
-            split_start_indices.append(ind)
-
-    split_start_indices.append(np.inf)
-
-    for i, ind in enumerate(split_start_indices[:-1]):
-        end_indices = split_end_indices_[
-            np.where(
-                (split_end_indices_ > ind)
-                & (split_end_indices_ < split_start_indices[i + 1])
-            )[0]
+            end_index_bound = 0
+        valid_start_indices = [
+            j for j in split_start_indices_ if (end_index_bound < j < end_index)
         ]
-        if len(end_indices):
-            split_end_index = end_indices[0] + 1
-        else:
-            if split_start_indices[i + 1] < np.inf:
-                split_end_index = split_start_indices[i + 1] + 1
-            else:
-                split_end_index = None
-        split_end_indices.append(split_end_index)
+        if valid_start_indices:
+            min_start_index = (
+                np.min(valid_start_indices) + 1
+            )  # always ends in reward state then starts again in reward state.
+            split_start_indices.append(min_start_index)
 
-    split_start_indices = split_start_indices[:-1]
+    if max(split_end_indices_) < max(split_start_indices_):
+        # incomplete final run
+        final_start_index = np.min(
+            [j for j in split_start_indices_ if j > max(split_end_indices_)]
+        )
+        split_start_indices.append(final_start_index)
+
+    for i, start_index in enumerate(split_start_indices):
+        if i < len(split_end_indices) - 1:
+            end_index_bound = split_end_indices[i + 1]
+        else:
+            end_index_bound = np.inf
+        valid_end_indices = [
+            j for j in split_end_indices_ if (j > start_index and j < end_index_bound)
+        ]
+        if valid_end_indices:
+            split_end_indices.append(np.min(valid_end_indices))
+        else:
+            split_end_indices.append(None)
 
     chunked_rollout = []
 
@@ -72,9 +80,6 @@ def _split_rollout_by_indices(
         y_chunk = y[split_index_start + 1 : split_index_end]
         chunked_rollout.append([x_chunk, y_chunk])
 
-    import pdb
-
-    pdb.set_trace()
     assert min([len(c[0]) for c in chunked_rollout]) > 2, "Index bug for failure trials"
 
     return chunked_rollout
