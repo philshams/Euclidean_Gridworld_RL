@@ -1,12 +1,13 @@
 import os
 import re
+from typing import List, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
 import yaml
 from matplotlib import cm
+
 from rl_nav import constants
-from typing import List, Tuple
 
 
 def _split_rollout_by_indices(
@@ -238,10 +239,6 @@ def plot_trajectories(folder_path, exp_names, min_rollout):
                 f"{constants.INDIVIDUAL_TEST_RUN}_{env_name}_[0-9]*.npy"
             )
 
-            final_reward_pattern = re.compile(
-                f"{constants.INDIVIDUAL_TEST_RUN}_{constants.FINAL_REWARD_RUN}_{env_name}_[0-9]*.npy"
-            )
-
             find_threat_pattern = re.compile(
                 f"{constants.INDIVIDUAL_TEST_RUN}_{constants.FIND_THREAT_RUN}_{env_name}_[0-9]*.npy"
             )
@@ -257,20 +254,6 @@ def plot_trajectories(folder_path, exp_names, min_rollout):
                 ),
                 min_rollout=min_rollout,
             )
-
-            # _plot_trajectories(
-            #     exp_path=exp_path,
-            #     seed_folders=seed_folders,
-            #     env_name=env_name,
-            #     env=env,
-            #     pattern=final_reward_pattern,
-            #     save_path=os.path.join(
-            #         exp_path,
-            #         f"{env_name}_{constants.FINAL_REWARD_RUN}_{constants.TRAJECTORIES}",
-            #     ),
-            #     split_by=reward_positions,
-            #     min_rollout=min_rollout,
-            # )
 
             _plot_trajectories(
                 exp_path=exp_path,
