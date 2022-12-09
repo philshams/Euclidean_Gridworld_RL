@@ -4,3 +4,4 @@
 *.egg-info
 rl_nav/experiments/results
 *.ipynb_checkpoints
+launch.json
