@@ -2,6 +2,7 @@ import abc
 from typing import Dict, List, Tuple, Union
 
 import numpy as np
+
 from rl_nav import constants
 from rl_nav.utils import env_utils
 
@@ -57,7 +58,7 @@ class BaseEnvironment(abc.ABC):
         if map_ascii_path is not None:
             self._map = env_utils.parse_map_outline(
                 map_file_path=map_ascii_path, mapping=self.MAPPING
-            )
+            )[constants.GRID]
 
         self._rewards = env_utils.setup_rewards(
             self._reward_positions, self._reward_attributes
