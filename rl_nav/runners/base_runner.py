@@ -2,6 +2,7 @@ import abc
 import copy
 import os
 import random
+from collections import namedtuple
 from typing import Any, Dict, List, Optional, Union
 
 import numpy as np
@@ -395,10 +396,25 @@ class BaseRunner(base_runner.BaseRunner):
                 inverse_actions=self._train_environment.inverse_action_mapping,
             )
         elif config.model == constants.A_STAR:
+            NodeCostConfig = namedtuple("NodeCostConfig", "method tolerance")
+            if config.node_cost_resolution in [
+                constants.RANDOM_MIN,
+                constants.DETERMINISTIC_MIN,
+            ]:
+                node_cost_resolution = NodeCostConfig(config.node_cost_resolution, None)
+            elif config.node_cost_resolution == constants.RANDOM_MIN_WINDOW:
+                node_cost_resolution = NodeCostConfig(
+                    config.node_cost_resolution, config.tolerance
+                )
+            else:
+                raise ValueError(
+                    f"node cost resolution {config.node_cost_resolution} not recognised."
+                )
             model = a_star.AStar(
                 action_space=self._train_environment.action_space,
                 state_space=self._train_environment.state_space,
                 window_average=config.gradual_learner_window_average,
+                node_cost_resolution=node_cost_resolution,
                 inverse_actions=self._train_environment.inverse_action_mapping,
             )
         elif config.model in [
