@@ -5,6 +5,8 @@ import random
 from typing import Any, Dict, List, Optional, Union
 
 import numpy as np
+from run_modes import base_runner
+
 from rl_nav import constants
 from rl_nav.environments import (
     escape_env_cardinal,
@@ -21,8 +23,7 @@ from rl_nav.models import (
     state_linear_features,
     successor_representation,
 )
-from rl_nav.utils import epsilon_schedules, model_utils, learning_rate_schedules
-from run_modes import base_runner
+from rl_nav.utils import epsilon_schedules, learning_rate_schedules, model_utils
 
 
 class BaseRunner(base_runner.BaseRunner):
@@ -121,12 +122,6 @@ class BaseRunner(base_runner.BaseRunner):
         for map_name in self._test_environments.keys():
             columns.append(f"{constants.TEST_EPISODE_REWARD}_{map_name}")
             columns.append(f"{constants.TEST_EPISODE_LENGTH}_{map_name}")
-            columns.append(
-                f"{constants.TEST_EPISODE_REWARD}_{map_name}_{constants.FINAL_REWARD_RUN}"
-            )
-            columns.append(
-                f"{constants.TEST_EPISODE_LENGTH}_{map_name}_{constants.FINAL_REWARD_RUN}"
-            )
             for t in range(self._test_num_trials):
                 columns.append(
                     f"{constants.TEST_EPISODE_REWARD}_{map_name}_{constants.FIND_THREAT_RUN}_{t}"
@@ -604,82 +599,12 @@ class BaseRunner(base_runner.BaseRunner):
             find_threat_logging_dict = self._find_threat_test(
                 rollout=rollout, planning=planning
             )
-            find_reward_logging_dict = self._find_reward_test(
-                rollout=rollout, planning=planning
-            )
             logging_dict = {
                 **logging_dict,
-                **find_reward_logging_dict,
                 **find_threat_logging_dict,
             }
         self._model.env_transition_matrix = self._train_environment.transition_matrix
         return logging_dict
-
-    def _find_reward_test(self, rollout: bool, planning: bool):
-        """Allow agent one more 'period' of exploration to find the reward
-        (in the test environment), before test rollout."""
-        test_logging_dict = {}
-
-        for i, (map_name, test_env) in enumerate(self._test_environments.items()):
-
-            state = test_env.reset_environment(episode_timeout=np.inf)
-
-            model_copy = copy.deepcopy(self._model)
-            model_copy.env_transition_matrix = test_env.transition_matrix
-
-            if not self._one_dim_blocks:
-                model_copy.allow_state_instantiation = True
-
-            while test_env.active:
-
-                # TODO: unclear which behaviour policy to use here...
-                action = model_copy.select_behaviour_action(
-                    state,
-                    epsilon=self._test_epsilon,
-                    excess_state_mapping=self._excess_state_mapping[i],
-                )
-                reward, new_state = test_env.step(action)
-
-                model_copy.step(
-                    state=state,
-                    action=action,
-                    reward=reward,
-                    new_state=new_state,
-                    active=test_env.active,
-                )
-                state = new_state
-
-            model_copy.allow_state_instantiation = False
-            model_copy.eval()
-
-            if planning:
-                reward, length = self._single_planning_test(
-                    test_model=model_copy,
-                    test_env=test_env,
-                    excess_state_mapping=self._excess_state_mapping[i],
-                    retain_history=True,
-                )
-            else:
-                reward, length = self._single_test(
-                    test_model=model_copy,
-                    test_env=test_env,
-                    excess_state_mapping=self._excess_state_mapping[i],
-                    retain_history=True,
-                )
-
-            test_logging_dict[
-                f"{constants.TEST_EPISODE_REWARD}_{map_name}_{constants.FINAL_REWARD_RUN}"
-            ] = reward
-            test_logging_dict[
-                f"{constants.TEST_EPISODE_LENGTH}_{map_name}_{constants.FINAL_REWARD_RUN}"
-            ] = length
-
-        self._test_rollout(
-            visualise=rollout,
-            save_name_base=f"{constants.INDIVIDUAL_TEST_RUN}_{constants.FINAL_REWARD_RUN}",
-        )
-
-        return test_logging_dict
 
     def _find_threat_test(self, rollout: bool, planning: bool):
         """Agent starts in shelter and explores/learns in the time until it first reaches
