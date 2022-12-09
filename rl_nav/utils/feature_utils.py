@@ -3,6 +3,7 @@ import itertools
 from typing import Any, Dict, Tuple
 
 import numpy as np
+
 from rl_nav import constants
 from rl_nav.utils import env_utils
 
@@ -67,7 +68,7 @@ def _setup_hard_coded_geometry_features(feature_args):
         geometry = env_utils.parse_map_outline(
             map_file_path=geometry_path,
             mapping=None,
-        )
+        )[constants.GRID]
 
         geometry_unzipped_tiles = [
             np.where(geometry == item) for item in set(geometry.flatten())
