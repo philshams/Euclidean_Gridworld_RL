@@ -1,6 +1,7 @@
 from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
+
 from rl_nav.environments import base_env
 
 
@@ -107,6 +108,16 @@ class Wrapper(base_env.BaseEnvironment):
     def transition_matrix(self) -> Dict:
         return self._env.transition_matrix
 
+    @property
+    def position_state_mapping(self):
+        return self._env.position_state_mapping
+
+    def get_partition(self, state: Tuple):
+        return self._env.get_partition(state)
+
+    def get_centroid(self, partition):
+        return self._env.get_centroid(partition)
+
     def get_state_representation(self, tuple_state: Optional[Tuple] = None):
         return self._env.get_state_representation(tuple_state=tuple_state)
 
@@ -160,3 +171,11 @@ class Wrapper(base_env.BaseEnvironment):
 
     def __next__(self) -> None:
         next(self._env)
+
+    @property
+    def sub_action_space(self) -> List[int]:
+        return self._env._action_space
+
+    @property
+    def sub_state_space(self) -> List[Tuple[int, int]]:
+        return self._env._state_space
