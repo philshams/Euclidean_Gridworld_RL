@@ -75,7 +75,7 @@ def _split_rollout_by_indices(
     import pdb
 
     pdb.set_trace()
-    print(min([len(c[0]) for c in chunked_rollout]))
+    assert min([len(c[0]) for c in chunked_rollout]) > 2, "Index bug for failure trials"
 
     return chunked_rollout
 
