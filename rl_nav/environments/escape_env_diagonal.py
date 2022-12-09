@@ -1,6 +1,7 @@
 from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
+
 from rl_nav.environments import escape_env
 
 
@@ -278,3 +279,6 @@ class EscapeEnvDiagonal(escape_env.EscapeEnv):
                 self._agent_position = provisional_new_position
 
             return self._compute_reward(delta=delta)
+
+    def _env_specific_reset(self, retain_history):
+        pass
