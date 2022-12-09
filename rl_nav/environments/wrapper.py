@@ -145,8 +145,8 @@ class Wrapper(base_env.BaseEnvironment):
     def plot_heatmap_over_env(
         self,
         heatmap: Dict[Tuple[int, int], float],
-        fig: Optional = None,
-        ax: Optional = None,
+        fig=None,
+        ax=None,
         save_name: Optional[str] = None,
     ) -> None:
         self._env.plot_heatmap_over_env(
@@ -171,6 +171,14 @@ class Wrapper(base_env.BaseEnvironment):
 
     def __next__(self) -> None:
         next(self._env)
+
+    @property
+    def sub_action_space(self) -> List[int]:
+        return self._env._action_space
+
+    @property
+    def sub_state_space(self) -> List[Tuple[int, int]]:
+        return self._env._state_space
 
     @property
     def sub_action_space(self) -> List[int]:
