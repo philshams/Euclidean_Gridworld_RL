@@ -57,6 +57,14 @@ class Wrapper(base_env.BaseEnvironment):
         return self._env.state_space
 
     @property
+    def sub_action_space(self) -> List[int]:
+        return self._env._action_space
+
+    @property
+    def sub_state_space(self) -> List[Tuple[int, int]]:
+        return self._env._state_space
+
+    @property
     def positional_state_space(self):
         return self._env.positional_state_space
 
@@ -171,19 +179,3 @@ class Wrapper(base_env.BaseEnvironment):
 
     def __next__(self) -> None:
         next(self._env)
-
-    @property
-    def sub_action_space(self) -> List[int]:
-        return self._env._action_space
-
-    @property
-    def sub_state_space(self) -> List[Tuple[int, int]]:
-        return self._env._state_space
-
-    @property
-    def sub_action_space(self) -> List[int]:
-        return self._env._action_space
-
-    @property
-    def sub_state_space(self) -> List[Tuple[int, int]]:
-        return self._env._state_space
