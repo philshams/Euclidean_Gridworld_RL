@@ -1,13 +1,19 @@
 import copy
 import itertools
 import random
-from typing import Dict, List, Tuple, Optional
+from collections import namedtuple
+from typing import Dict, List, Optional, Tuple, Type
 
 import numpy as np
 from scipy import stats
+
 from rl_nav import constants
 from rl_nav.models import base_learner
-from rl_nav.utils import a_star_search
+from rl_nav.utils.a_star_search import (
+    DeterministicMinSearch,
+    RandomMinSearch,
+    RandomMinWindowSearch,
+)
 
 
 class AStar(base_learner.BaseLearner):
@@ -18,6 +24,7 @@ class AStar(base_learner.BaseLearner):
         action_space: List[int],
         state_space: List[Tuple[int, int]],
         window_average: int,
+        node_cost_resolution: Type[namedtuple],
         inverse_actions: Optional[Dict] = None,
     ):
         """Class constructor.
@@ -49,6 +56,19 @@ class AStar(base_learner.BaseLearner):
         self._transition_matrix = {}
         self._action_history = {}
         self._reward_states = {}
+
+        if node_cost_resolution.method == constants.RANDOM_MIN:
+            self._search_class = RandomMinSearch()
+        elif node_cost_resolution.method == constants.DETERMINISTIC_MIN:
+            self._search_class = DeterministicMinSearch()
+        elif node_cost_resolution.method == constants.RANDOM_MIN_WINDOW:
+            self._search_class = RandomMinWindowSearch(
+                tolerance=node_cost_resolution.tolerance
+            )
+        else:
+            raise ValueError(
+                f"node cost resolution method {node_cost_resolution.method} not recognised."
+            )
 
     def _train(self):
         pass
@@ -83,7 +103,7 @@ class AStar(base_learner.BaseLearner):
     def plan(self, state):
         if len(self._reward_states):
             transition_matrix = self._process_transition_matrix()
-            path = a_star_search.search(
+            path = self._search_class.search(
                 transition_matrix=transition_matrix,
                 start_state=state,
                 reward_states=list(self._reward_states.keys()),
