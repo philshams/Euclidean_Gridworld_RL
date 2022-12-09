@@ -50,11 +50,17 @@ class Node:
         raise NotImplementedError
 
 
-def heuristic(state, reward_states):
+def heuristic(state, reward_states, start_state):
     def euclidean(s1, s2):
         return np.sqrt((s1[0] - s2[0]) ** 2 + (s1[1] - s2[1]) ** 2)
 
-    distances = [euclidean(state, r_state) for r_state in reward_states]
+    def eccentricity(s1, s2):
+        return abs(s1[0] - s2[0]) * 0.5
+
+    distances = [
+        euclidean(state, r_state) - eccentricity(state, start_state)
+        for r_state in reward_states
+    ]
 
     return np.min(distances)
 
@@ -84,7 +90,7 @@ class Search(abc.ABC):
 
         start_node = Node(start_state, True)
         start_node.g = 0
-        start_node.h = heuristic(start_node.position, reward_states)
+        start_node.h = heuristic(start_node.position, reward_states, start_state)
         nodes[start_state] = start_node
         open_list.append(start_node.position)
 
@@ -122,7 +128,7 @@ class Search(abc.ABC):
                     and nodes[adj_node_pos].position not in closed_list
                 ):
                     nodes[adj_node_pos].h = heuristic(
-                        nodes[adj_node_pos].position, reward_states
+                        nodes[adj_node_pos].position, reward_states, start_state
                     )
                     open_list.append(nodes[adj_node_pos].position)
 
