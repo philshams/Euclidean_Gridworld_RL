@@ -12,6 +12,7 @@ from rl_nav import constants
 from rl_nav.environments import (
     escape_env_cardinal,
     escape_env_diagonal,
+    escape_env_diagonal_hierarchy,
     hierarchy_network,
     visualisation_env,
 )
@@ -21,6 +22,7 @@ from rl_nav.models import (
     dyna_linear_features,
     linear_features,
     q_learning,
+    sarsa,
     state_linear_features,
     successor_representation,
 )
@@ -206,6 +208,10 @@ class BaseRunner(base_runner.BaseRunner):
             environment = escape_env_diagonal.EscapeEnvDiagonal(**environment_args)
         elif config.train_env_name == constants.HIERARCHY_NETWORK:
             environment = hierarchy_network.HierarchyNetwork(**environment_args)
+        elif config.train_env_name == constants.ESCAPE_ENV_DIAGONAL_HIERARCHY:
+            environment = escape_env_diagonal_hierarchy.EscapeEnvDiagonalHierarchy(
+                **environment_args
+            )
 
         environment = visualisation_env.VisualisationEnv(environment)
 
@@ -248,6 +254,14 @@ class BaseRunner(base_runner.BaseRunner):
                     environments[map_name] = visualisation_env.VisualisationEnv(
                         environment
                     )
+        if config.test_env_name == constants.ESCAPE_ENV_DIAGONAL_HIERARCHY:
+            for map_path in config.test_map_paths:
+                map_name = map_path.split("/")[-1].rstrip(".txt")
+                environment_args[constants.MAP_PATH] = map_path
+                environment = escape_env_diagonal_hierarchy.EscapeEnvDiagonalHierarchy(
+                    **environment_args
+                )
+                environments[map_name] = visualisation_env.VisualisationEnv(environment)
 
         return environments
 
@@ -266,6 +280,7 @@ class BaseRunner(base_runner.BaseRunner):
             constants.ESCAPE_ENV,
             constants.ESCAPE_ENV_DIAGONAL,
             constants.HIERARCHY_NETWORK,
+            constants.ESCAPE_ENV_DIAGONAL_HIERARCHY,
         ]:
             env_args = {
                 **env_args,
@@ -310,6 +325,11 @@ class BaseRunner(base_runner.BaseRunner):
                 env_args[
                     constants.TRANSITION_STRUCTURE
                 ] = config.transition_structure_path
+            if env_name == constants.ESCAPE_ENV_DIAGONAL_HIERARCHY:
+                env_args[constants.PARTITIONS_PATH] = config.train_partitions_path
+                env_args[
+                    constants.TRANSITION_STRUCTURE
+                ] = config.transition_structure_path
 
         return env_args
 
@@ -325,12 +345,14 @@ class BaseRunner(base_runner.BaseRunner):
 
     def _setup_lr(self, config):
         if config.learning_rate_schedule == constants.CONSTANT:
-            return learning_rate_schedules.ConstantLearningRate(value=config.value)
+            return learning_rate_schedules.ConstantLearningRate(
+                value=config.learning_rate_value
+            )
         elif config.learning_rate_schedule == constants.LINEAR_DECAY:
             return learning_rate_schedules.LinearDecayLearningRate(
-                initial_value=config.initial_value,
-                final_value=config.final_value,
-                anneal_duration=config.anneal_duration,
+                initial_value=config.learning_rate_initial_value,
+                final_value=config.learning_rate_final_value,
+                anneal_duration=config.learning_rate_anneal_duration,
             )
         elif config.learning_rate_schedule == constants.HARD_CODED:
             return learning_rate_schedules.HardCodedLearningRate(
@@ -343,6 +365,19 @@ class BaseRunner(base_runner.BaseRunner):
         if config.model == constants.Q_LEARNING:
             learning_rate = self._setup_lr(config=config)
             model = q_learning.QLearner(
+                action_space=self._train_environment.action_space,
+                state_space=self._train_environment.state_space,
+                behaviour=config.behaviour,
+                target=config.target,
+                initialisation_strategy=initialisation_strategy,
+                learning_rate=learning_rate,
+                gamma=config.discount_factor,
+                imputation_method=config.imputation_method,
+                update_no_op=config.update_no_op,
+            )
+        elif config.model == constants.SARSA:
+            learning_rate = self._setup_lr(config=config)
+            model = sarsa.SarsaLearner(
                 action_space=self._train_environment.action_space,
                 state_space=self._train_environment.state_space,
                 behaviour=config.behaviour,
