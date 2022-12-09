@@ -1,16 +1,19 @@
 import os
 import re
+
 import matplotlib
+
 matplotlib.set_loglevel("critical")
+from typing import List, Optional, Tuple, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import yaml
 from matplotlib import cm
-from rl_nav import constants
-from typing import List, Tuple, Union, Optional
 from plotter import plot_functions
+
+from rl_nav import constants
 
 
 def _split_rollout_by_indices(
@@ -30,19 +33,15 @@ def _split_rollout_by_indices(
 
     x, y = zip(*rollout_coordinates)
 
-    start_idx_ = np.where(
-        np.sum(rollout_coordinates == split_start, axis=1) == 2
-    )[0]
-    end_idx_ = np.where(
-        np.sum(rollout_coordinates == split_end, axis=1) == 2
-    )[0]
+    start_idx_ = np.where(np.sum(rollout_coordinates == split_start, axis=1) == 2)[0]
+    end_idx_ = np.where(np.sum(rollout_coordinates == split_end, axis=1) == 2)[0]
 
     start_idx = []
     prev_end_idx = -1
     for end_idx in end_idx_:
         start_idx_trial = start_idx_[
-            np.logical_and(start_idx_>prev_end_idx, start_idx_<end_idx)
-            ]
+            np.logical_and(start_idx_ > prev_end_idx, start_idx_ < end_idx)
+        ]
         start_idx.append(min(start_idx_trial))
         prev_end_idx = end_idx
 
@@ -52,16 +51,17 @@ def _split_rollout_by_indices(
     # y_chunk = y[0 : start_idx[0]+1]
     # chunked_rollout.append([x_chunk, y_chunk])
 
-    for s, e in zip(
-        start_idx, end_idx_
-    ):
+    for s, e in zip(start_idx, end_idx_):
         # x_chunk = x[s + 1 : e]
         # y_chunk = y[s + 1 : e]
-        x_chunk = x[s : e]
-        y_chunk = y[s : e]
+        x_chunk = x[s:e]
+        y_chunk = y[s:e]
         chunked_rollout.append([x_chunk, y_chunk])
 
+    import pdb
 
+    pdb.set_trace()
+    assert min([len(c[0]) for c in chunked_rollout]) > 2, "Index bug for failure trials"
 
     return chunked_rollout
 
@@ -71,7 +71,7 @@ def plot_trajectories(folder_path, exp_names, min_rollout):
     cmap = cm.get_cmap("winter")
 
     def _determine_min_trials(seed_folders, pattern):
-        """ This will be used to determine how many trials
+        """This will be used to determine how many trials
         are needed at minimum such that all seeds learn edge
         vectors with the obstacle present"""
         first_fast_rollout_idx = []
@@ -87,25 +87,29 @@ def plot_trajectories(folder_path, exp_names, min_rollout):
                 break
 
             all_rollouts_sorted = sorted(
-                    all_rollouts,
-                    key=lambda x: int(x.split(".npy")[0].split("_")[-1]),
-                )
+                all_rollouts,
+                key=lambda x: int(x.split(".npy")[0].split("_")[-1]),
+            )
             all_rollout_coords = [np.load(rollout) for rollout in all_rollouts_sorted]
             all_rollout_lens = [len(rollout) for rollout in all_rollout_coords]
-            successful_routes = np.where(np.array(all_rollout_lens)<50)[0]
+            successful_routes = np.where(np.array(all_rollout_lens) < 50)[0]
             if successful_routes.size:
                 first_fast_rollout_idx.append(successful_routes[0])
             else:
-                first_fast_rollout_idx.append(len(all_rollout_lens)-1)
+                first_fast_rollout_idx.append(len(all_rollout_lens) - 1)
             fastest_rollout_lens.append(all_rollout_lens[first_fast_rollout_idx[-1]])
             print(all_rollout_lens)
         first_fast_rollout_idx_all = max(first_fast_rollout_idx)
-        num_steps_in_rollout = int(all_rollouts_sorted[
-                first_fast_rollout_idx_all
-            ].split(".npy")[0].split("_")[-1])
-        print(f"\nType of test: {all_rollouts_sorted[0]}"
-              + f"\nTrajectory convergence step: {num_steps_in_rollout}"
-              + f"\nProjected max num steps: {max(fastest_rollout_lens)}")
+        num_steps_in_rollout = int(
+            all_rollouts_sorted[first_fast_rollout_idx_all]
+            .split(".npy")[0]
+            .split("_")[-1]
+        )
+        print(
+            f"\nType of test: {all_rollouts_sorted[0]}"
+            + f"\nTrajectory convergence step: {num_steps_in_rollout}"
+            + f"\nProjected max num steps: {max(fastest_rollout_lens)}"
+        )
         return num_steps_in_rollout
 
     def _plot_trajectories(
@@ -133,9 +137,29 @@ def plot_trajectories(folder_path, exp_names, min_rollout):
 
             if split_by is not None:
 
-                if num_training_steps:
-                    num_training_steps_by_rollout = np.array([int(rollout.split(".npy")[0].split("_")[-1]) for rollout in all_rollouts])
-                    plot_rollout = all_rollouts[np.where(num_training_steps_by_rollout==num_training_steps)[0][0]]
+                if min_rollout:
+                    all_rollout_coords = [np.load(rollout) for rollout in all_rollouts]
+                    all_chunked_rollout_coords = [
+                        _split_rollout_by_indices(rollout, split_by[0], split_by[1])
+                        for rollout in all_rollout_coords
+                    ]
+
+                    import pdb
+
+                    pdb.set_trace()
+
+                    all_rollout_lens = [
+                        np.mean(
+                            [
+                                len(rollout_chunk[0])
+                                for rollout_chunk in chunked_rollouts
+                            ]
+                        )
+                        for chunked_rollouts in all_chunked_rollout_coords
+                    ]
+                    final_rollout_coords = all_chunked_rollout_coords[
+                        np.argmin(all_rollout_lens)
+                    ]
                 else:
                     try:
                         plot_rollout = sorted(
@@ -200,7 +224,7 @@ def plot_trajectories(folder_path, exp_names, min_rollout):
                 plt.plot(
                     [-0.5, env.shape[1] - 0.5],
                     [row - 0.5, row - 0.5],
-                    color=[.8,.8,.8],
+                    color=[0.8, 0.8, 0.8],
                     linewidth=0.75,
                     # alpha=0.2,
                 )
@@ -208,7 +232,7 @@ def plot_trajectories(folder_path, exp_names, min_rollout):
                 plt.plot(
                     [col - 0.5, col - 0.5],
                     [-0.5, env.shape[0] - 0.5],
-                    color=[.8,.8,.8],
+                    color=[0.8, 0.8, 0.8],
                     linewidth=0.75,
                     # alpha=0.2,
                 )
@@ -262,12 +286,18 @@ def plot_trajectories(folder_path, exp_names, min_rollout):
                 f"{constants.INDIVIDUAL_TEST_RUN}_{constants.FIND_THREAT_RUN}_{env_name}_[0-9]*.npy"
             )
 
-            if min_rollout and env_name=="obstacle_map": # and exp_name=="condition_1":
+            if (
+                min_rollout and env_name == "obstacle_map"
+            ):  # and exp_name=="condition_1":
                 num_training_steps = _determine_min_trials(
                     seed_folders=seed_folders,
                     pattern=plain_pattern,
                 )
-            elif not min_rollout and exp_name=="condition_1" and env_name=="obstacle_map":
+            elif (
+                not min_rollout
+                and exp_name == "condition_1"
+                and env_name == "obstacle_map"
+            ):
                 num_training_steps = None
 
             _plot_trajectories(
@@ -277,7 +307,7 @@ def plot_trajectories(folder_path, exp_names, min_rollout):
                 save_path=os.path.join(
                     exp_path, f"{env_name}_{constants.TRAJECTORIES}"
                 ),
-                split_by=[start_position, (0,0)],
+                split_by=[start_position, (0, 0)],
                 num_training_steps=num_training_steps,
             )
 
@@ -289,7 +319,7 @@ def plot_trajectories(folder_path, exp_names, min_rollout):
                     exp_path,
                     f"{env_name}_{constants.FIND_THREAT_RUN}_{constants.TRAJECTORIES}",
                 ),
-                split_by=[start_position, (0,0)],
+                split_by=[start_position, (0, 0)],
                 num_training_steps=num_training_steps,
             )
 
@@ -437,7 +467,9 @@ def plot_learning_curve(
             f for f in os.listdir(exp_path) if os.path.isdir(os.path.join(exp_path, f))
         ][0]
 
-        data_logger_file_path = plot_functions._get_csv_path(os.path.join(exp_path, ex_seed))
+        data_logger_file_path = plot_functions._get_csv_path(
+            os.path.join(exp_path, ex_seed)
+        )
 
         ex_df = pd.read_csv(data_logger_file_path)
         tag_subset = list(ex_df.columns)

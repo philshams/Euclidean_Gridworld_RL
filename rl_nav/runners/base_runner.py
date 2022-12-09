@@ -2,16 +2,19 @@ import abc
 import copy
 import os
 import random
+from collections import namedtuple
 from typing import Any, Dict, List, Optional, Union
 
 import numpy as np
+from run_modes import base_runner
+
 from rl_nav import constants
 from rl_nav.environments import (
     escape_env_cardinal,
     escape_env_diagonal,
+    escape_env_diagonal_hierarchy,
     hierarchy_network,
     visualisation_env,
-    escape_env_diagonal_hierarchy,
 )
 from rl_nav.models import (
     a_star,
@@ -23,8 +26,7 @@ from rl_nav.models import (
     state_linear_features,
     successor_representation,
 )
-from rl_nav.utils import epsilon_schedules, model_utils, learning_rate_schedules
-from run_modes import base_runner
+from rl_nav.utils import epsilon_schedules, learning_rate_schedules, model_utils
 
 
 class BaseRunner(base_runner.BaseRunner):
@@ -186,7 +188,7 @@ class BaseRunner(base_runner.BaseRunner):
                 new_state=new_state,
                 active=self._train_environment.active,
             )
-            if state==new_state:
+            if state == new_state:
                 # if hit an obstacle, end the sequence
                 self._current_train_run_action_sequence = []
             state = new_state
@@ -349,7 +351,9 @@ class BaseRunner(base_runner.BaseRunner):
 
     def _setup_lr(self, config):
         if config.learning_rate_schedule == constants.CONSTANT:
-            return learning_rate_schedules.ConstantLearningRate(value=config.learning_rate_value)
+            return learning_rate_schedules.ConstantLearningRate(
+                value=config.learning_rate_value
+            )
         elif config.learning_rate_schedule == constants.LINEAR_DECAY:
             return learning_rate_schedules.LinearDecayLearningRate(
                 initial_value=config.learning_rate_initial_value,
@@ -433,10 +437,25 @@ class BaseRunner(base_runner.BaseRunner):
                 inverse_actions=self._train_environment.inverse_action_mapping,
             )
         elif config.model == constants.A_STAR:
+            NodeCostConfig = namedtuple("NodeCostConfig", "method tolerance")
+            if config.node_cost_resolution in [
+                constants.RANDOM_MIN,
+                constants.DETERMINISTIC_MIN,
+            ]:
+                node_cost_resolution = NodeCostConfig(config.node_cost_resolution, None)
+            elif config.node_cost_resolution == constants.RANDOM_MIN_WINDOW:
+                node_cost_resolution = NodeCostConfig(
+                    config.node_cost_resolution, config.tolerance
+                )
+            else:
+                raise ValueError(
+                    f"node cost resolution {config.node_cost_resolution} not recognised."
+                )
             model = a_star.AStar(
                 action_space=self._train_environment.action_space,
                 state_space=self._train_environment.state_space,
                 window_average=config.gradual_learner_window_average,
+                node_cost_resolution=node_cost_resolution,
                 inverse_actions=self._train_environment.inverse_action_mapping,
             )
         elif config.model in [
@@ -644,87 +663,6 @@ class BaseRunner(base_runner.BaseRunner):
         self._model.env_transition_matrix = self._train_environment.transition_matrix
         return logging_dict
 
-    def _find_reward_test(self, rollout: bool, planning: bool):
-        """Allow agent one more 'period' of exploration to find the reward
-        (in the test environment), before test rollout."""
-        test_logging_dict = {}
-
-        for i, (map_name, test_env) in enumerate(self._test_environments.items()):
-
-            state = test_env.reset_environment(episode_timeout=np.inf)
-
-            model_copy = copy.deepcopy(self._model)
-            model_copy.env_transition_matrix = test_env.transition_matrix
-
-            if not self._one_dim_blocks:
-                model_copy.allow_state_instantiation = True
-
-            while test_env.active:
-
-                # TODO: unclear which behaviour policy to use here...
-                action = model_copy.select_behaviour_action(
-                    state,
-                    epsilon=self._test_epsilon,
-                    excess_state_mapping=self._excess_state_mapping[i],
-                )
-                reward, new_state = test_env.step(action)
-
-                model_copy.step(
-                    state=state,
-                    action=action,
-                    reward=reward,
-                    new_state=new_state,
-                    active=test_env.active,
-                )
-                state = new_state
-
-            model_copy.allow_state_instantiation = False
-            model_copy.eval()
-
-            if planning:
-                reward, length = self._single_planning_test(
-                    test_model=model_copy,
-                    test_env=test_env,
-                    excess_state_mapping=self._excess_state_mapping[i],
-                    retain_history=True,
-                )
-            else:
-                reward, length = self._single_test(
-                    test_model=model_copy,
-                    test_env=test_env,
-                    excess_state_mapping=self._excess_state_mapping[i],
-                    retain_history=True,
-                )
-
-        return test_logging_dict
-
-    def _start_with_reward(self, model, test_env, t):
-        """ Short behavioral sequence to start pre-test
-        phase in which the agent enters shelter and
-        receives reward"""
-        reward_state = random.choice(test_env.reward_positions)
-        above_reward_state = (reward_state[0], reward_state[1]+1)
-        state = test_env.reset_environment(
-            episode_timeout=np.inf,
-            start_position=above_reward_state,
-            reward_availability=constants.INFINITE,
-            retain_history=(t != 0),
-        )
-        action = 3 # go down
-        reward, new_state = test_env.step(action)
-
-        model.step(
-                        state=state,
-                        action=action,
-                        reward=reward,
-                        new_state=new_state,
-                        active=test_env.active,
-                    )
-
-        return new_state # reward state
-
-
-
     def _find_threat_test(self, rollout: bool, planning: bool):
         """Agent starts in shelter and explores/learns in the time until it first reaches
         the threat zone at which point a test rollout is triggered."""
@@ -744,8 +682,37 @@ class BaseRunner(base_runner.BaseRunner):
                 model_copy.allow_state_instantiation = True
 
             for t in range(self._test_num_trials):
+                """Start with minimal action sequence to ensure agent enters shelter and
+                receives reward."""
+                reward_state = random.choice(test_env.reward_positions)
+                state = test_env.reset_environment(
+                    episode_timeout=np.inf,
+                    start_position=reward_state,
+                    reward_availability=constants.INFINITE,
+                    retain_history=(t != 0),
+                )
 
-                state = self._start_with_reward(model_copy, test_env, t)
+                initial_action = np.random.choice(test_env.action_space)
+                secondary_action = test_env.inverse_action_mapping[initial_action]
+
+                reward, new_state = test_env.step(initial_action)
+                model_copy.step(
+                    state=state,
+                    action=initial_action,
+                    reward=reward,
+                    new_state=new_state,
+                    active=test_env.active,
+                )
+                state = new_state
+                reward, new_state = test_env.step(secondary_action)
+                model_copy.step(
+                    state=state,
+                    action=secondary_action,
+                    reward=reward,
+                    new_state=new_state,
+                    active=test_env.active,
+                )
+                state = new_state
 
                 while state != tuple(test_env.starting_xy):
 
@@ -785,7 +752,7 @@ class BaseRunner(base_runner.BaseRunner):
                     )
 
                 # Pad trials with a (0,0) to facilitate post-hoc analysis
-                test_env._env._test_episode_position_history.append((0,0))
+                test_env._env._test_episode_position_history.append((0, 0))
 
                 test_logging_dict[
                     f"{constants.TEST_EPISODE_REWARD}_{map_name}_{constants.FIND_THREAT_RUN}_{t}"
@@ -826,7 +793,7 @@ class BaseRunner(base_runner.BaseRunner):
                 )
 
             # Pad trials with a (0,0) to facilitate post-hoc analysis
-            test_env._env._test_episode_position_history.append((0,0))
+            test_env._env._test_episode_position_history.append((0, 0))
 
             test_logging_dict[f"{constants.TEST_EPISODE_REWARD}_{map_name}"] = reward
             test_logging_dict[f"{constants.TEST_EPISODE_LENGTH}_{map_name}"] = length

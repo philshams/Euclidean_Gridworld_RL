@@ -1,6 +1,7 @@
 from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
+
 from rl_nav.environments import base_env
 
 
@@ -178,3 +179,11 @@ class Wrapper(base_env.BaseEnvironment):
 
     def __next__(self) -> None:
         next(self._env)
+
+    @property
+    def sub_action_space(self) -> List[int]:
+        return self._env._action_space
+
+    @property
+    def sub_state_space(self) -> List[Tuple[int, int]]:
+        return self._env._state_space

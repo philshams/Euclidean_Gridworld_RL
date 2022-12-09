@@ -3,6 +3,7 @@ import itertools
 from typing import Any, Dict, Tuple
 
 import numpy as np
+
 from rl_nav import constants
 from rl_nav.utils import env_utils
 

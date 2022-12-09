@@ -2,6 +2,7 @@ import abc
 from typing import Dict, List, Tuple, Union
 
 import numpy as np
+
 from rl_nav import constants
 from rl_nav.utils import env_utils
 

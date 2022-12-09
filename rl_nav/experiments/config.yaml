@@ -86,6 +86,13 @@ training:
                 - ../maps/hierarchy_geometry_7_3.txt
             hc_augment_actions: True
 
+    a_star:
+        # deterministic_min: chooses minimum node cost using np.min so will deterministically select first lowest cost
+        # random_min: chooses randomly from nodes that have minimum cost
+        # random_min_window: chooses randomly from nodes that have minimum cost + some tolerance
+        node_cost_resolution: random_min
+        tolerance: 0.1 # only used for random_min_window
+
 initialisation:
     type: random_normal
 

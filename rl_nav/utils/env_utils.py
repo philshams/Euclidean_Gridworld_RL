@@ -1,9 +1,10 @@
 import itertools
+import json
 from typing import Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import yaml
-import json
+
 from rl_nav import constants
 
 
@@ -159,9 +160,7 @@ def setup_rewards(reward_positions, reward_attributes) -> Dict[Tuple, Callable]:
     return rewards
 
 
-def configure_state_space(
-    map_outline, reward_positions: Optional, one_dim_blocks: bool = True
-):
+def configure_state_space(map_outline, reward_positions, one_dim_blocks: bool = True):
     """Get state space for the environment from the parsed map.
     Further split state space into walls, valid positions, key possessions etc.
     """
