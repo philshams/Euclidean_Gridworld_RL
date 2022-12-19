@@ -59,15 +59,29 @@ def _split_rollout_by_indices(
         split_start_indices.append(final_start_index)
 
     for i, start_index in enumerate(split_start_indices):
-        if i < len(split_end_indices) - 1:
-            end_index_bound = split_end_indices[i + 1]
+        if i < len(split_start_indices) - 1:
+            end_index_bound = split_start_indices[i + 1]
         else:
             end_index_bound = np.inf
         valid_end_indices = [
             j for j in split_end_indices_ if (j > start_index and j < end_index_bound)
         ]
         if valid_end_indices:
-            split_end_indices.append(np.min(valid_end_indices))
+            prov_end_index = np.min(valid_end_indices)
+            coordinate_distance = np.sqrt(
+                np.sum(
+                    (
+                        rollout_coordinates[prov_end_index]
+                        - rollout_coordinates[prov_end_index - 1]
+                    )
+                    ** 2
+                )
+            )
+            if coordinate_distance > np.sqrt(2):
+                # incomplete
+                split_end_indices.append(prov_end_index)
+            else:
+                split_end_indices.append(prov_end_index + 1)
         else:
             split_end_indices.append(None)
 
@@ -76,8 +90,8 @@ def _split_rollout_by_indices(
     for split_index_start, split_index_end in zip(
         split_start_indices, split_end_indices
     ):
-        x_chunk = x[split_index_start + 1 : split_index_end]
-        y_chunk = y[split_index_start + 1 : split_index_end]
+        x_chunk = x[split_index_start:split_index_end]
+        y_chunk = y[split_index_start:split_index_end]
         chunked_rollout.append([x_chunk, y_chunk])
 
     assert min([len(c[0]) for c in chunked_rollout]) > 2, "Index bug for failure trials"
