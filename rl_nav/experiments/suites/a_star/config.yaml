@@ -39,6 +39,13 @@ training:
 
     gradual_learner_window_average: 25
 
+    a_star:
+        # deterministic_min: chooses minimum node cost using np.min so will deterministically select first lowest cost
+        # random_min: chooses randomly from nodes that have minimum cost
+        # random_min_window: chooses randomly from nodes that have minimum cost + some tolerance
+        node_cost_resolution: random_min
+        tolerance: 0.1 # only used for random_min_window
+
     epsilon:
         schedule: constant
 
